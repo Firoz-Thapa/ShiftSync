@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '../../common';
+import { Card } from '../../common/Card/Card';
 import { useShifts } from '../../../hooks/useShifts';
 import { useStudySessions } from '../../../hooks/useStudySessions';
 import { formatHours, formatCurrency } from '../../../utils/formatters';
