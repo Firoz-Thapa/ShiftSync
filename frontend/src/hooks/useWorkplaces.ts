@@ -1,6 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Workplace, WorkplaceFormData } from '../types';
-import { workplaceService } from '../services/workplaceService';
+
+// Mock data for development
+const mockWorkplaces: Workplace[] = [
+  {
+    id: 1,
+    userId: 1,
+    name: 'Campus Coffee',
+    color: '#3498db',
+    hourlyRate: 15.50,
+    address: '123 University Ave',
+    contactInfo: 'manager@campuscoffee.com',
+    notes: 'Flexible hours, great team',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 2,
+    userId: 1,
+    name: 'Local Bookstore',
+    color: '#2ecc71',
+    hourlyRate: 14.00,
+    address: '456 Main St',
+    contactInfo: '(555) 123-4567',
+    notes: 'Quiet environment, perfect for studying',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  }
+];
 
 export const useWorkplaces = () => {
   const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
@@ -11,8 +38,10 @@ export const useWorkplaces = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await workplaceService.getUserWorkplaces();
-      setWorkplaces(data);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setWorkplaces(mockWorkplaces);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch workplaces');
     } finally {
@@ -22,7 +51,22 @@ export const useWorkplaces = () => {
 
   const createWorkplace = async (data: WorkplaceFormData): Promise<Workplace> => {
     try {
-      const newWorkplace = await workplaceService.createWorkplace(data);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const newWorkplace: Workplace = {
+        id: Date.now(),
+        userId: 1,
+        name: data.name,
+        color: data.color,
+        hourlyRate: data.hourlyRate,
+        address: data.address,
+        contactInfo: data.contactInfo,
+        notes: data.notes,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
       setWorkplaces(prev => [...prev, newWorkplace]);
       return newWorkplace;
     } catch (err: any) {
@@ -32,28 +76,11 @@ export const useWorkplaces = () => {
   };
 
   const updateWorkplace = async (id: number, data: Partial<WorkplaceFormData>): Promise<Workplace> => {
-    try {
-      const updatedWorkplace = await workplaceService.updateWorkplace(id, data);
-      setWorkplaces(prev => 
-        prev.map(workplace => 
-          workplace.id === id ? updatedWorkplace : workplace
-        )
-      );
-      return updatedWorkplace;
-    } catch (err: any) {
-      setError(err.message || 'Failed to update workplace');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   const deleteWorkplace = async (id: number): Promise<void> => {
-    try {
-      await workplaceService.deleteWorkplace(id);
-      setWorkplaces(prev => prev.filter(workplace => workplace.id !== id));
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete workplace');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   useEffect(() => {

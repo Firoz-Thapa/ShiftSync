@@ -1,176 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/SimpleAuthContext';
+import { AuthProvider, useAuth } from './contexts/SimpleAuthContext'; // Use SimpleAuthContext for now
 import { Loading } from './components/common';
+import { Layout } from './components/layout';
 import { ROUTES } from './constants/routes';
+
+// Import your actual page components
 import { Dashboard } from './pages/Dashboard/Dashboard';
+import { Schedule } from './pages/Schedule/Schedule';
+import { Workplaces } from './pages/Workplaces/Workplaces';
+import { Analytics } from './pages/Analytics/Analytics';
+import { Profile } from './pages/Profile/Profile';
+import { Login } from './pages/Login/Login';
+
 import './styles/globals.css';
-
-// Temporary simplified components for other pages
-const Schedule = () => {
-  return (
-    <div style={{ padding: '2rem', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      <div style={{ background: 'white', borderRadius: '12px', padding: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <h1>📅 Schedule</h1>
-        <p>Schedule management coming soon...</p>
-      </div>
-    </div>
-  );
-};
-
-const Workplaces = () => {
-  return (
-    <div style={{ padding: '2rem', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      <div style={{ background: 'white', borderRadius: '12px', padding: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <h1>🏢 Workplaces</h1>
-        <p>Workplace management coming soon...</p>
-      </div>
-    </div>
-  );
-};
-
-const Analytics = () => {
-  return (
-    <div style={{ padding: '2rem', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      <div style={{ background: 'white', borderRadius: '12px', padding: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <h1>📊 Analytics</h1>
-        <p>Analytics dashboard coming soon...</p>
-      </div>
-    </div>
-  );
-};
-
-const Profile = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div style={{ padding: '2rem', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      <div style={{ background: 'white', borderRadius: '12px', padding: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <h1>👤 Profile</h1>
-        <p>Name: {user?.firstName} {user?.lastName}</p>
-        <p>Email: {user?.email}</p>
-        <button 
-          onClick={logout}
-          style={{
-            padding: '10px 20px',
-            background: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginTop: '1rem'
-          }}
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const LoginPage = () => {
-  const { login } = useAuth();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await login({ email, password });
-      // Navigation will be handled by the routing logic
-    } catch (error) {
-      alert('Login failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
-      <div style={{ 
-        background: 'white',
-        borderRadius: '12px',
-        padding: '2rem',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-        textAlign: 'center',
-        maxWidth: '400px',
-        width: '100%'
-      }}>
-        <div style={{ marginBottom: '30px' }}>
-          <span style={{ fontSize: '3rem' }}>⚡</span>
-          <h1 style={{ margin: '10px 0', color: '#2d3748' }}>ShiftSync</h1>
-          <p style={{ color: '#718096' }}>Your personal time wizard</p>
-        </div>
-        
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{ 
-                width: '100%', 
-                padding: '12px', 
-                border: '2px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-              placeholder="your.email@example.com"
-            />
-          </div>
-          <div style={{ marginBottom: '30px', textAlign: 'left' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{ 
-                width: '100%', 
-                padding: '12px', 
-                border: '2px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-              placeholder="Enter your password"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '500',
-              cursor: isLoading ? 'wait' : 'pointer'
-            }}
-          >
-            {isLoading ? 'Signing In...' : 'Sign In to ShiftSync'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
@@ -184,29 +27,29 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route 
         path={ROUTES.LOGIN} 
-        element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <LoginPage />} 
+        element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Login />} 
       />
       
-      {/* Protected Routes */}
+      {/* Protected Routes - All wrapped in Layout */}
       <Route 
         path={ROUTES.DASHBOARD} 
-        element={user ? <Dashboard /> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? <Layout><Dashboard /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.SCHEDULE} 
-        element={user ? <Schedule /> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? <Layout><Schedule /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.WORKPLACES} 
-        element={user ? <Workplaces /> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? <Layout><Workplaces /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.ANALYTICS} 
-        element={user ? <Analytics /> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? <Layout><Analytics /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.PROFILE} 
-        element={user ? <Profile /> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? <Layout><Profile /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       
       {/* Default Routes */}

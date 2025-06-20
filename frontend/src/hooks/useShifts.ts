@@ -1,6 +1,64 @@
 import { useState, useEffect } from 'react';
 import { Shift, ShiftFormData } from '../types';
-import { shiftService } from '../services/shiftService';
+
+// Mock data for development
+const mockWorkplaces: any[] = [
+  {
+    id: 1,
+    userId: 1,
+    name: 'Campus Coffee',
+    color: '#3498db',
+    hourlyRate: 15.50,
+    address: '123 University Ave',
+    contactInfo: 'manager@campuscoffee.com',
+    notes: 'Flexible hours, great team',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 2,
+    userId: 1,
+    name: 'Local Bookstore', 
+    color: '#2ecc71',
+    hourlyRate: 14.00,
+    address: '456 Main St',
+    contactInfo: '(555) 123-4567',
+    notes: 'Quiet environment, perfect for studying',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  }
+];
+
+const mockShifts: Shift[] = [
+  {
+    id: 1,
+    userId: 1,
+    workplaceId: 1,
+    workplace: mockWorkplaces[0],
+    title: 'Morning Shift',
+    startDatetime: new Date().toISOString().replace(/T.*/, 'T09:00:00'),
+    endDatetime: new Date().toISOString().replace(/T.*/, 'T17:00:00'),
+    breakDuration: 30,
+    notes: 'Regular morning shift',
+    isConfirmed: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 2,
+    userId: 1,
+    workplaceId: 2,
+    workplace: mockWorkplaces[1],
+    title: 'Evening Shift',
+    startDatetime: new Date().toISOString().replace(/T.*/, 'T18:00:00'),
+    endDatetime: new Date().toISOString().replace(/T.*/, 'T22:00:00'),
+    breakDuration: 15,
+    notes: 'Evening shift at bookstore',
+    isConfirmed: false,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  }
+];
 
 export const useShifts = (dateRange?: { startDate: string; endDate: string }) => {
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -12,19 +70,9 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       setIsLoading(true);
       setError(null);
       
-      let data: Shift[];
-      if (dateRange) {
-        const response = await shiftService.getShifts({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-          limit: 100
-        });
-        data = response.data;
-      } else {
-        data = await shiftService.getTodayShifts();
-      }
-      
-      setShifts(data);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setShifts(mockShifts);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch shifts');
     } finally {
@@ -34,7 +82,26 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
 
   const createShift = async (data: ShiftFormData): Promise<Shift> => {
     try {
-      const newShift = await shiftService.createShift(data);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const workplace = mockWorkplaces.find(w => w.id === data.workplaceId);
+      
+      const newShift: Shift = {
+        id: Date.now(),
+        userId: 1,
+        workplaceId: data.workplaceId,
+        workplace: workplace,
+        title: data.title,
+        startDatetime: data.startDatetime,
+        endDatetime: data.endDatetime,
+        breakDuration: data.breakDuration || 0,
+        notes: data.notes,
+        isConfirmed: data.isConfirmed || false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
       setShifts(prev => [...prev, newShift]);
       return newShift;
     } catch (err: any) {
@@ -44,70 +111,23 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
   };
 
   const updateShift = async (id: number, data: Partial<ShiftFormData>): Promise<Shift> => {
-    try {
-      const updatedShift = await shiftService.updateShift(id, data);
-      setShifts(prev => 
-        prev.map(shift => 
-          shift.id === id ? updatedShift : shift
-        )
-      );
-      return updatedShift;
-    } catch (err: any) {
-      setError(err.message || 'Failed to update shift');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   const deleteShift = async (id: number): Promise<void> => {
-    try {
-      await shiftService.deleteShift(id);
-      setShifts(prev => prev.filter(shift => shift.id !== id));
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete shift');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   const confirmShift = async (id: number): Promise<void> => {
-    try {
-      const confirmedShift = await shiftService.confirmShift(id);
-      setShifts(prev => 
-        prev.map(shift => 
-          shift.id === id ? confirmedShift : shift
-        )
-      );
-    } catch (err: any) {
-      setError(err.message || 'Failed to confirm shift');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   const clockIn = async (id: number): Promise<void> => {
-    try {
-      const updatedShift = await shiftService.clockIn(id);
-      setShifts(prev => 
-        prev.map(shift => 
-          shift.id === id ? updatedShift : shift
-        )
-      );
-    } catch (err: any) {
-      setError(err.message || 'Failed to clock in');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   const clockOut = async (id: number): Promise<void> => {
-    try {
-      const updatedShift = await shiftService.clockOut(id);
-      setShifts(prev => 
-        prev.map(shift => 
-          shift.id === id ? updatedShift : shift
-        )
-      );
-    } catch (err: any) {
-      setError(err.message || 'Failed to clock out');
-      throw err;
-    }
+    throw new Error('Not implemented yet');
   };
 
   useEffect(() => {
