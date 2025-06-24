@@ -1,10 +1,10 @@
 import React from 'react';
-import { Layout, PageHeader } from '../../components/layout';
+import { PageHeader } from '../../components/layout';
 import { Card } from '../../components/common';
 
 export const Analytics: React.FC = () => {
   return (
-    <Layout>
+    <>
       <PageHeader
         title="📊 Analytics"
         subtitle="Track your productivity, earnings, and study progress"
@@ -29,6 +29,6 @@ export const Analytics: React.FC = () => {
           </div>
         </Card>
       </div>
-    </Layout>
+    </>
   );
 };

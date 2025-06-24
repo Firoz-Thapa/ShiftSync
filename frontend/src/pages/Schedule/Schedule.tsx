@@ -1,10 +1,10 @@
 import React from 'react';
-import { Layout, PageHeader } from '../../components/layout';
+import { PageHeader } from '../../components/layout';
 import { Card, Button } from '../../components/common';
 
 export const Schedule: React.FC = () => {
   return (
-    <Layout>
+    <>
       <PageHeader
         title="📅 Schedule"
         subtitle="View and manage your shifts and study sessions"
@@ -28,6 +28,6 @@ export const Schedule: React.FC = () => {
           </div>
         </Card>
       </div>
-    </Layout>
+    </>
   );
 };

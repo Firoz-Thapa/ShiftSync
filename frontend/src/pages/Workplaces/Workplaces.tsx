@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, PageHeader } from '../../components/layout';
+import { PageHeader } from '../../components/layout';
 import { Card, Button, Modal } from '../../components/common';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { WorkplaceForm } from '../../components/forms/WorkplaceForm';
@@ -10,7 +10,7 @@ export const Workplaces: React.FC = () => {
   const { workplaces, isLoading } = useWorkplaces();
 
   return (
-    <Layout>
+    <>
       <PageHeader
         title="🏢 My Workplaces"
         subtitle="Manage your part-time jobs and work locations"
@@ -71,6 +71,6 @@ export const Workplaces: React.FC = () => {
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>
-    </Layout>
+    </>
   );
 };

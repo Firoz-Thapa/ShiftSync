@@ -80,11 +80,11 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 ShiftSync Backend Server running on port ${PORT}`);
-  console.log(`📡 API Health Check: http://localhost:${PORT}/api/health`);
-  console.log(`🧪 API Test: http://localhost:${PORT}/api/test`);
-  console.log(`🔑 Mock Login: POST http://localhost:${PORT}/api/auth/login`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`ShiftSync Backend Server running on port ${PORT}`);
+  console.log(`API Health Check: http://localhost:${PORT}/api/health`);
+  console.log(`API Test: http://localhost:${PORT}/api/test`);
+  console.log(`Mock Login: POST http://localhost:${PORT}/api/auth/login`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Handle graceful shutdown
