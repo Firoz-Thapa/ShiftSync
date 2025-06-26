@@ -266,60 +266,23 @@ textarea:focus {
   pointer-events: none;
 }
 
-/* Centered content wrapper */
 .centered-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1400px; /* Adjust this value to control max width */
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* Make sure the layout content area supports centering */
-.layout__content {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-/* Alternative: If you want tighter centering, use this instead */
-.centered-content-tight {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+/* Ensure grid layouts work properly within centered content */
+.dashboard-grid,
+.schedule-container {
+  width: 100%;
 }
 
 /* For mobile responsiveness */
 @media (max-width: 768px) {
-  .centered-content,
-  .centered-content-tight {
+  .centered-content {
     padding: 0 0.5rem;
     max-width: 100%;
   }
-}
-
-/* Optional: Center the grid layouts on your pages */
-.dashboard-grid,
-.schedule-container {
-  width: 100%;
-  max-width: 1200px;
-}
-
-/* If you want to center just the main cards/content without affecting the full width */
-.page-content-centered {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-.page-content-centered > * {
-  width: 100%;
-  max-width: 1200px;
 }
