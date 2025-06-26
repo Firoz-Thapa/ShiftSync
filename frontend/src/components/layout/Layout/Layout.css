@@ -51,3 +51,37 @@
     padding: 1rem;
   }
 }
+
+/* Fix for centered content - add this to Layout.css */
+.layout__content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  margin-left: 0;
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  width: 100%;
+}
+
+.layout__content .centered-content {
+  width: 100%;
+  max-width: 1200px; /* Adjust this value as needed */
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .layout__content {
+    margin-left: 240px; /* Keep the sidebar offset on desktop */
+  }
+}
+
+@media (max-width: 768px) {
+  .layout__content {
+    padding: 1rem;
+  }
+  
+  .layout__content .centered-content {
+    max-width: 100%;
+    padding: 0;
+  }
+}

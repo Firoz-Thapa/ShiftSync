@@ -30,26 +30,56 @@ const AppRoutes = () => {
         element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Login />} 
       />
       
-      {/* Protected Routes - All wrapped in Layout */}
+      {/* Protected Routes - All wrapped in Layout with centering */}
       <Route 
         path={ROUTES.DASHBOARD} 
-        element={user ? <Layout><Dashboard /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? (
+          <Layout>
+            <div className="centered-content">
+              <Dashboard />
+            </div>
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.SCHEDULE} 
-        element={user ? <Layout><Schedule /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? (
+          <Layout>
+            <div className="centered-content">
+              <Schedule />
+            </div>
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.WORKPLACES} 
-        element={user ? <Layout><Workplaces /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? (
+          <Layout>
+            <div className="centered-content">
+              <Workplaces />
+            </div>
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.ANALYTICS} 
-        element={user ? <Layout><Analytics /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? (
+          <Layout>
+            <div className="centered-content">
+              <Analytics />
+            </div>
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       <Route 
         path={ROUTES.PROFILE} 
-        element={user ? <Layout><Profile /></Layout> : <Navigate to={ROUTES.LOGIN} replace />} 
+        element={user ? (
+          <Layout>
+            <div className="centered-content">
+              <Profile />
+            </div>
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       
       {/* Default Routes */}
