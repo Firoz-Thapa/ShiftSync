@@ -156,3 +156,32 @@ export interface StudySessionFormData {
   priority: Priority;
   notes?: string;
 }
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+    token: string;
+  };
+}
+
+export interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  logout: () => void;
+}
