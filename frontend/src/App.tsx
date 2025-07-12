@@ -1,11 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/SimpleAuthContext'; // Use SimpleAuthContext for now
+import { AuthProvider, useAuth } from './contexts/SimpleAuthContext'; 
 import { Loading } from './components/common';
 import { Layout } from './components/layout';
 import { ROUTES } from './constants/routes';
-
-// Import your actual page components
 import { Dashboard } from './pages/Dashboard/Dashboard';
 import { Schedule } from './pages/Schedule/Schedule';
 import { Workplaces } from './pages/Workplaces/Workplaces';
@@ -24,13 +22,11 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Public Routes */}
       <Route 
         path={ROUTES.LOGIN} 
         element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Login />} 
       />
-      
-      {/* Protected Routes - All wrapped in Layout with centering */}
+
       <Route 
         path={ROUTES.DASHBOARD} 
         element={user ? (
@@ -107,4 +103,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default App
