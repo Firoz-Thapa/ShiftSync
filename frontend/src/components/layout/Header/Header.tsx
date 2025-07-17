@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { Button } from '../../common';
+import { ThemeToggle } from '../../common/Theme Toggle/ThemeToggle';
 import './Header.css';
 
 export const Header: React.FC = () => {
@@ -28,9 +29,13 @@ export const Header: React.FC = () => {
                 </span>
                 <span className="header__user-email">{user.email}</span>
               </div>
-              <Button variant="ghost" size="small" onClick={logout}>
-                Logout
-              </Button>
+              
+              <div className="header__actions">
+                <ThemeToggle size="small" />
+                <Button variant="ghost" size="small" onClick={logout}>
+                  Logout
+                </Button>
+              </div>
             </div>
           )}
         </div>

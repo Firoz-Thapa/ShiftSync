@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/SimpleAuthContext'; 
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Loading } from './components/common';
 import { Layout } from './components/layout';
 import { ROUTES } from './constants/routes';
@@ -12,6 +13,7 @@ import { Profile } from './pages/Profile/Profile';
 import { Login } from './pages/Login/Login';
 
 import './styles/globals.css';
+import './styles/theme.css';
 
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
@@ -93,13 +95,15 @@ const AppRoutes = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="app">
-          <AppRoutes />
-        </div>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <div className="app">
+            <AppRoutes />
+          </div>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

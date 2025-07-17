@@ -1,0 +1,194 @@
+.theme-toggle {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+}
+
+.theme-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* Sizes */
+.theme-toggle--small {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  min-width: 36px;
+  height: 36px;
+}
+
+.theme-toggle--medium {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  min-width: 40px;
+  height: 40px;
+}
+
+.theme-toggle--large {
+  padding: 0.75rem 1.25rem;
+  font-size: 1.125rem;
+  min-width: 48px;
+  height: 48px;
+}
+
+.theme-toggle__icon {
+  font-size: 1.2em;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover .theme-toggle__icon {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.theme-toggle__label {
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+/* Dropdown Variant */
+.theme-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.theme-dropdown--small .theme-dropdown__select {
+  padding: 0.375rem 2rem 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  height: 36px;
+}
+
+.theme-dropdown--medium .theme-dropdown__select {
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  font-size: 1rem;
+  height: 40px;
+}
+
+.theme-dropdown--large .theme-dropdown__select {
+  padding: 0.75rem 3rem 0.75rem 1.25rem;
+  font-size: 1.125rem;
+  height: 48px;
+}
+
+.theme-dropdown__select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.theme-dropdown__select:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-dropdown__select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* Dark mode dropdown arrow */
+[data-theme="dark"] .theme-dropdown__select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* Animation for theme transitions */
+.theme-toggle__icon {
+  animation-duration: 0.5s;
+  animation-timing-function: ease-out;
+}
+
+@keyframes themeChange {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+.theme-toggle:active .theme-toggle__icon {
+  animation: themeChange 0.5s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .theme-toggle__label {
+    display: none;
+  }
+  
+  .theme-dropdown__select {
+    min-width: 100px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle__icon,
+  .theme-dropdown__select {
+    transition: none;
+  }
+  
+  .theme-toggle:hover .theme-toggle__icon {
+    transform: none;
+  }
+  
+  .theme-toggle__icon {
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .theme-toggle,
+  .theme-dropdown__select {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+}
+
+/* Focus visible for better keyboard navigation */
+.theme-toggle:focus-visible,
+.theme-dropdown__select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

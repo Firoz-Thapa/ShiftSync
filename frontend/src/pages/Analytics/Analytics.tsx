@@ -22,7 +22,6 @@ import { useStudySessions } from '../../hooks/useStudySessions';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { calculateDuration } from '../../utils/dateUtils';
 
-// Define proper interfaces
 interface StatCardProps {
   title: string;
   value: string;
@@ -403,11 +402,8 @@ export const Analytics: React.FC = () => {
           </ResponsiveContainer>
         </ChartCard>
       </div>
-
-      {/* Secondary Charts Row */}
       {processedData.workplaceData.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Workplace Distribution */}
           <ChartCard title="Earnings by Workplace">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -432,7 +428,6 @@ export const Analytics: React.FC = () => {
             </ResponsiveContainer>
           </ChartCard>
 
-          {/* Study Distribution */}
           {processedData.studyData.length > 0 && (
             <ChartCard title="Study Time by Subject">
               <ResponsiveContainer width="100%" height="100%">
@@ -449,7 +444,6 @@ export const Analytics: React.FC = () => {
         </div>
       )}
 
-      {/* Productivity Insights */}
       <Card>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">🎯 Productivity Insights</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
