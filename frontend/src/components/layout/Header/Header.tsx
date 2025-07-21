@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { Button } from '../../common';
 import { ThemeToggle } from '../../common/Theme Toggle/ThemeToggle';
+import { LiveClock } from '../../common/LiveClock/LiveClock'; // Add this import
 import './Header.css';
 
 export const Header: React.FC = () => {
@@ -23,6 +24,8 @@ export const Header: React.FC = () => {
         <div className="header__right">
           {user && (
             <div className="header__user">
+              <LiveClock /> {/* Add this component */}
+              
               <div className="header__user-info">
                 <span className="header__welcome">
                   Hey, {user.firstName}! 👋

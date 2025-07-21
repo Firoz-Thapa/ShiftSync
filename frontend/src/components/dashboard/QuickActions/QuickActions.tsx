@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, Modal } from '../../common';
+import { Card, Modal } from '../../common';
 import { ShiftForm } from '../../forms/ShiftForm';
 import { StudyForm } from '../../forms/StudyForm';
 import './QuickActions.css';
