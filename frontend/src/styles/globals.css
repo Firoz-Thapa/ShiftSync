@@ -545,3 +545,15 @@ textarea:focus {
     min-height: 48px;
   }
 }
+
+
+@media (max-width: 1023px) {
+  .layout__content {
+    margin-left: 0 !important;
+  }
+}
+
+.centered-content {
+  margin: 0 auto;
+  padding: 0;
+}
