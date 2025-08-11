@@ -108,3 +108,25 @@
   }
 }
 
+@media (max-width: 768px) {
+  .header__container {
+    padding: 0.75rem 1rem;
+  }
+  
+  .header__subtitle {
+    display: none;
+  }
+  
+  .header__user-email {
+    display: none;
+  }
+  
+  .header__title {
+    font-size: 1.25rem;
+  }
+  
+  .live-clock {
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+  }
+}
