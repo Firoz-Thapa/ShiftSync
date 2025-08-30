@@ -3,22 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Basic middleware
 app.use(helmet());
 app.use(cors({
-  origin: 'http://localhost:3000', // Your React app
+  origin: 'http://localhost:3000',
   credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check route
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
@@ -28,7 +25,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Simple test routes to verify everything works
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
@@ -37,11 +33,9 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Mock auth endpoint (temporary)
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
-  
-  // Mock authentication - always succeeds for now
+
   res.json({
     success: true,
     message: 'Login successful',
@@ -78,7 +72,6 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`ShiftSync Backend Server running on port ${PORT}`);
   console.log(`API Health Check: http://localhost:${PORT}/api/health`);
@@ -87,7 +80,6 @@ app.listen(PORT, () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-// Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM received. Shutting down gracefully...');
   process.exit(0);
@@ -96,4 +88,4 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log('👋 SIGINT received. Shutting down gracefully...');
   process.exit(0);
-});
+}); 
