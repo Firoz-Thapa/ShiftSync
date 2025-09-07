@@ -33,9 +33,7 @@ const AppRoutes = () => {
         path={ROUTES.DASHBOARD} 
         element={user ? (
           <Layout>
-            <div className="centered-content">
-              <Dashboard />
-            </div>
+            <Dashboard />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
@@ -43,9 +41,7 @@ const AppRoutes = () => {
         path={ROUTES.SCHEDULE} 
         element={user ? (
           <Layout>
-            <div className="centered-content">
-              <Schedule />
-            </div>
+            <Schedule />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
@@ -53,9 +49,7 @@ const AppRoutes = () => {
         path={ROUTES.WORKPLACES} 
         element={user ? (
           <Layout>
-            <div className="centered-content">
-              <Workplaces />
-            </div>
+            <Workplaces />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
@@ -63,9 +57,7 @@ const AppRoutes = () => {
         path={ROUTES.ANALYTICS} 
         element={user ? (
           <Layout>
-            <div className="centered-content">
-              <Analytics />
-            </div>
+            <Analytics />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
@@ -73,9 +65,7 @@ const AppRoutes = () => {
         path={ROUTES.PROFILE} 
         element={user ? (
           <Layout>
-            <div className="centered-content">
-              <Profile />
-            </div>
+            <Profile />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Header } from '../Header/Header';
 import { Sidebar } from '../Sidebar/Sidebar';
 import { Button } from '../../common';
-import { FloatingActionButton } from '../../common/FloatingActionButton/FloatingActionButton';
+import { FloatingActionButton } from '../FloatingActionButton/FloatingActionButton';
 import './Layout.css';
 
 interface LayoutProps {
@@ -38,7 +38,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         
         <main className="layout__main">
           <div className="layout__content">
-            {children}
+            <div className="layout__content-wrapper">
+              {children}
+            </div>
           </div>
         </main>
       </div>
