@@ -29,7 +29,6 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .live-clock {
     text-align: center;
@@ -47,17 +46,14 @@
   }
 }
 
-/* Dark theme support */
 [data-theme="dark"] .live-clock {
   color: #f7fafc;
 }
 
-/* Animation for smooth updates */
 .clock-time {
   transition: all 0.3s ease;
 }
 
-/* Pulse animation for seconds */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;

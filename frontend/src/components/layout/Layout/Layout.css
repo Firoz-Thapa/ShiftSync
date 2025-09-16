@@ -40,22 +40,20 @@
   box-sizing: border-box;
 }
 
-/* Content wrapper to control max width and centering */
 .layout__content-wrapper {
   width: 100%;
-  max-width: 1000px; /* Reduced from 1200px to 1000px */
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 1rem; /* Add some padding */
+  padding: 0 1rem;
 }
 
-/* Desktop layout - account for sidebar */
 @media (min-width: 1024px) {
   .layout__menu-button {
     display: none;
   }
 
   .layout__main {
-    margin-left: 240px; /* Account for sidebar width */
+    margin-left: 240px;
   }
   
   .layout__content {
@@ -63,19 +61,17 @@
   }
   
   .layout__content-wrapper {
-    max-width: 900px; /* Even smaller on desktop for better readability */
+    max-width: 900px; 
     padding: 0 2rem;
   }
 }
 
-/* Large desktop screens */
 @media (min-width: 1400px) {
   .layout__content-wrapper {
-    max-width: 1000px; /* Slightly larger on very big screens */
+    max-width: 1000px; 
   }
 }
 
-/* Tablet and mobile */
 @media (max-width: 1023px) {
   .layout__main {
     margin-left: 0;

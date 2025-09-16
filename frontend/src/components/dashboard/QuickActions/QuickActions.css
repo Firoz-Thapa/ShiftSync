@@ -11,7 +11,6 @@
   gap: 0.75rem;
 }
 
-/* New enhanced action card styles */
 .action-card {
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -26,7 +25,6 @@
   transform: scale(0.98);
 }
 
-/* Gradient utilities if not already in your CSS */
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
