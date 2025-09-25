@@ -13,7 +13,7 @@
 
 .layout__menu-button {
   position: fixed;
-  top: 90px;
+  top: 100px;
   left: 1rem;
   z-index: 60;
   background: white !important;
