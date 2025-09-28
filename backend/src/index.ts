@@ -16,9 +16,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
+
+app.use((req: any, res, next) => {
+  req.id = Math.random().toString(36).substr(2, 9);
+  res.setHeader('X-Request-ID', req.id);
+  next();
+});
+
+app.use((req: any, res, next) => {
   const timestamp = new Date().toLocaleTimeString();
-  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  console.log(`[${timestamp}] [${req.id}] ${req.method} ${req.url}`);
   next();
 });
 
@@ -87,11 +94,11 @@ app.listen(PORT, () => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM received. Shutting down gracefully...');
+  console.log('SIGTERM received. Shutting down gracefully...');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('👋 SIGINT received. Shutting down gracefully...');
+  console.log('SIGINT received. Shutting down gracefully...');
   process.exit(0);
 }); 
