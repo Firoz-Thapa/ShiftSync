@@ -9,7 +9,11 @@
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["shiftsync", "schedule", "api"],
+  "keywords": [
+    "shiftsync",
+    "schedule",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -20,6 +24,7 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mssql": "^11.0.1",
     "mysql2": "^3.14.1"
   },
   "devDependencies": {
@@ -27,6 +32,7 @@
     "@types/cors": "^2.8.18",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/mssql": "^9.1.8",
     "@types/node": "^22.15.24",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
