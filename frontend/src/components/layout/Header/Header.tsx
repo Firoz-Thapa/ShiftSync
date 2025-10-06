@@ -2,16 +2,31 @@ import React from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { Button } from '../../common';
 import { ThemeToggle } from '../../common/Theme Toggle/ThemeToggle';
-import { LiveClock } from '../../common/LiveClock/LiveClock'; // Add this import
+import { LiveClock } from '../../common/LiveClock/LiveClock';
 import './Header.css';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onMenuClick?: () => void;
+  isMenuOpen?: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMenuOpen }) => {
   const { user, logout } = useAuth();
 
   return (
     <header className="header">
       <div className="header__container">
         <div className="header__left">
+          {onMenuClick && (
+            <button 
+              className="header__menu-button"
+              onClick={onMenuClick}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {isMenuOpen ? '✕' : '☰'}
+            </button>
+          )}
+          
           <div className="header__logo">
             <span className="header__logo-icon">⚡</span>
             <div className="header__logo-text">
@@ -24,7 +39,7 @@ export const Header: React.FC = () => {
         <div className="header__right">
           {user && (
             <div className="header__user">
-              <LiveClock /> {/* Add this component */}
+              <LiveClock />
               
               <div className="header__user-info">
                 <span className="header__welcome">

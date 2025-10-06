@@ -24,6 +24,8 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 40;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .sidebar__nav {
@@ -63,18 +65,32 @@
   font-size: 0.95rem;
 }
 
-/* Desktop layout - sidebar is always visible */
 @media (min-width: 1024px) {
   .sidebar {
-    position: fixed;
     top: 80px;
-    left: 0;
-    transform: translateX(0);
-    width: 240px;
-    z-index: 30;
+    z-index: 50;
   }
 
   .sidebar__overlay {
     display: none;
   }
+  
+ 
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
