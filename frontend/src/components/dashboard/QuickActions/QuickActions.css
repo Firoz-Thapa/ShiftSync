@@ -2,6 +2,10 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: #2d3748;
+  flex-direction: column;
+  align-self: flex-end;
+  margin-left: auto;
+  width: fit-content;
   margin: 0 0 1rem 0;
 }
 
