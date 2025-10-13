@@ -429,3 +429,52 @@ textarea::placeholder {
   background: var(--bg-tertiary);
   transform: scale(1.05);
 }
+
+
+/* Dark Mode Text Visibility Fixes */
+[data-theme="dark"] .today-schedule__title,
+[data-theme="dark"] .quick-actions__title,
+[data-theme="dark"] .stats-overview__title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3 {
+  color: var(--text-primary) !important;
+}
+
+/* Schedule Items - Change background in dark mode */
+[data-theme="dark"] .schedule-item {
+  background: var(--bg-primary) !important; /* Change from light gray to dark */
+}
+
+[data-theme="dark"] .schedule-item:hover {
+  background: var(--bg-secondary) !important;
+}
+
+/* Schedule Item Text */
+[data-theme="dark"] .schedule-item__title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .schedule-item__subtitle {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .schedule-item__time {
+  color: var(--text-secondary) !important;
+}
+
+/* Other dark mode fixes */
+[data-theme="dark"] .today-schedule__date {
+  color: var(--text-tertiary) !important;
+}
+
+[data-theme="dark"] .today-schedule__empty {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .today-schedule__loading {
+  color: var(--text-secondary) !important;
+}
