@@ -1,8 +1,10 @@
+// frontend/src/components/layout/Header/Header.tsx
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { Button } from '../../common';
 import { ThemeToggle } from '../../common/Theme Toggle/ThemeToggle';
 import { LiveClock } from '../../common/LiveClock/LiveClock';
+import { WeatherInfo } from '../../common/WeatherInfo/WeatherInfo';
 import './Header.css';
 
 interface HeaderProps {
@@ -40,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMenuOpen }) => {
           {user && (
             <div className="header__user">
               <LiveClock />
+              <WeatherInfo />
               
               <div className="header__user-info">
                 <span className="header__welcome">
