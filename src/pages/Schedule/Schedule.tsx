@@ -30,7 +30,6 @@ export const Schedule: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
 
-  // Calculate date range based on view mode
   const getDateRange = () => {
     const start = new Date(selectedDate);
     const end = new Date(selectedDate);
@@ -40,8 +39,8 @@ export const Schedule: React.FC = () => {
         break;
       case 'week':
         const dayOfWeek = start.getDay();
-        start.setDate(start.getDate() - dayOfWeek + 1); // Monday
-        end.setDate(start.getDate() + 6); // Sunday
+        start.setDate(start.getDate() - dayOfWeek + 1); 
+        end.setDate(start.getDate() + 6); 
         break;
       case 'month':
         start.setDate(1);
@@ -60,7 +59,6 @@ export const Schedule: React.FC = () => {
   const { shifts, isLoading: shiftsLoading } = useShifts(dateRange);
   const { studySessions, isLoading: studyLoading } = useStudySessions(dateRange);
 
-  // Combine and format events
   const events: CalendarEvent[] = [
     ...shifts.map(shift => ({
       id: `shift-${shift.id}`,
@@ -163,7 +161,6 @@ export const Schedule: React.FC = () => {
       />
 
       <div className="schedule-container">
-        {/* Schedule Controls */}
         <Card className="schedule-controls">
           <div className="schedule-controls__left">
             <div className="view-mode-toggle">
@@ -196,12 +193,10 @@ export const Schedule: React.FC = () => {
           </div>
         </Card>
 
-        {/* Schedule Content */}
         {viewMode === 'day' && <DayView events={events} selectedDate={selectedDate} onEventClick={openEventDetails} />}
         {viewMode === 'week' && <WeekView events={events} selectedDate={selectedDate} onEventClick={openEventDetails} />}
         {viewMode === 'month' && <MonthView events={events} selectedDate={selectedDate} onEventClick={openEventDetails} />}
 
-        {/* Quick Stats */}
         <Card className="schedule-stats">
           <h3>📊 {viewMode.charAt(0).toUpperCase() + viewMode.slice(1)} Summary</h3>
           <div className="stats-grid">
@@ -232,7 +227,6 @@ export const Schedule: React.FC = () => {
         </Card>
       </div>
 
-      {/* Modals */}
       <Modal
         isOpen={modalType === 'shift'}
         onClose={closeModals}
@@ -263,7 +257,6 @@ export const Schedule: React.FC = () => {
   );
 };
 
-// Day View Component
 const DayView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventClick: (event: CalendarEvent) => void }> = ({
   events, selectedDate, onEventClick
 }) => {
@@ -304,7 +297,6 @@ const DayView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventCl
   );
 };
 
-// Week View Component
 const WeekView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventClick: (event: CalendarEvent) => void }> = ({
   events, selectedDate, onEventClick
 }) => {

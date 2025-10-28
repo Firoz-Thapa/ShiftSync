@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../Modal/Modal';
+import { Modal } from '../../common/Modal/Modal';
 import { ShiftForm } from '../../forms/ShiftForm';
 import { StudyForm } from '../../forms/StudyForm';
 import './FloatingActionButton.css';
@@ -21,7 +21,6 @@ export const FloatingActionButton: React.FC = () => {
     if (actionId === 'shift' || actionId === 'study') {
       setActiveModal(actionId as 'shift' | 'study');
     } else if (actionId === 'break') {
-      // Start a quick 15-minute break timer
       if ('Notification' in window) {
         Notification.requestPermission().then(() => {
           new Notification('Break Timer Started! ☕', {
@@ -32,7 +31,6 @@ export const FloatingActionButton: React.FC = () => {
       }
       alert('Break timer started! ☕ Enjoy your 15-minute break!');
     } else if (actionId === 'note') {
-      // Open quick note
       const note = prompt('📝 Quick note:');
       if (note && note.trim()) {
         const timestamp = new Date().toLocaleString();
@@ -53,7 +51,6 @@ export const FloatingActionButton: React.FC = () => {
   return (
     <>
       <div className="floating-action-container">
-        {/* Quick Action Items */}
         {isOpen && (
           <div className="quick-actions-menu">
             {quickActions.map((action, index) => (
@@ -80,7 +77,6 @@ export const FloatingActionButton: React.FC = () => {
           </div>
         )}
 
-        {/* Main FAB */}
         <button
           onClick={toggleMenu}
           className={`main-fab ${isOpen ? 'main-fab--open' : ''}`}
@@ -90,7 +86,6 @@ export const FloatingActionButton: React.FC = () => {
         </button>
       </div>
 
-      {/* Modals */}
       <Modal
         isOpen={activeModal === 'shift'}
         onClose={closeModal}

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Header } from '../Header/Header';
 import { Sidebar } from '../Sidebar/Sidebar';
-import { Button } from '../../common';
-import { FloatingActionButton } from '../../common/FloatingActionButton/FloatingActionButton';
+// import { Button } from '../../common';
+import { FloatingActionButton } from '../FloatingActionButton/FloatingActionButton';
 import './Layout.css';
 
 interface LayoutProps {
@@ -22,23 +22,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="layout">
-      <Header />
+      <Header onMenuClick={toggleSidebar} isMenuOpen={sidebarOpen} />
       
       <div className="layout__container">
-        <Button
-          className="layout__menu-button"
-          variant="ghost"
-          size="small"
-          onClick={toggleSidebar}
-        >
-          ☰
-        </Button>
-
         <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
         
-        <main className="layout__main">
+        <main className={`layout__main ${sidebarOpen ? 'sidebar-open' : ''}`}>
           <div className="layout__content">
-            {children}
+            <div className="layout__content-wrapper">
+              {children}
+            </div>
           </div>
         </main>
       </div>

@@ -3,7 +3,7 @@
   top: 80px;
   left: 0;
   bottom: 0;
-  width: 250px;
+  width: 240px;
   background: white;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
   transform: translateX(-100%);
@@ -24,6 +24,8 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 40;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .sidebar__nav {
@@ -65,14 +67,30 @@
 
 @media (min-width: 1024px) {
   .sidebar {
-    position: relative;
-    top: 0;
-    transform: none;
-    width: 240px;
-    flex-shrink: 0;
+    top: 80px;
+    z-index: 50;
   }
 
   .sidebar__overlay {
     display: none;
   }
+  
+ 
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }

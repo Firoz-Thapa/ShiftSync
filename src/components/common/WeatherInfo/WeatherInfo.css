@@ -1,0 +1,22 @@
+.weather-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weather-info .temperature {
+  font-weight: bold;
+}
+
+.weather-info .description {
+  text-transform: capitalize;
+}
+
+.weather-info.loading {
+  font-style: italic;
+  color: #888;
+}
+
+.weather-info.error {
+  color: red;
+}

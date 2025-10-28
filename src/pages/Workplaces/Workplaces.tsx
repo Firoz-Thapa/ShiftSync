@@ -7,7 +7,13 @@ import { formatCurrency } from '../../utils/formatters';
 
 export const Workplaces: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { workplaces, isLoading } = useWorkplaces();
+  const { workplaces, isLoading, fetchWorkplaces } = useWorkplaces();
+
+  const handleSuccess = async () => {
+    console.log('Workplace added successfully, closing modal and refreshing...'); 
+    setIsModalOpen(false);
+    await fetchWorkplaces();
+  };
 
   return (
     <>
@@ -67,7 +73,7 @@ export const Workplaces: React.FC = () => {
         size="medium"
       >
         <WorkplaceForm
-          onSuccess={() => setIsModalOpen(false)}
+          onSuccess={handleSuccess}
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>
