@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
+import { WorkplaceFormData } from '../../../types';
 import { Button } from '../../common';
 import { useWorkplaces } from '../../../hooks/useWorkplaces';
-import { WorkplaceFormData } from '../../../types';
-import { WORKPLACE_COLORS } from '../../../constants/colors';
-import { validateRequired, validateHourlyRate } from '../../../utils/validators';
 
 interface WorkplaceFormProps {
   onSuccess: () => void;
@@ -14,160 +12,164 @@ interface WorkplaceFormProps {
 export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({
   onSuccess,
   onCancel,
-  initialData,
+  initialData
 }) => {
+  const { createWorkplace } = useWorkplaces();
+  
   const [formData, setFormData] = useState<WorkplaceFormData>({
     name: initialData?.name || '',
-    color: initialData?.color || WORKPLACE_COLORS[0],
+    color: initialData?.color || '#3498db',
     hourlyRate: initialData?.hourlyRate || 0,
     address: initialData?.address || '',
     contactInfo: initialData?.contactInfo || '',
-    notes: initialData?.notes || '',
+    notes: initialData?.notes || ''
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { createWorkplace } = useWorkplaces();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? Number(value) : value,
-    }));
-
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const handleColorChange = (color: string) => {
-    setFormData(prev => ({ ...prev, color }));
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    const nameError = validateRequired(formData.name, 'Workplace name');
-    if (nameError) newErrors.name = nameError;
-
-    const rateError = validateHourlyRate(formData.hourlyRate);
-    if (rateError) newErrors.hourlyRate = rateError;
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
+    setIsSubmitting(true);
+    setError(null);
 
-    setIsLoading(true);
     try {
       await createWorkplace(formData);
       onSuccess();
-    } catch (error: any) {
-      setErrors({ general: error.message || 'Failed to create workplace' });
+    } catch (err: any) {
+      setError(err.message || 'Failed to create workplace');
+      console.error('Error submitting form:', err);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="workplace-form">
-      {errors.general && (
-        <div className="error-message">{errors.general}</div>
-      )}
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'hourlyRate' ? parseFloat(value) || 0 : value
+    }));
+  };
 
-      <div className="form-group">
-        <label htmlFor="name">Workplace Name *</label>
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+      
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          Workplace Name *
+        </label>
         <input
           type="text"
           id="name"
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className={errors.name ? 'error' : ''}
-          placeholder="e.g., Campus Coffee Shop, Local Bookstore"
+          required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="e.g., Campus Coffee"
         />
-        {errors.name && <span className="field-error">{errors.name}</span>}
       </div>
 
-      <div className="form-group">
-        <label>Color Theme</label>
-        <div className="color-picker">
-          {WORKPLACE_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className={`color-option ${formData.color === color ? 'selected' : ''}`}
-              style={{ backgroundColor: color }}
-              onClick={() => handleColorChange(color)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="hourlyRate">Hourly Rate ($)</label>
+      <div>
+        <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700 mb-1">
+          Hourly Rate ($) *
+        </label>
         <input
           type="number"
           id="hourlyRate"
           name="hourlyRate"
           value={formData.hourlyRate}
           onChange={handleChange}
-          className={errors.hourlyRate ? 'error' : ''}
-          min="0"
+          required
           step="0.01"
+          min="0"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="15.50"
         />
-        {errors.hourlyRate && <span className="field-error">{errors.hourlyRate}</span>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="address">Address</label>
+      <div>
+        <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">
+          Color
+        </label>
+        <input
+          type="color"
+          id="color"
+          name="color"
+          value={formData.color}
+          onChange={handleChange}
+          className="w-20 h-10 border border-gray-300 rounded-md cursor-pointer"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+          Address
+        </label>
         <input
           type="text"
           id="address"
           name="address"
           value={formData.address}
           onChange={handleChange}
-          placeholder="123 Main Street, City, State"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="123 University Ave"
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="contactInfo">Contact Information</label>
+      <div>
+        <label htmlFor="contactInfo" className="block text-sm font-medium text-gray-700 mb-1">
+          Contact Info
+        </label>
         <input
           type="text"
           id="contactInfo"
           name="contactInfo"
           value={formData.contactInfo}
           onChange={handleChange}
-          placeholder="Phone, email, or manager name"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="manager@workplace.com or (555) 123-4567"
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="notes">Notes</label>
+      <div>
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          Notes
+        </label>
         <textarea
           id="notes"
           name="notes"
           value={formData.notes}
           onChange={handleChange}
           rows={3}
-          placeholder="Any additional notes about this workplace..."
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Any additional notes..."
         />
       </div>
 
-      <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+      <div className="flex gap-3 justify-end pt-4">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
-        <Button type="submit" loading={isLoading}>
-          Create Workplace
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Saving...' : 'Save Workplace'}
         </Button>
       </div>
     </form>
