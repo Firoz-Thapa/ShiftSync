@@ -4,33 +4,8 @@ import { Workplace, WorkplaceFormData } from '../types';
 // LocalStorage key for persisting workplaces
 const STORAGE_KEY = 'shiftsync_workplaces';
 
-// Default mock data
-const DEFAULT_WORKPLACES: Workplace[] = [
-  {
-    id: 1,
-    userId: 1,
-    name: 'Campus Coffee',
-    color: '#3498db',
-    hourlyRate: 15.50,
-    address: '123 University Ave',
-    contactInfo: 'manager@campuscoffee.com',
-    notes: 'Flexible hours, great team',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 2,
-    userId: 1,
-    name: 'Local Bookstore',
-    color: '#2ecc71',
-    hourlyRate: 14.00,
-    address: '456 Main St',
-    contactInfo: '(555) 123-4567',
-    notes: 'Quiet environment, perfect for studying',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
+// Empty default - no hardcoded workplaces
+const DEFAULT_WORKPLACES: Workplace[] = [];
 
 // Helper function to load workplaces from localStorage
 const loadWorkplacesFromStorage = (): Workplace[] => {
@@ -45,9 +20,8 @@ const loadWorkplacesFromStorage = (): Workplace[] => {
     console.error('❌ Error loading workplaces from localStorage:', error);
   }
   
-  // If nothing in storage, use default workplaces and save them
-  console.log('💾 No stored workplaces found, using defaults');
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_WORKPLACES));
+  // If nothing in storage, return empty array
+  console.log('💾 No stored workplaces found, starting fresh with empty array');
   return DEFAULT_WORKPLACES;
 };
 
