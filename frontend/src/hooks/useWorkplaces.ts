@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Workplace, WorkplaceFormData } from '../types';
 
-// Move mock data OUTSIDE and make it truly persistent using a module-level variable
-let persistentWorkplaces: Workplace[] = [
+// LocalStorage key for persisting workplaces
+const STORAGE_KEY = 'shiftsync_workplaces';
+
+// Default mock data
+const DEFAULT_WORKPLACES: Workplace[] = [
   {
     id: 1,
     userId: 1,
@@ -29,6 +32,35 @@ let persistentWorkplaces: Workplace[] = [
   }
 ];
 
+// Helper function to load workplaces from localStorage
+const loadWorkplacesFromStorage = (): Workplace[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      console.log('📂 Loaded workplaces from localStorage:', parsed);
+      return parsed;
+    }
+  } catch (error) {
+    console.error('❌ Error loading workplaces from localStorage:', error);
+  }
+  
+  // If nothing in storage, use default workplaces and save them
+  console.log('💾 No stored workplaces found, using defaults');
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_WORKPLACES));
+  return DEFAULT_WORKPLACES;
+};
+
+// Helper function to save workplaces to localStorage
+const saveWorkplacesToStorage = (workplaces: Workplace[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(workplaces));
+    console.log('💾 Saved workplaces to localStorage:', workplaces);
+  } catch (error) {
+    console.error('❌ Error saving workplaces to localStorage:', error);
+  }
+};
+
 export const useWorkplaces = () => {
   const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,19 +68,19 @@ export const useWorkplaces = () => {
 
   const fetchWorkplaces = async () => {
     try {
-      console.log('🔄 fetchWorkplaces called'); // Debug log
+      console.log('🔄 fetchWorkplaces called');
       setIsLoading(true);
       setError(null);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Create a new array reference to trigger React update
-      const newWorkplaces = [...persistentWorkplaces];
-      console.log('📦 Setting workplaces state to:', newWorkplaces); // Debug log
-      setWorkplaces(newWorkplaces);
+      // Load from localStorage
+      const loadedWorkplaces = loadWorkplacesFromStorage();
+      console.log('📦 Setting workplaces state to:', loadedWorkplaces);
+      setWorkplaces(loadedWorkplaces);
       
-      console.log('✅ Fetched workplaces:', persistentWorkplaces); // Debug log
+      console.log('✅ Fetched workplaces:', loadedWorkplaces);
     } catch (err: any) {
       console.error('❌ Error fetching workplaces:', err);
       setError(err.message || 'Failed to fetch workplaces');
@@ -59,7 +91,7 @@ export const useWorkplaces = () => {
 
   const createWorkplace = async (data: WorkplaceFormData): Promise<Workplace> => {
     try {
-      console.log('🏗️ Creating workplace with data:', data); // Debug log
+      console.log('🏗️ Creating workplace with data:', data);
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -77,24 +109,27 @@ export const useWorkplaces = () => {
         updatedAt: new Date().toISOString()
       };
       
-      // Add to persistent array
-      persistentWorkplaces.push(newWorkplace);
+      // Load current workplaces from storage
+      const currentWorkplaces = loadWorkplacesFromStorage();
       
-      console.log('✨ New workplace created:', newWorkplace); // Debug log
-      console.log('📊 All workplaces now:', persistentWorkplaces); // Debug log
-      console.log('📊 Length:', persistentWorkplaces.length); // Debug log
+      // Add new workplace
+      const updatedWorkplaces = [...currentWorkplaces, newWorkplace];
       
-      // Update state with new array reference - CRITICAL for React to detect change
-      const updatedWorkplaces = [...persistentWorkplaces];
-      console.log('🔄 Setting workplaces state after create:', updatedWorkplaces); // Debug log
+      // Save to localStorage
+      saveWorkplacesToStorage(updatedWorkplaces);
+      
+      console.log('✨ New workplace created:', newWorkplace);
+      console.log('📊 All workplaces now:', updatedWorkplaces);
+      console.log('📊 Length:', updatedWorkplaces.length);
+      
+      // Update state
       setWorkplaces(updatedWorkplaces);
       
-      // Double-check state was set
-      console.log('✅ Create workplace complete'); // Debug log
+      console.log('✅ Create workplace complete');
       
       return newWorkplace;
     } catch (err: any) {
-      console.error('❌ Error creating workplace:', err); // Debug log
+      console.error('❌ Error creating workplace:', err);
       setError(err.message || 'Failed to create workplace');
       throw err;
     }
@@ -104,19 +139,26 @@ export const useWorkplaces = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const index = persistentWorkplaces.findIndex(wp => wp.id === id);
+      const currentWorkplaces = loadWorkplacesFromStorage();
+      const index = currentWorkplaces.findIndex(wp => wp.id === id);
+      
       if (index === -1) {
         throw new Error('Workplace not found');
       }
       
       const updatedWorkplace: Workplace = {
-        ...persistentWorkplaces[index],
+        ...currentWorkplaces[index],
         ...data,
         updatedAt: new Date().toISOString()
       };
       
-      persistentWorkplaces[index] = updatedWorkplace;
-      setWorkplaces([...persistentWorkplaces]);
+      currentWorkplaces[index] = updatedWorkplace;
+      
+      // Save to localStorage
+      saveWorkplacesToStorage(currentWorkplaces);
+      
+      // Update state
+      setWorkplaces([...currentWorkplaces]);
       
       return updatedWorkplace;
     } catch (err: any) {
@@ -129,13 +171,20 @@ export const useWorkplaces = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const index = persistentWorkplaces.findIndex(wp => wp.id === id);
+      const currentWorkplaces = loadWorkplacesFromStorage();
+      const index = currentWorkplaces.findIndex(wp => wp.id === id);
+      
       if (index === -1) {
         throw new Error('Workplace not found');
       }
       
-      persistentWorkplaces.splice(index, 1);
-      setWorkplaces([...persistentWorkplaces]);
+      currentWorkplaces.splice(index, 1);
+      
+      // Save to localStorage
+      saveWorkplacesToStorage(currentWorkplaces);
+      
+      // Update state
+      setWorkplaces([...currentWorkplaces]);
     } catch (err: any) {
       setError(err.message || 'Failed to delete workplace');
       throw err;
