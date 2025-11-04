@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, ThemeToggle, Modal } from '../../components/common';
+import { ToastContainer, useToast } from '../../components/common/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export const Profile: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, effectiveTheme } = useTheme();
+  const { toasts, success, error, removeToast } = useToast();
   
   // State for edit profile modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -41,7 +43,6 @@ export const Profile: React.FC = () => {
 
   const handleReduceMotionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setReduceMotion(e.target.checked);
-    // Apply the preference to the document
     if (e.target.checked) {
       document.documentElement.style.setProperty('--animation-duration', '0ms');
       document.documentElement.style.setProperty('--transition-duration', '0ms');
@@ -53,7 +54,6 @@ export const Profile: React.FC = () => {
 
   const handleHighContrastChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHighContrast(e.target.checked);
-    // Apply high contrast mode
     if (e.target.checked) {
       document.documentElement.setAttribute('data-high-contrast', 'true');
     } else {
@@ -62,7 +62,6 @@ export const Profile: React.FC = () => {
   };
 
   const handleEditClick = () => {
-    // Reset form data to current user data
     setEditFormData({
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
@@ -100,14 +99,28 @@ export const Profile: React.FC = () => {
       
       localStorage.setItem('shiftsync_user', JSON.stringify(updatedUser));
       
-      // Show success message
-      alert('Profile updated successfully! 🎉');
-      
-      // Close modal and reload page to reflect changes
+      // Close modal first
       setIsEditModalOpen(false);
-      window.location.reload();
-    } catch (error: any) {
-      setUpdateError(error.message || 'Failed to update profile');
+      
+      // Show success toast
+      success(
+        'Profile Updated!',
+        'Your profile information has been successfully updated.',
+        4000
+      );
+      
+      // Reload page after a short delay to see the toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (err: any) {
+      setUpdateError(err.message || 'Failed to update profile');
+      error(
+        'Update Failed',
+        err.message || 'Failed to update profile. Please try again.',
+        5000
+      );
     } finally {
       setIsUpdating(false);
     }
@@ -288,7 +301,6 @@ export const Profile: React.FC = () => {
                 />
               </div>
 
-              {/* Additional Accessibility Options */}
               <div style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px dashed var(--border-primary)' }}>
                 <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-primary)' }}>
                   Browser Accessibility Settings
@@ -517,6 +529,9 @@ export const Profile: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );
 };
