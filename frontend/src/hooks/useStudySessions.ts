@@ -1,40 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StudySession, StudySessionFormData } from '../types';
 
-// Mock data for development
-const mockStudySessions: StudySession[] = [
-  {
-    id: 1,
-    userId: 1,
-    title: 'Database Systems Review',
-    subject: 'Computer Science',
-    startDatetime: new Date().toISOString().replace(/T.*/, 'T14:00:00'),
-    endDatetime: new Date().toISOString().replace(/T.*/, 'T16:00:00'),
-    location: 'Library Room 201',
-    sessionType: 'study_group',
-    priority: 'high',
-    isCompleted: false,
-    notes: 'Prepare for midterm exam',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 2,
-    userId: 1,
-    title: 'Math Assignment',
-    subject: 'Mathematics',
-    startDatetime: new Date().toISOString().replace(/T.*/, 'T19:00:00'),
-    endDatetime: new Date().toISOString().replace(/T.*/, 'T21:00:00'),
-    location: 'Home',
-    sessionType: 'assignment',
-    priority: 'medium',
-    isCompleted: true,
-    notes: 'Calculus homework due tomorrow',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
-
 export const useStudySessions = (dateRange?: { startDate: string; endDate: string }) => {
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,9 +11,26 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
       setIsLoading(true);
       setError(null);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setStudySessions(mockStudySessions);
+      // Load study sessions from localStorage
+      const storedSessions = localStorage.getItem('shiftsync_study_sessions');
+      let allSessions: StudySession[] = storedSessions ? JSON.parse(storedSessions) : [];
+      
+      // Filter by date range if provided
+      if (dateRange) {
+        const startDate = new Date(dateRange.startDate);
+        const endDate = new Date(dateRange.endDate);
+        endDate.setHours(23, 59, 59, 999); // Include the entire end date
+        
+        allSessions = allSessions.filter(session => {
+          const sessionDate = new Date(session.startDatetime);
+          return sessionDate >= startDate && sessionDate <= endDate;
+        });
+      }
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setStudySessions(allSessions);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch study sessions');
     } finally {
@@ -76,7 +59,19 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
         updatedAt: new Date().toISOString()
       };
       
+      // Load existing sessions
+      const storedSessions = localStorage.getItem('shiftsync_study_sessions');
+      const existingSessions = storedSessions ? JSON.parse(storedSessions) : [];
+      
+      // Add new session
+      const updatedSessions = [...existingSessions, newSession];
+      
+      // Save to localStorage
+      localStorage.setItem('shiftsync_study_sessions', JSON.stringify(updatedSessions));
+      
+      // Update state
       setStudySessions(prev => [...prev, newSession]);
+      
       return newSession;
     } catch (err: any) {
       setError(err.message || 'Failed to create study session');
@@ -85,15 +80,54 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
   };
 
   const updateStudySession = async (id: number, data: Partial<StudySessionFormData>): Promise<StudySession> => {
-    throw new Error('Not implemented yet');
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedSessions = localStorage.getItem('shiftsync_study_sessions');
+      const existingSessions = storedSessions ? JSON.parse(storedSessions) : [];
+      
+      const index = existingSessions.findIndex((s: StudySession) => s.id === id);
+      if (index === -1) {
+        throw new Error('Study session not found');
+      }
+      
+      const updatedSession: StudySession = {
+        ...existingSessions[index],
+        ...data,
+        updatedAt: new Date().toISOString()
+      };
+      
+      existingSessions[index] = updatedSession;
+      localStorage.setItem('shiftsync_study_sessions', JSON.stringify(existingSessions));
+      
+      setStudySessions(prev => prev.map(s => s.id === id ? updatedSession : s));
+      
+      return updatedSession;
+    } catch (err: any) {
+      setError(err.message || 'Failed to update study session');
+      throw err;
+    }
   };
 
   const deleteStudySession = async (id: number): Promise<void> => {
-    throw new Error('Not implemented yet');
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedSessions = localStorage.getItem('shiftsync_study_sessions');
+      const existingSessions = storedSessions ? JSON.parse(storedSessions) : [];
+      
+      const filteredSessions = existingSessions.filter((s: StudySession) => s.id !== id);
+      localStorage.setItem('shiftsync_study_sessions', JSON.stringify(filteredSessions));
+      
+      setStudySessions(prev => prev.filter(s => s.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete study session');
+      throw err;
+    }
   };
 
   const markAsCompleted = async (id: number): Promise<void> => {
-    throw new Error('Not implemented yet');
+    await updateStudySession(id, { isCompleted: true } as any);
   };
 
   useEffect(() => {
