@@ -134,14 +134,84 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
     await updateShift(id, { isConfirmed: true });
   };
 
-  const clockIn = async (id: number): Promise<void> => {
-    // Implementation for clock in functionality
-    throw new Error('Not implemented yet');
+  const clockIn = async (id: number): Promise<Shift> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      const index = existingShifts.findIndex((s: Shift) => s.id === id);
+      if (index === -1) {
+        throw new Error('Shift not found');
+      }
+      
+      const updatedShift: Shift = {
+        ...existingShifts[index],
+        actualStartTime: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      existingShifts[index] = updatedShift;
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(existingShifts));
+      
+      // Also store active clock-in
+      localStorage.setItem('shiftsync_active_clockin', JSON.stringify({
+        shiftId: id,
+        startTime: updatedShift.actualStartTime,
+        workplace: updatedShift.workplace
+      }));
+      
+      setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      
+      return updatedShift;
+    } catch (err: any) {
+      setError(err.message || 'Failed to clock in');
+      throw err;
+    }
   };
 
-  const clockOut = async (id: number): Promise<void> => {
-    // Implementation for clock out functionality
-    throw new Error('Not implemented yet');
+  const clockOut = async (id: number): Promise<Shift> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      const index = existingShifts.findIndex((s: Shift) => s.id === id);
+      if (index === -1) {
+        throw new Error('Shift not found');
+      }
+      
+      if (!existingShifts[index].actualStartTime) {
+        throw new Error('Cannot clock out without clocking in first');
+      }
+      
+      const updatedShift: Shift = {
+        ...existingShifts[index],
+        actualEndTime: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      existingShifts[index] = updatedShift;
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(existingShifts));
+      
+      // Remove active clock-in
+      localStorage.removeItem('shiftsync_active_clockin');
+      
+      setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      
+      return updatedShift;
+    } catch (err: any) {
+      setError(err.message || 'Failed to clock out');
+      throw err;
+    }
+  };
+
+  // Helper to get active clock-in
+  const getActiveClockIn = () => {
+    const stored = localStorage.getItem('shiftsync_active_clockin');
+    return stored ? JSON.parse(stored) : null;
   };
 
   useEffect(() => {
@@ -159,5 +229,6 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
     confirmShift,
     clockIn,
     clockOut,
+    getActiveClockIn,
   };
 };
