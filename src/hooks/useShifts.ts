@@ -1,65 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shift, ShiftFormData } from '../types';
 
-// Mock data for development
-const mockWorkplaces: any[] = [
-  {
-    id: 1,
-    userId: 1,
-    name: 'Campus Coffee',
-    color: '#3498db',
-    hourlyRate: 15.50,
-    address: '123 University Ave',
-    contactInfo: 'manager@campuscoffee.com',
-    notes: 'Flexible hours, great team',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 2,
-    userId: 1,
-    name: 'Local Bookstore', 
-    color: '#2ecc71',
-    hourlyRate: 14.00,
-    address: '456 Main St',
-    contactInfo: '(555) 123-4567',
-    notes: 'Quiet environment, perfect for studying',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
-
-const mockShifts: Shift[] = [
-  {
-    id: 1,
-    userId: 1,
-    workplaceId: 1,
-    workplace: mockWorkplaces[0],
-    title: 'Morning Shift',
-    startDatetime: new Date().toISOString().replace(/T.*/, 'T09:00:00'),
-    endDatetime: new Date().toISOString().replace(/T.*/, 'T17:00:00'),
-    breakDuration: 30,
-    notes: 'Regular morning shift',
-    isConfirmed: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: 2,
-    userId: 1,
-    workplaceId: 2,
-    workplace: mockWorkplaces[1],
-    title: 'Evening Shift',
-    startDatetime: new Date().toISOString().replace(/T.*/, 'T18:00:00'),
-    endDatetime: new Date().toISOString().replace(/T.*/, 'T22:00:00'),
-    breakDuration: 15,
-    notes: 'Evening shift at bookstore',
-    isConfirmed: false,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
-
 export const useShifts = (dateRange?: { startDate: string; endDate: string }) => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,9 +11,26 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       setIsLoading(true);
       setError(null);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setShifts(mockShifts);
+      // Load shifts from localStorage
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      let allShifts: Shift[] = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      // Filter by date range if provided
+      if (dateRange) {
+        const startDate = new Date(dateRange.startDate);
+        const endDate = new Date(dateRange.endDate);
+        endDate.setHours(23, 59, 59, 999); // Include the entire end date
+        
+        allShifts = allShifts.filter(shift => {
+          const shiftDate = new Date(shift.startDatetime);
+          return shiftDate >= startDate && shiftDate <= endDate;
+        });
+      }
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setShifts(allShifts);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch shifts');
     } finally {
@@ -85,7 +43,10 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const workplace = mockWorkplaces.find(w => w.id === data.workplaceId);
+      // Load workplaces from localStorage to get workplace details
+      const storedWorkplaces = localStorage.getItem('shiftsync_workplaces');
+      const workplaces = storedWorkplaces ? JSON.parse(storedWorkplaces) : [];
+      const workplace = workplaces.find((w: any) => w.id === data.workplaceId);
       
       const newShift: Shift = {
         id: Date.now(),
@@ -102,7 +63,19 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
         updatedAt: new Date().toISOString()
       };
       
+      // Load existing shifts
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      // Add new shift
+      const updatedShifts = [...existingShifts, newShift];
+      
+      // Save to localStorage
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(updatedShifts));
+      
+      // Update state
       setShifts(prev => [...prev, newShift]);
+      
       return newShift;
     } catch (err: any) {
       setError(err.message || 'Failed to create shift');
@@ -111,23 +84,134 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
   };
 
   const updateShift = async (id: number, data: Partial<ShiftFormData>): Promise<Shift> => {
-    throw new Error('Not implemented yet');
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      const index = existingShifts.findIndex((s: Shift) => s.id === id);
+      if (index === -1) {
+        throw new Error('Shift not found');
+      }
+      
+      const updatedShift: Shift = {
+        ...existingShifts[index],
+        ...data,
+        updatedAt: new Date().toISOString()
+      };
+      
+      existingShifts[index] = updatedShift;
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(existingShifts));
+      
+      setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      
+      return updatedShift;
+    } catch (err: any) {
+      setError(err.message || 'Failed to update shift');
+      throw err;
+    }
   };
 
   const deleteShift = async (id: number): Promise<void> => {
-    throw new Error('Not implemented yet');
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      const filteredShifts = existingShifts.filter((s: Shift) => s.id !== id);
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(filteredShifts));
+      
+      setShifts(prev => prev.filter(s => s.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete shift');
+      throw err;
+    }
   };
 
   const confirmShift = async (id: number): Promise<void> => {
-    throw new Error('Not implemented yet');
+    await updateShift(id, { isConfirmed: true });
   };
 
-  const clockIn = async (id: number): Promise<void> => {
-    throw new Error('Not implemented yet');
+  const clockIn = async (id: number): Promise<Shift> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      const index = existingShifts.findIndex((s: Shift) => s.id === id);
+      if (index === -1) {
+        throw new Error('Shift not found');
+      }
+      
+      const updatedShift: Shift = {
+        ...existingShifts[index],
+        actualStartTime: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      existingShifts[index] = updatedShift;
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(existingShifts));
+      
+      // Also store active clock-in
+      localStorage.setItem('shiftsync_active_clockin', JSON.stringify({
+        shiftId: id,
+        startTime: updatedShift.actualStartTime,
+        workplace: updatedShift.workplace
+      }));
+      
+      setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      
+      return updatedShift;
+    } catch (err: any) {
+      setError(err.message || 'Failed to clock in');
+      throw err;
+    }
   };
 
-  const clockOut = async (id: number): Promise<void> => {
-    throw new Error('Not implemented yet');
+  const clockOut = async (id: number): Promise<Shift> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      
+      const index = existingShifts.findIndex((s: Shift) => s.id === id);
+      if (index === -1) {
+        throw new Error('Shift not found');
+      }
+      
+      if (!existingShifts[index].actualStartTime) {
+        throw new Error('Cannot clock out without clocking in first');
+      }
+      
+      const updatedShift: Shift = {
+        ...existingShifts[index],
+        actualEndTime: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      existingShifts[index] = updatedShift;
+      localStorage.setItem('shiftsync_shifts', JSON.stringify(existingShifts));
+      
+      // Remove active clock-in
+      localStorage.removeItem('shiftsync_active_clockin');
+      
+      setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      
+      return updatedShift;
+    } catch (err: any) {
+      setError(err.message || 'Failed to clock out');
+      throw err;
+    }
+  };
+
+  // Helper to get active clock-in
+  const getActiveClockIn = () => {
+    const stored = localStorage.getItem('shiftsync_active_clockin');
+    return stored ? JSON.parse(stored) : null;
   };
 
   useEffect(() => {
@@ -145,5 +229,6 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
     confirmShift,
     clockIn,
     clockOut,
+    getActiveClockIn,
   };
 };

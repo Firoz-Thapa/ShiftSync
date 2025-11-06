@@ -1,13 +1,24 @@
-// frontend/src/pages/Profile/Profile.tsx
 import React, { useState } from 'react';
 import { PageHeader } from '../../components/layout';
-import { Card, Button, ThemeToggle } from '../../components/common';
+import { Card, Button, ThemeToggle, Modal } from '../../components/common';
+import { ToastContainer, useToast } from '../../components/common/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export const Profile: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, effectiveTheme } = useTheme();
+  const { toasts, success, error, removeToast } = useToast();
+  
+  // State for edit profile modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
   
   // State for accessibility preferences
   const [reduceMotion, setReduceMotion] = useState(
@@ -32,7 +43,6 @@ export const Profile: React.FC = () => {
 
   const handleReduceMotionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setReduceMotion(e.target.checked);
-    // Apply the preference to the document
     if (e.target.checked) {
       document.documentElement.style.setProperty('--animation-duration', '0ms');
       document.documentElement.style.setProperty('--transition-duration', '0ms');
@@ -44,11 +54,75 @@ export const Profile: React.FC = () => {
 
   const handleHighContrastChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHighContrast(e.target.checked);
-    // Apply high contrast mode
     if (e.target.checked) {
       document.documentElement.setAttribute('data-high-contrast', 'true');
     } else {
       document.documentElement.removeAttribute('data-high-contrast');
+    }
+  };
+
+  const handleEditClick = () => {
+    setEditFormData({
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      email: user?.email || '',
+    });
+    setUpdateError(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleEditFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    setUpdateError(null);
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update local storage with new data
+      const updatedUser = {
+        ...user,
+        firstName: editFormData.firstName,
+        lastName: editFormData.lastName,
+        email: editFormData.email,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      localStorage.setItem('shiftsync_user', JSON.stringify(updatedUser));
+      
+      // Close modal first
+      setIsEditModalOpen(false);
+      
+      // Show success toast
+      success(
+        'Profile Updated!',
+        'Your profile information has been successfully updated.',
+        4000
+      );
+      
+      // Reload page after a short delay to see the toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (err: any) {
+      setUpdateError(err.message || 'Failed to update profile');
+      error(
+        'Update Failed',
+        err.message || 'Failed to update profile. Please try again.',
+        5000
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -86,7 +160,7 @@ export const Profile: React.FC = () => {
               </div>
               
               <div style={{ paddingTop: '1rem' }}>
-                <Button variant="primary" size="small">
+                <Button variant="primary" size="small" onClick={handleEditClick}>
                   Edit Profile
                 </Button>
               </div>
@@ -227,7 +301,6 @@ export const Profile: React.FC = () => {
                 />
               </div>
 
-              {/* Additional Accessibility Options */}
               <div style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px dashed var(--border-primary)' }}>
                 <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-primary)' }}>
                   Browser Accessibility Settings
@@ -343,6 +416,122 @@ export const Profile: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="✏️ Edit Profile"
+        size="medium"
+      >
+        <form onSubmit={handleEditFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {updateError && (
+            <div style={{ 
+              background: '#fed7d7', 
+              color: '#c53030', 
+              padding: '0.75rem', 
+              borderRadius: '8px', 
+              fontSize: '0.875rem',
+              textAlign: 'center' 
+            }}>
+              {updateError}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="firstName" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              First Name *
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={editFormData.firstName}
+              onChange={handleEditFormChange}
+              required
+              style={{
+                padding: '0.75rem',
+                border: '2px solid var(--border-primary)',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="lastName" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              Last Name *
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={editFormData.lastName}
+              onChange={handleEditFormChange}
+              required
+              style={{
+                padding: '0.75rem',
+                border: '2px solid var(--border-primary)',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="email" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              Email *
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={editFormData.email}
+              onChange={handleEditFormChange}
+              required
+              style={{
+                padding: '0.75rem',
+                border: '2px solid var(--border-primary)',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.75rem', 
+            justifyContent: 'flex-end', 
+            paddingTop: '1rem', 
+            borderTop: '1px solid var(--border-primary)' 
+          }}>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="primary"
+              loading={isUpdating}
+            >
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );
 };

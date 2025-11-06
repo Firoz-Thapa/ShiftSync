@@ -134,9 +134,20 @@ export const Schedule: React.FC = () => {
   };
 
   const closeModals = () => {
+    console.log('Closing modals, resetting state');
     setModalType(null);
     setSelectedEvent(null);
     setShowEventDetails(false);
+  };
+
+  const handleAddShift = () => {
+    console.log('💼 Opening Shift Modal');
+    setModalType('shift');
+  };
+
+  const handleAddStudy = () => {
+    console.log('📚 Opening Study Modal');
+    setModalType('study');
   };
 
   if (shiftsLoading || studyLoading) {
@@ -150,10 +161,18 @@ export const Schedule: React.FC = () => {
         subtitle="View and manage your shifts and study sessions"
         actions={
           <div className="schedule-header-actions">
-            <Button variant="secondary" size="small" onClick={() => setModalType('study')}>
+            <Button 
+              variant="secondary" 
+              size="small" 
+              onClick={handleAddStudy}
+            >
               📚 Add Study Session
             </Button>
-            <Button variant="primary" size="small" onClick={() => setModalType('shift')}>
+            <Button 
+              variant="primary" 
+              size="small" 
+              onClick={handleAddShift}
+            >
               💼 Add Shift
             </Button>
           </div>
@@ -227,24 +246,27 @@ export const Schedule: React.FC = () => {
         </Card>
       </div>
 
+      {/* Shift Modal */}
       <Modal
         isOpen={modalType === 'shift'}
         onClose={closeModals}
-        title="Add New Shift"
+        title="💼 Add New Shift"
         size="medium"
       >
         <ShiftForm onSuccess={closeModals} onCancel={closeModals} />
       </Modal>
 
+      {/* Study Session Modal */}
       <Modal
         isOpen={modalType === 'study'}
         onClose={closeModals}
-        title="Schedule Study Session"
+        title="📚 Schedule Study Session"
         size="medium"
       >
         <StudyForm onSuccess={closeModals} onCancel={closeModals} />
       </Modal>
 
+      {/* Event Details Modal */}
       <Modal
         isOpen={showEventDetails}
         onClose={closeModals}

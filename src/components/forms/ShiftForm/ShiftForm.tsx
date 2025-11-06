@@ -36,10 +36,13 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
+    console.log(`Field changed: ${name} = ${value}, type: ${type}`);
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : 
-               type === 'number' ? Number(value) : value,
+               type === 'number' ? Number(value) : 
+               name === 'workplaceId' ? Number(value) : value,
     }));
 
     if (errors[name]) {
@@ -50,47 +53,107 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    const workplaceError = validateRequired(formData.workplaceId, 'Workplace');
-    if (workplaceError) newErrors.workplaceId = workplaceError;
+    console.log('Validating form data:', formData);
 
-    const titleError = validateRequired(formData.title, 'Title');
-    if (titleError) newErrors.title = titleError;
+    // Validate workplace
+    if (!formData.workplaceId || formData.workplaceId === 0) {
+      newErrors.workplaceId = 'Please select a workplace';
+      console.error('Validation failed: No workplace selected');
+    }
 
+    // Validate title
+    const titleError = validateRequired(formData.title, 'Shift title');
+    if (titleError) {
+      newErrors.title = titleError;
+      console.error('Validation failed:', titleError);
+    }
+
+    // Validate start time
     const startError = validateRequired(formData.startDatetime, 'Start time');
-    if (startError) newErrors.startDatetime = startError;
+    if (startError) {
+      newErrors.startDatetime = startError;
+      console.error('Validation failed:', startError);
+    }
 
+    // Validate end time
     const endError = validateRequired(formData.endDatetime, 'End time');
-    if (endError) newErrors.endDatetime = endError;
+    if (endError) {
+      newErrors.endDatetime = endError;
+      console.error('Validation failed:', endError);
+    }
 
+    // Validate date range
     if (formData.startDatetime && formData.endDatetime) {
       const dateRangeError = validateDateRange(formData.startDatetime, formData.endDatetime);
-      if (dateRangeError) newErrors.endDatetime = dateRangeError;
+      if (dateRangeError) {
+        newErrors.endDatetime = dateRangeError;
+        console.error('Validation failed:', dateRangeError);
+      }
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('Form validation result:', isValid ? 'PASSED' : 'FAILED', newErrors);
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('Form data:', formData);
+    
+    if (!validateForm()) {
+      console.error('❌ Form validation failed, aborting submission');
+      return;
+    }
 
+    console.log('✅ Form validation passed, creating shift...');
     setIsLoading(true);
+    
     try {
-      await createShift(formData);
+      const newShift = await createShift(formData);
+      console.log('✅ Shift created successfully:', newShift);
+      
+      // Show success message
+      alert('✅ Shift created successfully!');
+      
       onSuccess();
     } catch (error: any) {
+      console.error('❌ Failed to create shift:', error);
       setErrors({ general: error.message || 'Failed to create shift' });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Check if we have workplaces
+  if (workplaces.length === 0) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h3 style={{ marginBottom: '1rem' }}>⚠️ No Workplaces Found</h3>
+        <p style={{ marginBottom: '1rem', color: '#666' }}>
+          You need to add at least one workplace before creating a shift.
+        </p>
+        <Button variant="primary" onClick={onCancel}>
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="shift-form">
+    <form onSubmit={handleSubmit} className="shift-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {errors.general && (
-        <div className="error-message">{errors.general}</div>
+        <div style={{ 
+          background: '#fed7d7', 
+          color: '#c53030', 
+          padding: '0.75rem', 
+          borderRadius: '8px', 
+          textAlign: 'center' 
+        }}>
+          {errors.general}
+        </div>
       )}
 
       <div className="form-group">
@@ -101,6 +164,14 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
           value={formData.workplaceId}
           onChange={handleChange}
           className={errors.workplaceId ? 'error' : ''}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: `2px solid ${errors.workplaceId ? '#e53e3e' : '#e2e8f0'}`,
+            borderRadius: '8px',
+            fontSize: '1rem',
+            background: 'white'
+          }}
         >
           <option value={0}>Select a workplace</option>
           {workplaces.map(workplace => (
@@ -109,7 +180,11 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
             </option>
           ))}
         </select>
-        {errors.workplaceId && <span className="field-error">{errors.workplaceId}</span>}
+        {errors.workplaceId && (
+          <span style={{ color: '#e53e3e', fontSize: '0.875rem' }}>
+            {errors.workplaceId}
+          </span>
+        )}
       </div>
 
       <div className="form-group">
@@ -122,11 +197,22 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
           onChange={handleChange}
           className={errors.title ? 'error' : ''}
           placeholder="e.g., Morning Shift, Weekend Coverage"
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: `2px solid ${errors.title ? '#e53e3e' : '#e2e8f0'}`,
+            borderRadius: '8px',
+            fontSize: '1rem'
+          }}
         />
-        {errors.title && <span className="field-error">{errors.title}</span>}
+        {errors.title && (
+          <span style={{ color: '#e53e3e', fontSize: '0.875rem' }}>
+            {errors.title}
+          </span>
+        )}
       </div>
 
-      <div className="form-row">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div className="form-group">
           <label htmlFor="startDatetime">Start Time *</label>
           <input
@@ -136,8 +222,19 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
             value={formData.startDatetime}
             onChange={handleChange}
             className={errors.startDatetime ? 'error' : ''}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              border: `2px solid ${errors.startDatetime ? '#e53e3e' : '#e2e8f0'}`,
+              borderRadius: '8px',
+              fontSize: '1rem'
+            }}
           />
-          {errors.startDatetime && <span className="field-error">{errors.startDatetime}</span>}
+          {errors.startDatetime && (
+            <span style={{ color: '#e53e3e', fontSize: '0.875rem' }}>
+              {errors.startDatetime}
+            </span>
+          )}
         </div>
 
         <div className="form-group">
@@ -149,8 +246,19 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
             value={formData.endDatetime}
             onChange={handleChange}
             className={errors.endDatetime ? 'error' : ''}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              border: `2px solid ${errors.endDatetime ? '#e53e3e' : '#e2e8f0'}`,
+              borderRadius: '8px',
+              fontSize: '1rem'
+            }}
           />
-          {errors.endDatetime && <span className="field-error">{errors.endDatetime}</span>}
+          {errors.endDatetime && (
+            <span style={{ color: '#e53e3e', fontSize: '0.875rem' }}>
+              {errors.endDatetime}
+            </span>
+          )}
         </div>
       </div>
 
@@ -164,6 +272,13 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
           onChange={handleChange}
           min="0"
           max="480"
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: '2px solid #e2e8f0',
+            borderRadius: '8px',
+            fontSize: '1rem'
+          }}
         />
       </div>
 
@@ -176,27 +291,42 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
           onChange={handleChange}
           rows={3}
           placeholder="Any additional notes about this shift..."
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: '2px solid #e2e8f0',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            resize: 'vertical'
+          }}
         />
       </div>
 
       <div className="form-group">
-        <label className="checkbox-label">
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
           <input
             type="checkbox"
             name="isConfirmed"
             checked={formData.isConfirmed}
             onChange={handleChange}
+            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
           />
           <span>Mark as confirmed</span>
         </label>
       </div>
 
-      <div className="form-actions">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.75rem', 
+        justifyContent: 'flex-end',
+        paddingTop: '1rem',
+        borderTop: '1px solid #e2e8f0'
+      }}>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" loading={isLoading}>
-          Create Shift
+        <Button type="submit" loading={isLoading} disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Shift'}
         </Button>
       </div>
     </form>

@@ -7,3 +7,5 @@ export { LiveClock } from './LiveClock/LiveClock';
 export { BreakTimer } from './BreakTimer/BreakTimer';
 export { ColorPicker } from './ColorPicker/ColorPicker';
 export { FloatingActionButton } from '../layout/FloatingActionButton';
+export { Toast, ToastContainer, useToast } from './Toast';
+export type { ToastType, ToastProps } from './Toast';
