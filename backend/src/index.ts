@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import { connectDatabase } from './config/database';
 
 import authRoutes from './routes/auth.routes';
+import workplaceRoutes from './routes/workplace.routes';
+import shiftRoutes from './routes/shift.routes';
+import studySessionRoutes from './routes/studySession.routes';
 
 dotenv.config();
 
@@ -60,6 +63,9 @@ app.get('/api/health', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/workplaces', workplaceRoutes);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/study-sessions', studySessionRoutes);
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
@@ -100,6 +106,9 @@ const startServer = async () => {
       console.log(`API Health Check: http://localhost:${PORT}/api/health`);
       console.log(`Auth endpoints: http://localhost:${PORT}/api/auth/login`);
       console.log(`Auth endpoints: http://localhost:${PORT}/api/auth/register`);
+      console.log(`Workplace endpoints: http://localhost:${PORT}/api/workplaces`);
+      console.log(`Shift endpoints: http://localhost:${PORT}/api/shifts`);
+      console.log(`Study Session endpoints: http://localhost:${PORT}/api/study-sessions`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}\n`);
     });
   } catch (error) {

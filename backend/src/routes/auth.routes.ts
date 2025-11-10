@@ -28,7 +28,7 @@ router.post(
       }
 
       const { email, password, firstName, lastName } = req.body;
-      const pool = await sqlPool;
+      const pool = sqlPool;
 
       // Check if user already exists
       const existingUser = await pool.request()
@@ -108,7 +108,7 @@ router.post(
       }
 
       const { email, password } = req.body;
-      const pool = await sqlPool;
+      const pool = sqlPool;
 
       // Find user by email
       const result = await pool.request()

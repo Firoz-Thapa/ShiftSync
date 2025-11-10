@@ -7,15 +7,16 @@ export interface AuthRequest extends Request {
   userId?: number;
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'No token provided' 
       });
+      return;
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -26,20 +27,23 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     next();
   } catch (error: any) {
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'Invalid token' 
       });
+      return;
     }
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'Token expired' 
       });
+      return;
     }
-    return res.status(500).json({ 
+    res.status(500).json({ 
       success: false, 
       message: 'Authentication failed' 
     });
+    return;
   }
 };

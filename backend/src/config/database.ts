@@ -23,13 +23,13 @@ export const connectDatabase = async (): Promise<sql.ConnectionPool> => {
   if (!poolConnect) {
     poolConnect = sqlPool.connect();
     poolConnect.then(() => {
-      console.log('✓ Database connected successfully!');
+      console.log('Database connected successfully!');
     }).catch(err => {
-      console.error('❌ Database connection failed:', err);
+      console.error('Database connection failed:', err);
       throw err;
     });
   }
   return poolConnect;
 };
 
-export { sql };
+export default sql;
