@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { sqlPool } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { createLimiter } from '../middleware/rateLimiter';
 
 const router = express.Router();
 
@@ -76,6 +77,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 // Create workplace
 router.post(
   '/',
+  createLimiter,
   [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('color').matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Invalid color format'),

@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { sqlPool } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { createLimiter } from '../middleware/rateLimiter';
+import { create } from 'domain';
 
 const router = express.Router();
 
@@ -146,6 +148,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 // Create shift
 router.post(
   '/',
+  createLimiter,
   [
     body('workplaceId').isInt({ min: 1 }).withMessage('Valid workplace ID is required'),
     body('title').trim().notEmpty().withMessage('Title is required'),

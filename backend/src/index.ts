@@ -1,9 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { env } from './config/env';
+import { apiLimiter } from './middleware/rateLimiter';
+import { sanitizeInput, validateNoSQLInjection } from './middleware/sanitization';
+import { securityHeaders, parameterPollutionProtection } from './middleware/security';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database';
-
 import authRoutes from './routes/auth.routes';
 import workplaceRoutes from './routes/workplace.routes';
 import shiftRoutes from './routes/shift.routes';
@@ -12,18 +15,27 @@ import studySessionRoutes from './routes/studySession.routes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = env.PORT;
 
-// Middleware
+
 app.use(helmet());
+app.use(securityHeaders); 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: env.CORS_ORIGIN, 
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Request logging
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); 
+
+app.use(parameterPollutionProtection);
+app.use(sanitizeInput);
+app.use(validateNoSQLInjection); 
+
+
+app.use('/api/', apiLimiter);
+
 app.use((req: any, res, next) => {
   req.id = Math.random().toString(36).substr(2, 9);
   res.setHeader('X-Request-ID', req.id);

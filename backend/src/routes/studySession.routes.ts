@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { sqlPool } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { createLimiter } from '../middleware/rateLimiter';
+import { create } from 'domain';
 
 const router = express.Router();
 
@@ -99,6 +101,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 // Create study session
 router.post(
   '/',
+  createLimiter,
   [
     body('title').trim().notEmpty().withMessage('Title is required'),
     body('startDatetime').isISO8601().withMessage('Valid start datetime is required'),
