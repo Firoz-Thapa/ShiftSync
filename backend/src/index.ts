@@ -63,8 +63,8 @@ app.get('/api/health', async (req, res) => {
       version: '1.0.0'
     });
   } catch (error) {
-    res.json({ 
-      status: 'unhealthy', 
+    res.status(503).json({
+      status: 'unhealthy',
       message: 'Database connection failed',
       error: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined,
       timestamp: new Date().toISOString(),
