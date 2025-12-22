@@ -92,18 +92,18 @@ export const useWorkplaces = () => {
       // Save to localStorage
       saveWorkplacesToStorage(updatedWorkplaces);
       
-      console.log('✨ New workplace created:', newWorkplace);
-      console.log('📊 All workplaces now:', updatedWorkplaces);
-      console.log('📊 Length:', updatedWorkplaces.length);
+      console.log('New workplace created:', newWorkplace);
+      console.log('All workplaces now:', updatedWorkplaces);
+      console.log('Length:', updatedWorkplaces.length);
       
       // Update state
       setWorkplaces(updatedWorkplaces);
       
-      console.log('✅ Create workplace complete');
+      console.log('Create workplace complete');
       
       return newWorkplace;
     } catch (err: any) {
-      console.error('❌ Error creating workplace:', err);
+      console.error('Error creating workplace:', err);
       setError(err.message || 'Failed to create workplace');
       throw err;
     }
@@ -166,14 +166,14 @@ export const useWorkplaces = () => {
   };
 
   useEffect(() => {
-    console.log('🎬 useWorkplaces mounted, calling fetchWorkplaces');
+    console.log('useWorkplaces mounted, calling fetchWorkplaces');
     fetchWorkplaces();
   }, []);
 
   // Debug log whenever workplaces state changes
   useEffect(() => {
-    console.log('🔔 Workplaces state changed:', workplaces);
-    console.log('🔔 Workplaces count:', workplaces.length);
+    console.log('Workplaces state changed:', workplaces);
+    console.log('Workplaces count:', workplaces.length);
   }, [workplaces]);
 
   return {
