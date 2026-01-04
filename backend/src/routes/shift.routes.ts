@@ -13,57 +13,36 @@ router.use(authMiddleware);
 // Get all shifts for logged-in user with optional filters
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { startDate, endDate, workplaceId, page = 1, limit = 20 } = req.query;
-    const pageNum = Math.max(1, parseInt(page as string) || 1);
-    const pageSize = Math.max(1, Math.min(100, parseInt(limit as string) || 20));
-    const offset = (pageNum - 1) * pageSize;
+    const { startDate, endDate, workplaceId, limit = 100 } = req.query;
     const pool = await sqlPool;
 
-    let baseQuery = `
+    let query = `
+      SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate
+      FROM Shifts s
+      LEFT JOIN Workplaces w ON s.workplaceId = w.id
       WHERE s.userId = @userId
     `;
 
     const request = pool.request().input('userId', req.userId);
 
     if (startDate) {
-      baseQuery += ' AND s.startDatetime >= @startDate';
+      query += ' AND s.startDatetime >= @startDate';
       request.input('startDate', startDate);
     }
 
     if (endDate) {
-      baseQuery += ' AND s.startDatetime <= @endDate';
+      query += ' AND s.startDatetime <= @endDate';
       request.input('endDate', endDate);
     }
 
     if (workplaceId) {
-      baseQuery += ' AND s.workplaceId = @workplaceId';
+      query += ' AND s.workplaceId = @workplaceId';
       request.input('workplaceId', workplaceId);
     }
 
-    // Get total count
-    const countQuery = `
-      SELECT COUNT(*) as totalCount
-      FROM Shifts s
-      ${baseQuery}
-    `;
-    const countResult = await request.query(countQuery);
-    const totalItems = countResult.recordset[0].totalCount;
-    const totalPages = Math.ceil(totalItems / pageSize);
+    query += ' ORDER BY s.startDatetime DESC';
 
-    // Get paginated results
-    const dataQuery = `
-      SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate
-      FROM Shifts s
-      LEFT JOIN Workplaces w ON s.workplaceId = w.id
-      ${baseQuery}
-      ORDER BY s.startDatetime DESC
-      OFFSET @offset ROWS
-      FETCH NEXT @pageSize ROWS ONLY
-    `;
-
-    request.input('offset', offset);
-    request.input('pageSize', pageSize);
-    const result = await request.query(dataQuery);
+    const result = await request.query(query);
 
     // Transform to include workplace object
     const shifts = result.recordset.map(row => ({
@@ -92,10 +71,10 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       success: true,
       data: shifts,
       pagination: {
-        currentPage: pageNum,
-        totalPages: totalPages,
-        totalItems: totalItems,
-        itemsPerPage: pageSize
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: shifts.length,
+        itemsPerPage: shifts.length
       }
     });
   } catch (error: any) {

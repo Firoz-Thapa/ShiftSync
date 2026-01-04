@@ -107,7 +107,7 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
   };
 
   return (
-    <div style={{ width: '100%' }}>
+    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
       <div style={{ 
         width: '100%',
         background: 'white',
@@ -554,7 +554,7 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
           }
         `}</style>
       </div>
-    </div>
+    </form>
   );
 };
 
