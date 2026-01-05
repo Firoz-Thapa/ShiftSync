@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { path: ROUTES.SCHEDULE, label: 'Schedule', icon: '📅' },
   { path: ROUTES.WORKPLACES, label: 'Workplaces', icon: '🏢' },
   { path: ROUTES.ANALYTICS, label: 'Analytics', icon: '📊' },
+  { path: ROUTES.EMAIL, label: 'Email', icon: '📧' },
   { path: ROUTES.PROFILE, label: 'Profile', icon: '👤' },
 ];
 
