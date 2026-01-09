@@ -1,6 +1,6 @@
-import { apiClient } from './api';
+import { apiService } from './api';
 
-export interface Email {
+export interface EmailMessage {
   id: string;
   from: string;
   subject: string;
@@ -27,7 +27,7 @@ class EmailService {
     credentials?: { email: string; password: string }
   ): Promise<EmailAccount> {
     try {
-      const response = await apiClient.post('/emails/connect', {
+      const response = await apiService.post('/emails/connect', {
         provider,
         credentials,
       });
@@ -42,7 +42,7 @@ class EmailService {
    */
   async getConnectedAccounts(): Promise<EmailAccount[]> {
     try {
-      const response = await apiClient.get('/emails/accounts');
+      const response = await apiService.get('/emails/accounts');
       return response.data;
     } catch (error) {
       throw new Error('Failed to fetch email accounts');
@@ -54,7 +54,7 @@ class EmailService {
    */
   async disconnectAccount(accountId: string): Promise<void> {
     try {
-      await apiClient.delete(`/emails/accounts/${accountId}`);
+      await apiService.delete(`/emails/accounts/${accountId}`);
     } catch (error) {
       throw new Error('Failed to disconnect email account');
     }
@@ -63,9 +63,9 @@ class EmailService {
   /**
    * Get emails from a specific account
    */
-  async getEmails(accountId: string, limit: number = 20): Promise<Email[]> {
+  async getEmails(accountId: string, limit: number = 20): Promise<EmailMessage[]> {
     try {
-      const response = await apiClient.get(`/emails/${accountId}`, {
+      const response = await apiService.get(`/emails/${accountId}`, {
         params: { limit },
       });
       return response.data;
@@ -77,9 +77,9 @@ class EmailService {
   /**
    * Get a single email
    */
-  async getEmail(accountId: string, emailId: string): Promise<Email> {
+  async getEmail(accountId: string, emailId: string): Promise<EmailMessage> {
     try {
-      const response = await apiClient.get(`/emails/${accountId}/${emailId}`);
+      const response = await apiService.get(`/emails/${accountId}/${emailId}`);
       return response.data;
     } catch (error) {
       throw new Error('Failed to fetch email');
@@ -91,7 +91,7 @@ class EmailService {
    */
   async markAsRead(accountId: string, emailId: string): Promise<void> {
     try {
-      await apiClient.patch(`/emails/${accountId}/${emailId}`, {
+      await apiService.patch(`/emails/${accountId}/${emailId}`, {
         isRead: true,
       });
     } catch (error) {
@@ -102,9 +102,9 @@ class EmailService {
   /**
    * Sync emails from account
    */
-  async syncEmails(accountId: string): Promise<Email[]> {
+  async syncEmails(accountId: string): Promise<EmailMessage[]> {
     try {
-      const response = await apiClient.post(`/emails/${accountId}/sync`);
+      const response = await apiService.post(`/emails/${accountId}/sync`);
       return response.data;
     } catch (error) {
       throw new Error('Failed to sync emails');
@@ -117,9 +117,9 @@ class EmailService {
   async searchEmails(
     accountId: string,
     query: string
-  ): Promise<Email[]> {
+  ): Promise<EmailMessage[]> {
     try {
-      const response = await apiClient.get(`/emails/${accountId}/search`, {
+      const response = await apiService.get(`/emails/${accountId}/search`, {
         params: { q: query },
       });
       return response.data;
