@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { EmailAccountConnection, EmailAccountList, EmailList, EmailViewer } from '../../components/email';
-import { emailService, Email, EmailAccount } from '../../services/emailService';
+import { emailService, EmailMessage, EmailAccount } from '../../services/emailService';
 import './Email.css';
 
-export const Email: React.FC = () => {
+export const EmailPage: React.FC = () => {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [emails, setEmails] = useState<Email[]>([]);
+  const [emails, setEmails] = useState<EmailMessage[]>([]);
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
-  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailsLoading, setEmailsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
