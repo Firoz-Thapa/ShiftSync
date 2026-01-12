@@ -27,11 +27,10 @@ class EmailService {
     credentials?: { email: string; password: string }
   ): Promise<EmailAccount> {
     try {
-      const response = await apiService.post('/emails/connect', {
+      return await apiService.post<EmailAccount>('/emails/connect', {
         provider,
         credentials,
       });
-      return response.data;
     } catch (error) {
       throw new Error(`Failed to connect ${provider} account`);
     }
@@ -42,8 +41,7 @@ class EmailService {
    */
   async getConnectedAccounts(): Promise<EmailAccount[]> {
     try {
-      const response = await apiService.get('/emails/accounts');
-      return response.data;
+      return await apiService.get<EmailAccount[]>('/emails/accounts');
     } catch (error) {
       throw new Error('Failed to fetch email accounts');
     }
@@ -65,10 +63,9 @@ class EmailService {
    */
   async getEmails(accountId: string, limit: number = 20): Promise<EmailMessage[]> {
     try {
-      const response = await apiService.get(`/emails/${accountId}`, {
+      return await apiService.get<EmailMessage[]>(`/emails/${accountId}`, {
         params: { limit },
       });
-      return response.data;
     } catch (error) {
       throw new Error('Failed to fetch emails');
     }
@@ -79,8 +76,7 @@ class EmailService {
    */
   async getEmail(accountId: string, emailId: string): Promise<EmailMessage> {
     try {
-      const response = await apiService.get(`/emails/${accountId}/${emailId}`);
-      return response.data;
+      return await apiService.get<EmailMessage>(`/emails/${accountId}/${emailId}`);
     } catch (error) {
       throw new Error('Failed to fetch email');
     }
@@ -104,8 +100,7 @@ class EmailService {
    */
   async syncEmails(accountId: string): Promise<EmailMessage[]> {
     try {
-      const response = await apiService.post(`/emails/${accountId}/sync`);
-      return response.data;
+      return await apiService.post<EmailMessage[]>(`/emails/${accountId}/sync`);
     } catch (error) {
       throw new Error('Failed to sync emails');
     }
@@ -119,10 +114,9 @@ class EmailService {
     query: string
   ): Promise<EmailMessage[]> {
     try {
-      const response = await apiService.get(`/emails/${accountId}/search`, {
+      return await apiService.get<EmailMessage[]>(`/emails/${accountId}/search`, {
         params: { q: query },
       });
-      return response.data;
     } catch (error) {
       throw new Error('Failed to search emails');
     }

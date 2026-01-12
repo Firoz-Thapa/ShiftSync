@@ -70,6 +70,11 @@ class ApiService {
     return response.data.data;
   }
 
+  async patch<T>(url: string, data?: any): Promise<T> {
+    const response = await this.api.patch<ApiResponse<T>>(url, data);
+    return response.data.data;
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; message: string }> {
     return this.get('/health');

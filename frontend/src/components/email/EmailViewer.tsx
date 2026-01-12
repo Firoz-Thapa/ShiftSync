@@ -1,9 +1,9 @@
 import React from 'react';
-import { Email } from '../../services/emailService';
+import { EmailMessage } from '../../services/emailService';
 import './EmailViewer.css';
 
 interface EmailViewerProps {
-  email: Email | null;
+  email: EmailMessage | null;
   isLoading?: boolean;
 }
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Email } from '../../services/emailService';
+import { EmailMessage } from '../../services/emailService';
 import './EmailList.css';
 
 interface EmailListProps {
-  emails: Email[];
+  emails: EmailMessage[];
   selectedEmailId?: string;
   onSelectEmail: (emailId: string) => void;
   onLoading?: (loading: boolean) => void;
