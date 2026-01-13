@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { emailService, EmailAccount } from '../../services/emailService';
+import { APP_CONFIG } from '../../constants';
 import './EmailAccountConnection.css';
 
 interface EmailAccountConnectionProps {
@@ -41,18 +42,16 @@ export const EmailAccountConnection: React.FC<EmailAccountConnectionProps> = ({
     }
   };
 
-  const handleOAuthConnect = async (oauthProvider: 'gmail' | 'outlook') => {
+  const handleOAuthConnect = (oauthProvider: 'gmail' | 'outlook') => {
     setLoading(true);
     setError(null);
     onLoading?.(true);
 
     try {
-      // In a real app, this would redirect to OAuth provider
-      const account = await emailService.connectEmailAccount(oauthProvider);
-      onAccountConnected(account);
+      const oauthInitUrl = `${APP_CONFIG.apiUrl}/emails/connect/${oauthProvider}`;
+      window.location.href = oauthInitUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connection failed');
-    } finally {
       setLoading(false);
       onLoading?.(false);
     }
@@ -92,8 +91,9 @@ export const EmailAccountConnection: React.FC<EmailAccountConnectionProps> = ({
       ) : (
         <form onSubmit={handleConnect} className="email-form">
           <div className="form-group">
-            <label>Email Provider</label>
+            <label htmlFor="provider-select">Email Provider</label>
             <select
+              id="provider-select"
               value={provider}
               onChange={(e) => setProvider(e.target.value as 'gmail' | 'outlook' | 'custom')}
             >
