@@ -7,7 +7,7 @@ import { sanitizeInput, validateNoSQLInjection } from './middleware/sanitization
 import { securityHeaders, parameterPollutionProtection } from './middleware/security';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database';
-import authRoutes from './routes/auth.routes';
+// import authRoutes from './routes/';
 import workplaceRoutes from './routes/workplace.routes';
 import shiftRoutes from './routes/shift.routes';
 import studySessionRoutes from './routes/studySession.routes';
@@ -74,7 +74,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
 app.use('/api/workplaces', workplaceRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/study-sessions', studySessionRoutes);
