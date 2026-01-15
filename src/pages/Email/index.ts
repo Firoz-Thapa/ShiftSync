@@ -1,0 +1,1 @@
+export { EmailPage as Email } from './Email';

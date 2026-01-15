@@ -1,0 +1,164 @@
+.email-account-connection {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.email-account-connection h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.email-account-connection .subtitle {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.oauth-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.oauth-btn {
+  flex: 1;
+  min-width: 150px;
+  padding: 16px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.oauth-btn:hover:not(:disabled) {
+  border-color: #333;
+  background: #f9f9f9;
+  transform: translateY(-2px);
+}
+
+.oauth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.oauth-btn .icon {
+  font-size: 18px;
+}
+
+.oauth-btn.google {
+  border-color: #4285F4;
+}
+
+.oauth-btn.google:hover:not(:disabled) {
+  background: #F8F9FA;
+  border-color: #1F2937;
+}
+
+.oauth-btn.outlook {
+  border-color: #0078D4;
+}
+
+.oauth-btn.outlook:hover:not(:disabled) {
+  background: #F0F6FF;
+  border-color: #1F2937;
+}
+
+.oauth-btn.custom {
+  border-color: #999;
+}
+
+.email-form {
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #4285F4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  border-left: 3px solid #c33;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #4285F4;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1F2937;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background: #e8e8e8;
+}

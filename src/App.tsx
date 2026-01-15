@@ -11,6 +11,7 @@ import { Workplaces } from './pages/Workplaces/Workplaces';
 import { Analytics } from './pages/Analytics/Analytics';
 import { Profile } from './pages/Profile/Profile';
 import { Login } from './pages/Login/Login';
+import { Email } from './pages/Email';
 
 import './styles/globals.css';
 import './styles/theme.css';
@@ -66,6 +67,14 @@ const AppRoutes = () => {
         element={user ? (
           <Layout>
             <Profile />
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
+      />
+      <Route 
+        path={ROUTES.EMAIL} 
+        element={user ? (
+          <Layout>
+            <Email />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />

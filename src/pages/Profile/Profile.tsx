@@ -10,7 +10,6 @@ export const Profile: React.FC = () => {
   const { theme, effectiveTheme } = useTheme();
   const { toasts, success, error, removeToast } = useToast();
   
-  // State for edit profile modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     firstName: user?.firstName || '',
@@ -20,7 +19,6 @@ export const Profile: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   
-  // State for accessibility preferences
   const [reduceMotion, setReduceMotion] = useState(
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
@@ -85,10 +83,8 @@ export const Profile: React.FC = () => {
     setUpdateError(null);
 
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Update local storage with new data
       const updatedUser = {
         ...user,
         firstName: editFormData.firstName,

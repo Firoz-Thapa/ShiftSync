@@ -4,6 +4,7 @@ export const ROUTES = {
   SCHEDULE: '/schedule',
   WORKPLACES: '/workplaces',
   ANALYTICS: '/analytics',
+  EMAIL: '/email',
   PROFILE: '/profile',
   LOGIN: '/login',
   REGISTER: '/register',

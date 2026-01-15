@@ -1,0 +1,208 @@
+.email-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.email-container {
+  display: grid;
+  grid-template-columns: 300px 1fr 400px;
+  gap: 16px;
+  padding: 16px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.email-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.sidebar-content {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.btn-add-account {
+  margin: 16px;
+  padding: 12px 16px;
+  background: #4285F4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-add-account:hover {
+  background: #1F2937;
+}
+
+.email-main {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.email-controls {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.search-form {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4285F4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.btn-search,
+.btn-clear,
+.btn-sync {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-search:hover,
+.btn-clear:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.btn-sync {
+  background: #4285F4;
+  color: white;
+  border-color: #4285F4;
+}
+
+.btn-sync:hover:not(:disabled) {
+  background: #1F2937;
+}
+
+.btn-sync:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.no-account-selected {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  color: #999;
+  text-align: center;
+}
+
+.no-account-selected p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.email-detail {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .email-container {
+    grid-template-columns: 250px 1fr;
+  }
+
+  .email-detail {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .email-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .email-sidebar {
+    display: none;
+  }
+
+  .email-main {
+    min-height: 300px;
+  }
+
+  .email-controls {
+    flex-direction: column;
+  }
+
+  .search-form {
+    width: 100%;
+  }
+
+  .email-detail {
+    display: none;
+  }
+}
+
+/* Scrollbar Styling */
+.email-sidebar::-webkit-scrollbar,
+.email-main::-webkit-scrollbar,
+.email-detail::-webkit-scrollbar {
+  width: 8px;
+}
+
+.email-sidebar::-webkit-scrollbar-track,
+.email-main::-webkit-scrollbar-track,
+.email-detail::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.email-sidebar::-webkit-scrollbar-thumb,
+.email-main::-webkit-scrollbar-thumb,
+.email-detail::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.email-sidebar::-webkit-scrollbar-thumb:hover,
+.email-main::-webkit-scrollbar-thumb:hover,
+.email-detail::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
