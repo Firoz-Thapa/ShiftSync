@@ -11,6 +11,7 @@ import { connectDatabase } from './config/database';
 import workplaceRoutes from './routes/workplace.routes';
 import shiftRoutes from './routes/shift.routes';
 import studySessionRoutes from './routes/studySession.routes';
+import emailRoutes from './routes/email.routes';
 
 dotenv.config();
 
@@ -78,6 +79,7 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/workplaces', workplaceRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/study-sessions', studySessionRoutes);
+app.use('/api/emails', emailRoutes);
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
