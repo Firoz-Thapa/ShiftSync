@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
-const DEFAULT_LAT = 37.7749; // San Francisco fallback
-const DEFAULT_LON = -122.4194;
+const DEFAULT_LAT = 60.1699; // Helsinki fallback
+const DEFAULT_LON = 24.9384;
 
 export const WeatherInfo: React.FC = () => {
   const [weather, setWeather] = useState<{ temperature: number; description: string } | null>(null);
