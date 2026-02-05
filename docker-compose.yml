@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DB_HOST=mysql
+      - DB_NAME=shiftsync
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - JWT_SECRET=your_secret_key
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - shiftsync-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - shiftsync-network
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=shiftsync
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./SQLQuery1.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./SQLQuery2.sql:/docker-entrypoint-initdb.d/2.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - shiftsync-network
+
+volumes:
+  mysql_data:
+
+networks:
+  shiftsync-network:
+    driver: bridge

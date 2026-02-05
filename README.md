@@ -50,6 +50,35 @@ A simple app to manage work shifts and study sessions for students with part-tim
 
 5. **Open http://localhost:3000**
 
+## Docker Setup
+
+### Requirements
+- Docker
+- Docker Compose
+
+### Quick Start with Docker
+
+1. **Clone the project**
+   ```bash
+   git clone https://github.com/yourusername/shiftsync.git
+   cd shiftsync
+   ```
+
+2. **Start the application**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Open http://localhost:3000**
+
+### Docker Commands
+
+- **Start services**: `docker-compose up`
+- **Start in background**: `docker-compose up -d`
+- **Stop services**: `docker-compose down`
+- **Rebuild and start**: `docker-compose up --build`
+- **View logs**: `docker-compose logs -f`
+
 ## Tech Stack
 
 - **Frontend**: React, TypeScript
@@ -61,8 +90,16 @@ A simple app to manage work shifts and study sessions for students with part-tim
 
 ```
 shiftsync/
-├── backend/          
-├── frontend/         
+├── backend/
+│   ├── Dockerfile
+│   └── ...
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── ...
+├── docker-compose.yml
+├── SQLQuery1.sql
+├── SQLQuery2.sql
 └── README.md
 ```
 
