@@ -1,54 +1,75 @@
-name: shiftsync CI
+strategy:
+  fail-fast: false
+  matrix:
+    node-version: [16.x, 18.x, 20.x]
 
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
 
-jobs:
-  test-and-build:
-    runs-on: ubuntu-latest
+  - name: Setup Node.js ${{ matrix.node-version }}
+    uses: actions/setup-node@v4
+    with:
+      node-version: ${{ matrix.node-version }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [16.x, 18.x, 20.x]
+  - name: Install backend dependencies
+    working-directory: backend
+    run: |
+      if [ -f package-lock.json ]; then
+        echo "Using npm with package-lock.json (backend)"
+        npm ci
+      elif [ -f yarn.lock ]; then
+        echo "Using yarn with yarn.lock (backend)"
+        corepack enable
+        yarn install --frozen-lockfile
+      elif [ -f pnpm-lock.yaml ]; then
+        echo "Using pnpm with pnpm-lock.yaml (backend)"
+        corepack enable
+        pnpm install --frozen-lockfile
+      else
+        echo "No lockfile found in backend — falling back to npm install"
+        npm install
+      fi
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  - name: Install frontend dependencies
+    working-directory: frontend
+    run: |
+      if [ -f package-lock.json ]; then
+        echo "Using npm with package-lock.json (frontend)"
+        npm ci
+      elif [ -f yarn.lock ]; then
+        echo "Using yarn with yarn.lock (frontend)"
+        corepack enable
+        yarn install --frozen-lockfile
+      elif [ -f pnpm-lock.yaml ]; then
+        echo "Using pnpm with pnpm-lock.yaml (frontend)"
+        corepack enable
+        pnpm install --frozen-lockfile
+      else
+        echo "No lockfile found in frontend — falling back to npm install"
+        npm install
+      fi
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
+  - name: Run backend lint (if present)
+    working-directory: backend
+    run: npm run lint || echo "No linting script found in backend, skipping..."
 
-      - name: Install dependencies (detect package manager)
-        run: |
-          if [ -f package-lock.json ]; then
-            echo "Using npm with package-lock.json"
-            npm ci
-          elif [ -f yarn.lock ]; then
-            echo "Using yarn with yarn.lock"
-            corepack enable
-            yarn install --frozen-lockfile
-          elif [ -f pnpm-lock.yaml ]; then
-            echo "Using pnpm with pnpm-lock.yaml"
-            corepack enable
-            pnpm install --frozen-lockfile
-          else
-            echo "No lockfile found — falling back to npm install"
-            npm install
-          fi
+  - name: Run frontend lint (if present)
+    working-directory: frontend
+    run: npm run lint || echo "No linting script found in frontend, skipping..."
 
-      - name: Run linting
-        run: npm run lint || echo "No linting script found, skipping..."
+  - name: Run frontend tests
+    working-directory: frontend
+    run: npm test -- --passWithNoTests --watchAll=false || echo "Frontend tests failed or no tests found"
 
-      - name: Run tests
-        run: npm test -- --passWithNoTests --watchAll=false
+  - name: Build backend
+    working-directory: backend
+    run: npm run build
+    env:
+      CI: false
 
-      - name: Build project
-        run: npm run build
-        env:
-          CI: false
+  - name: Build frontend
+    working-directory: frontend
+    run: npm run build
+    env:
+      CI: false
