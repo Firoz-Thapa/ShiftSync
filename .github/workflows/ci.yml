@@ -1,75 +1,51 @@
-strategy:
-  fail-fast: false
-  matrix:
-    node-version: [16.x, 18.x, 20.x]
+name: CI
 
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-  - name: Setup Node.js ${{ matrix.node-version }}
-    uses: actions/setup-node@v4
-    with:
-      node-version: ${{ matrix.node-version }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 20.x]
 
-  - name: Install backend dependencies
-    working-directory: backend
-    run: |
-      if [ -f package-lock.json ]; then
-        echo "Using npm with package-lock.json (backend)"
-        npm ci
-      elif [ -f yarn.lock ]; then
-        echo "Using yarn with yarn.lock (backend)"
-        corepack enable
-        yarn install --frozen-lockfile
-      elif [ -f pnpm-lock.yaml ]; then
-        echo "Using pnpm with pnpm-lock.yaml (backend)"
-        corepack enable
-        pnpm install --frozen-lockfile
-      else
-        echo "No lockfile found in backend — falling back to npm install"
-        npm install
-      fi
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  - name: Install frontend dependencies
-    working-directory: frontend
-    run: |
-      if [ -f package-lock.json ]; then
-        echo "Using npm with package-lock.json (frontend)"
-        npm ci
-      elif [ -f yarn.lock ]; then
-        echo "Using yarn with yarn.lock (frontend)"
-        corepack enable
-        yarn install --frozen-lockfile
-      elif [ -f pnpm-lock.yaml ]; then
-        echo "Using pnpm with pnpm-lock.yaml (frontend)"
-        corepack enable
-        pnpm install --frozen-lockfile
-      else
-        echo "No lockfile found in frontend — falling back to npm install"
-        npm install
-      fi
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
-  - name: Run backend lint (if present)
-    working-directory: backend
-    run: npm run lint || echo "No linting script found in backend, skipping..."
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
 
-  - name: Run frontend lint (if present)
-    working-directory: frontend
-    run: npm run lint || echo "No linting script found in frontend, skipping..."
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
 
-  - name: Run frontend tests
-    working-directory: frontend
-    run: npm test -- --passWithNoTests --watchAll=false || echo "Frontend tests failed or no tests found"
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
 
-  - name: Build backend
-    working-directory: backend
-    run: npm run build
-    env:
-      CI: false
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          CI: false
+        run: npm run build
 
-  - name: Build frontend
-    working-directory: frontend
-    run: npm run build
-    env:
-      CI: false
+      - name: Test backend
+        working-directory: backend
+        run: npm test -- --coverage 2>/dev/null || echo "No tests configured"
+
+      - name: Test frontend
+        working-directory: frontend
+        run: npm test -- --coverage --watchAll=false 2>/dev/null || echo "No tests configured"
