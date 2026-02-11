@@ -108,6 +108,8 @@ router.post(
     body('endDatetime').isISO8601().withMessage('Valid end datetime is required'),
     body('sessionType').optional().isIn(['lecture', 'exam', 'assignment', 'study_group', 'lab', 'other']),
     body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']),
+    body('isRecurring').optional().isBoolean().withMessage('isRecurring must be a boolean'),
+    body('recurrencePattern').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Invalid recurrence pattern'),
   ],
   async (req: AuthRequest, res: Response) => {
     try {
@@ -128,7 +130,10 @@ router.post(
         location, 
         sessionType, 
         priority, 
-        notes 
+        notes,
+        isRecurring,
+        recurrencePattern,
+        recurrenceEndDate
       } = req.body;
       
       const pool = await sqlPool;
@@ -143,11 +148,14 @@ router.post(
         .input('sessionType', sessionType || 'other')
         .input('priority', priority || 'medium')
         .input('notes', notes || null)
+        .input('isRecurring', isRecurring || false)
+        .input('recurrencePattern', recurrencePattern || null)
+        .input('recurrenceEndDate', recurrenceEndDate || null)
         .query(`
           INSERT INTO StudySessions 
-          (userId, title, subject, startDatetime, endDatetime, location, sessionType, priority, notes)
+          (userId, title, subject, startDatetime, endDatetime, location, sessionType, priority, notes, isRecurring, recurrencePattern, recurrenceEndDate)
           OUTPUT INSERTED.*
-          VALUES (@userId, @title, @subject, @startDatetime, @endDatetime, @location, @sessionType, @priority, @notes)
+          VALUES (@userId, @title, @subject, @startDatetime, @endDatetime, @location, @sessionType, @priority, @notes, @isRecurring, @recurrencePattern, @recurrenceEndDate)
         `);
 
       res.status(201).json({
@@ -178,7 +186,10 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       sessionType, 
       priority, 
       isCompleted,
-      notes 
+      notes,
+      isRecurring,
+      recurrencePattern,
+      recurrenceEndDate
     } = req.body;
     
     const pool = await sqlPool;
@@ -207,6 +218,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       .input('priority', priority)
       .input('isCompleted', isCompleted !== undefined ? isCompleted : false)
       .input('notes', notes || null)
+      .input('isRecurring', isRecurring || false)
+      .input('recurrencePattern', recurrencePattern || null)
+      .input('recurrenceEndDate', recurrenceEndDate || null)
       .query(`
         UPDATE StudySessions 
         SET title = @title,
@@ -218,6 +232,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
             priority = @priority,
             isCompleted = @isCompleted,
             notes = @notes,
+            isRecurring = @isRecurring,
+            recurrencePattern = @recurrencePattern,
+            recurrenceEndDate = @recurrenceEndDate,
             updatedAt = GETDATE()
         OUTPUT INSERTED.*
         WHERE id = @id

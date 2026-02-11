@@ -82,6 +82,8 @@ router.post(
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('color').matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Invalid color format'),
     body('hourlyRate').isFloat({ min: 0 }).withMessage('Invalid hourly rate'),
+    body('isRecurring').optional().isBoolean().withMessage('isRecurring must be a boolean'),
+    body('recurrencePattern').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Invalid recurrence pattern'),
   ],
   async (req: AuthRequest, res: Response) => {
     try {
@@ -94,7 +96,10 @@ router.post(
         });
       }
 
-      const { name, color, hourlyRate, address, contactInfo, notes } = req.body;
+      const { 
+        name, color, hourlyRate, address, contactInfo, notes,
+        isRecurring, recurrencePattern, recurrenceEndDate
+      } = req.body;
       const pool = await sqlPool;
 
       const result = await pool.request()
@@ -105,10 +110,13 @@ router.post(
         .input('address', address || null)
         .input('contactInfo', contactInfo || null)
         .input('notes', notes || null)
+        .input('isRecurring', isRecurring || false)
+        .input('recurrencePattern', recurrencePattern || null)
+        .input('recurrenceEndDate', recurrenceEndDate || null)
         .query(`
-          INSERT INTO Workplaces (userId, name, color, hourlyRate, address, contactInfo, notes)
+          INSERT INTO Workplaces (userId, name, color, hourlyRate, address, contactInfo, notes, isRecurring, recurrencePattern, recurrenceEndDate)
           OUTPUT INSERTED.*
-          VALUES (@userId, @name, @color, @hourlyRate, @address, @contactInfo, @notes)
+          VALUES (@userId, @name, @color, @hourlyRate, @address, @contactInfo, @notes, @isRecurring, @recurrencePattern, @recurrenceEndDate)
         `);
 
       res.status(201).json({
@@ -130,7 +138,10 @@ router.post(
 // Update workplace
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const { name, color, hourlyRate, address, contactInfo, notes } = req.body;
+    const { 
+      name, color, hourlyRate, address, contactInfo, notes,
+      isRecurring, recurrencePattern, recurrenceEndDate
+    } = req.body;
     const pool = await sqlPool;
 
     const checkResult = await pool.request()
@@ -153,6 +164,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       .input('address', address || null)
       .input('contactInfo', contactInfo || null)
       .input('notes', notes || null)
+      .input('isRecurring', isRecurring || false)
+      .input('recurrencePattern', recurrencePattern || null)
+      .input('recurrenceEndDate', recurrenceEndDate || null)
       .query(`
         UPDATE Workplaces 
         SET name = @name,
@@ -161,6 +175,9 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
             address = @address,
             contactInfo = @contactInfo,
             notes = @notes,
+            isRecurring = @isRecurring,
+            recurrencePattern = @recurrencePattern,
+            recurrenceEndDate = @recurrenceEndDate,
             updatedAt = GETDATE()
         OUTPUT INSERTED.*
         WHERE id = @id
