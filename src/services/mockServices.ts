@@ -10,6 +10,7 @@ const mockWorkplaces: Workplace[] = [
     address: '123 University Ave',
     contactInfo: 'manager@campuscoffee.com',
     notes: 'Flexible hours, great team',
+    isRecurring: false,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
   },
@@ -22,6 +23,7 @@ const mockWorkplaces: Workplace[] = [
     address: '456 Main St',
     contactInfo: '(555) 123-4567',
     notes: 'Quiet environment, perfect for studying',
+    isRecurring: false,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
   }
@@ -70,6 +72,7 @@ const mockStudySessions: StudySession[] = [
     sessionType: 'study_group',
     priority: 'high',
     isCompleted: false,
+    isRecurring: false,
     notes: 'Prepare for midterm exam',
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -85,6 +88,7 @@ const mockStudySessions: StudySession[] = [
     sessionType: 'assignment',
     priority: 'medium',
     isCompleted: true,
+    isRecurring: false,
     notes: 'Calculus homework due tomorrow',
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -138,6 +142,9 @@ export const mockStudyService = {
       sessionType: data.sessionType || 'other',
       priority: data.priority || 'medium',
       isCompleted: false,
+      isRecurring: data.isRecurring || false,
+      recurrencePattern: data.recurrencePattern,
+      recurrenceEndDate: data.recurrenceEndDate,
       notes: data.notes,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -164,6 +171,9 @@ export const mockWorkplaceService = {
       address: data.address,
       contactInfo: data.contactInfo,
       notes: data.notes,
+      isRecurring: data.isRecurring || false,
+      recurrencePattern: data.recurrencePattern,
+      recurrenceEndDate: data.recurrenceEndDate,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

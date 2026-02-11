@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../../common';
 import { useStudySessions } from '../../../hooks/useStudySessions';
-import { StudySessionFormData, SessionType, Priority } from '../../../types';
+import { StudySessionFormData, SessionType, Priority, RecurrencePattern } from '../../../types';
 import { SESSION_TYPES, PRIORITIES } from '../../../constants';
 import { validateRequired, validateDateRange } from '../../../utils/validators';
 
@@ -25,6 +25,9 @@ export const StudyForm: React.FC<StudyFormProps> = ({
     sessionType: initialData?.sessionType || 'other',
     priority: initialData?.priority || 'medium',
     notes: initialData?.notes || '',
+    isRecurring: initialData?.isRecurring || false,
+    recurrencePattern: initialData?.recurrencePattern || 'weekly' as RecurrencePattern,
+    recurrenceEndDate: initialData?.recurrenceEndDate || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -33,8 +36,13 @@ export const StudyForm: React.FC<StudyFormProps> = ({
   const { createStudySession } = useStudySessions();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
 
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -196,6 +204,128 @@ export const StudyForm: React.FC<StudyFormProps> = ({
           rows={3}
           placeholder="Any additional notes about this study session..."
         />
+      </div>
+
+      {/* Recurring Study Session Section */}
+      <div style={{ 
+        marginTop: '1.5rem',
+        padding: '1rem',
+        background: '#f0f4ff',
+        borderRadius: '12px',
+        border: '2px solid #e6efff'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '1rem'
+        }}>
+          <label
+            htmlFor="isRecurring"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              cursor: 'pointer',
+              fontWeight: '600',
+              color: '#2d3748',
+              margin: 0
+            }}
+          >
+            <input
+              type="checkbox"
+              id="isRecurring"
+              name="isRecurring"
+              checked={formData.isRecurring || false}
+              onChange={handleChange}
+              style={{
+                width: '20px',
+                height: '20px',
+                cursor: 'pointer',
+                accentColor: '#667eea'
+              }}
+            />
+            <span>🔄 Recurring Study Session (daily/weekly/monthly)</span>
+          </label>
+        </div>
+
+        {formData.isRecurring && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div>
+              <label
+                htmlFor="recurrencePattern"
+                style={{
+                  display: 'block',
+                  fontWeight: '600',
+                  color: '#2d3748',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.95rem'
+                }}
+              >
+                Recurrence Pattern
+              </label>
+              <select
+                id="recurrencePattern"
+                name="recurrencePattern"
+                value={formData.recurrencePattern || 'weekly'}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  background: 'white'
+                }}
+              >
+                <option value="daily">Every Day</option>
+                <option value="weekly">Every Week</option>
+                <option value="monthly">Every Month</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="recurrenceEndDate"
+                style={{
+                  display: 'block',
+                  fontWeight: '600',
+                  color: '#2d3748',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.95rem'
+                }}
+              >
+                Recurrence End Date (Optional)
+              </label>
+              <input
+                type="date"
+                id="recurrenceEndDate"
+                name="recurrenceEndDate"
+                value={formData.recurrenceEndDate || ''}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <p style={{
+                fontSize: '0.85rem',
+                color: '#718096',
+                marginTop: '0.25rem',
+                margin: '0.25rem 0 0 0'
+              }}>
+                Leave empty for indefinite recurrence
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="form-actions">

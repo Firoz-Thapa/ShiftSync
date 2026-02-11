@@ -54,6 +54,9 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
         sessionType: data.sessionType || 'other',
         priority: data.priority || 'medium',
         isCompleted: false,
+        isRecurring: data.isRecurring || false,
+        recurrencePattern: data.recurrencePattern,
+        recurrenceEndDate: data.recurrenceEndDate,
         notes: data.notes,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

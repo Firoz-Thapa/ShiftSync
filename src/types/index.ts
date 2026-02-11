@@ -16,6 +16,9 @@ export interface Workplace {
   address?: string;
   contactInfo?: string;
   notes?: string;
+  isRecurring: boolean;
+  recurrencePattern?: RecurrencePattern;
+  recurrenceEndDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +51,9 @@ export interface StudySession {
   sessionType: SessionType;
   priority: Priority;
   isCompleted: boolean;
+  isRecurring: boolean;
+  recurrencePattern?: RecurrencePattern;
+  recurrenceEndDate?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -55,6 +61,7 @@ export interface StudySession {
 
 export type SessionType = 'lecture' | 'exam' | 'assignment' | 'study_group' | 'lab' | 'other';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+export type RecurrencePattern = 'daily' | 'weekly' | 'monthly';
 
 export interface TimeLog {
   id: number;
@@ -144,6 +151,9 @@ export interface WorkplaceFormData {
   address?: string;
   contactInfo?: string;
   notes?: string;
+  isRecurring?: boolean;
+  recurrencePattern?: RecurrencePattern;
+  recurrenceEndDate?: string;
 }
 
 export interface StudySessionFormData {
@@ -155,6 +165,9 @@ export interface StudySessionFormData {
   sessionType: SessionType;
   priority: Priority;
   notes?: string;
+  isRecurring?: boolean;
+  recurrencePattern?: RecurrencePattern;
+  recurrenceEndDate?: string;
 }
 
 export interface LoginCredentials {

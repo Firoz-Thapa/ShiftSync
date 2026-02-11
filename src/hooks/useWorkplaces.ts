@@ -79,6 +79,9 @@ export const useWorkplaces = () => {
         address: data.address || '',
         contactInfo: data.contactInfo || '',
         notes: data.notes || '',
+        isRecurring: data.isRecurring || false,
+        recurrencePattern: data.recurrencePattern,
+        recurrenceEndDate: data.recurrenceEndDate,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
