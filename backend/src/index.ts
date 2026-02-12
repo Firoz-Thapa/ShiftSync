@@ -53,8 +53,11 @@ app.use((req: any, res, next) => {
 app.get('/api/health', async (req, res) => {
   try {
     const pool = await connectDatabase();
-    const result = await pool.request().query('SELECT 1 as test');
-    const dbConnected = result.recordset.length > 0;
+    const connection = await pool.getConnection();
+    const [result] = await connection.execute('SELECT 1 as test');
+    connection.release();
+    
+    const dbConnected = (result as any[]).length > 0;
     
     res.json({ 
       status: 'healthy', 
