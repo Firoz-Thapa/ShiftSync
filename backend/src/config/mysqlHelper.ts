@@ -1,4 +1,5 @@
 import { sqlPool } from './database';
+import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 
 /**
  * MySQL query helper - provides a simple interface for executing queries
@@ -28,7 +29,7 @@ export class MySQLRequest {
   async execute() {
     try {
       // Replace @paramName with ? placeholders
-      let finalQuery = this.query;
+      let finalQuery = this._query;
       const paramNames = Array.from(this.paramMap.keys()).sort(
         (a, b) => this.paramMap.get(b)! - this.paramMap.get(a)!
       );
@@ -39,10 +40,18 @@ export class MySQLRequest {
 
       const connection = await sqlPool.getConnection();
       try {
-        const [rows] = await connection.execute(finalQuery, this.params);
+        const [rows] = await connection.execute<RowDataPacket[] | ResultSetHeader>(
+          finalQuery, 
+          this.params
+        );
+        
+        const rowsAffected = Array.isArray(rows) 
+          ? rows.length 
+          : (rows as ResultSetHeader).affectedRows || 0;
+        
         return {
-          recordset: rows as any[],
-          rowsAffected: Array.isArray(rows) ? rows.length : 0
+          recordset: Array.isArray(rows) ? rows : [],
+          rowsAffected: rowsAffected
         };
       } finally {
         connection.release();

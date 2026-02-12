@@ -8,11 +8,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3001'),
   
-  DB_SERVER: z.string(),
-  DB_PORT: z.string(),
-  DB_DATABASE: z.string(),
-  DB_USER: z.string().optional(),
-  DB_PASSWORD: z.string().optional(),
+  DB_HOST: z.string().default('mysql'),
+  DB_PORT: z.string().default('3306'),
+  DB_NAME: z.string().default('shiftsync'),
+  DB_USER: z.string().default('root'),
+  DB_PASSWORD: z.string().default('password'),
   
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters long'),
   

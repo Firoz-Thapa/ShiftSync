@@ -1,24 +1,14 @@
--- Step 1: Create the login at server level
-USE master;
-GO
+-- Create a new MySQL user and grant permissions
+-- Run as root or an admin user
 
-CREATE LOGIN shiftsync_user WITH PASSWORD = 'YourStrongPassword123!';
-GO
+-- Step 1: Create the user (if not exists)
+CREATE USER IF NOT EXISTS 'shiftsync_user'@'%' IDENTIFIED BY 'YourStrongPassword123!';
 
--- Step 2: Switch to your database
-USE ShiftSyncDB;
-GO
+-- Step 2: Grant all privileges on the shiftsync database to the user
+GRANT ALL PRIVILEGES ON shiftsync.* TO 'shiftsync_user'@'%';
 
--- Step 3: Create user in the database for this login
-CREATE USER shiftsync_user FOR LOGIN shiftsync_user;
-GO
+-- Step 3: Apply the changes
+FLUSH PRIVILEGES;
 
--- Step 4: Grant db_owner role (full permissions on this database)
-ALTER ROLE db_owner ADD MEMBER shiftsync_user;
-GO
-
--- Step 5: Verify the user was created
-SELECT name, type_desc, create_date
-FROM sys.database_principals
-WHERE name = 'shiftsync_user';
-GO
+-- Step 4: Verify the user was created
+SELECT user, host FROM mysql.user WHERE user = 'shiftsync_user';
