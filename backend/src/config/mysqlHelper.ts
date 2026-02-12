@@ -5,13 +5,13 @@ import { sqlPool } from './database';
  * Similar to mssql's pool.request() pattern but for MySQL
  */
 export class MySQLRequest {
-  private query: string = '';
+  private _query: string = '';
   private params: any[] = [];
   private paramMap: Map<string, number> = new Map();
   private paramCounter: number = 0;
 
   query(queryStr: string): this {
-    this.query = queryStr;
+    this._query = queryStr;
     this.params = [];
     this.paramMap.clear();
     this.paramCounter = 0;
