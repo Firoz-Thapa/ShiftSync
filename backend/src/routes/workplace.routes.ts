@@ -3,7 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { sqlPool } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { createLimiter } from '../middleware/rateLimiter';
-import { PoolConnection } from 'mysql2/promise';
+import sql from 'mssql';
 
 const router = express.Router();
 
@@ -12,15 +12,12 @@ router.use(authMiddleware);
 
 // Get all workplaces for logged-in user
 router.get('/', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
-    const [result] = await connection.execute(
-      'SELECT * FROM Workplaces WHERE userId = ? ORDER BY createdAt DESC',
-      [req.userId]
-    );
+    const result = await sqlPool.request()
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT * FROM Workplaces WHERE userId = @userId ORDER BY createdAt DESC');
 
-    const workplaces = result as any[];
+    const workplaces = result.recordset;
     res.json({
       success: true,
       data: workplaces,
@@ -38,22 +35,18 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       message: 'Failed to fetch workplaces',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Get single workplace
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
-    const [result] = await connection.execute(
-      'SELECT * FROM Workplaces WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT * FROM Workplaces WHERE id = @id AND userId = @userId');
 
-    const rows = result as any[];
+    const rows = result.recordset;
     if (rows.length === 0) {
       return res.status(404).json({
         success: false,
@@ -72,8 +65,6 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to fetch workplace',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
@@ -89,7 +80,6 @@ router.post(
     body('recurrencePattern').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Invalid recurrence pattern'),
   ],
   async (req: AuthRequest, res: Response) => {
-    let connection: PoolConnection | null = null;
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -100,34 +90,32 @@ router.post(
         });
       }
 
-      const { 
+      const {
         name, color, hourlyRate, address, contactInfo, notes,
         isRecurring, recurrencePattern, recurrenceEndDate
       } = req.body;
-      
-      connection = await sqlPool.getConnection();
 
-      const [insertResult] = await connection.execute(
-        `INSERT INTO Workplaces (userId, name, color, hourlyRate, address, contactInfo, notes, isRecurring, recurrencePattern, recurrenceEndDate, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [
-          req.userId, name, color, hourlyRate, address || null, contactInfo || null, notes || null,
-          isRecurring || false, recurrencePattern || null, recurrenceEndDate || null
-        ]
-      );
-
-      const insertId = (insertResult as any).insertId;
-
-      // Get the inserted workplace
-      const [workplaces] = await connection.execute(
-        'SELECT * FROM Workplaces WHERE id = ?',
-        [insertId]
-      );
+      const insertResult = await sqlPool.request()
+        .input('userId', sql.Int, req.userId)
+        .input('name', sql.NVarChar, name)
+        .input('color', sql.NVarChar, color)
+        .input('hourlyRate', sql.Decimal(10, 2), hourlyRate)
+        .input('address', sql.NVarChar, address || null)
+        .input('contactInfo', sql.NVarChar, contactInfo || null)
+        .input('notes', sql.NVarChar, notes || null)
+        .input('isRecurring', sql.Bit, isRecurring || false)
+        .input('recurrencePattern', sql.NVarChar, recurrencePattern || null)
+        .input('recurrenceEndDate', sql.DateTime, recurrenceEndDate || null)
+        .query(`
+          INSERT INTO Workplaces (userId, name, color, hourlyRate, address, contactInfo, notes, isRecurring, recurrencePattern, recurrenceEndDate, createdAt, updatedAt)
+          OUTPUT INSERTED.*
+          VALUES (@userId, @name, @color, @hourlyRate, @address, @contactInfo, @notes, @isRecurring, @recurrencePattern, @recurrenceEndDate, GETDATE(), GETDATE())
+        `);
 
       res.status(201).json({
         success: true,
         message: 'Workplace created successfully',
-        data: (workplaces as any[])[0]
+        data: insertResult.recordset[0]
       });
     } catch (error: any) {
       console.error('Create workplace error:', error);
@@ -136,55 +124,55 @@ router.post(
         message: 'Failed to create workplace',
         error: error.message
       });
-    } finally {
-      if (connection) connection.release();
     }
   }
 );
 
 // Update workplace
 router.put('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    const { 
+    const {
       name, color, hourlyRate, address, contactInfo, notes,
       isRecurring, recurrencePattern, recurrenceEndDate
     } = req.body;
-    
-    connection = await sqlPool.getConnection();
 
-    const [checkResult] = await connection.execute(
-      'SELECT id FROM Workplaces WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
+    const checkResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT id FROM Workplaces WHERE id = @id AND userId = @userId');
 
-    if ((checkResult as any[]).length === 0) {
+    if (checkResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Workplace not found'
       });
     }
 
-    await connection.execute(
-      `UPDATE Workplaces 
-       SET name = ?, color = ?, hourlyRate = ?, address = ?, contactInfo = ?, notes = ?, 
-           isRecurring = ?, recurrencePattern = ?, recurrenceEndDate = ?, updatedAt = NOW()
-       WHERE id = ?`,
-      [
-        name, color, hourlyRate, address || null, contactInfo || null, notes || null,
-        isRecurring || false, recurrencePattern || null, recurrenceEndDate || null, req.params.id
-      ]
-    );
-
-    const [workplaces] = await connection.execute(
-      'SELECT * FROM Workplaces WHERE id = ?',
-      [req.params.id]
-    );
+    const updateResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('name', sql.NVarChar, name)
+      .input('color', sql.NVarChar, color)
+      .input('hourlyRate', sql.Decimal(10, 2), hourlyRate)
+      .input('address', sql.NVarChar, address || null)
+      .input('contactInfo', sql.NVarChar, contactInfo || null)
+      .input('notes', sql.NVarChar, notes || null)
+      .input('isRecurring', sql.Bit, isRecurring || false)
+      .input('recurrencePattern', sql.NVarChar, recurrencePattern || null)
+      .input('recurrenceEndDate', sql.DateTime, recurrenceEndDate || null)
+      .query(`
+        UPDATE Workplaces
+        SET name = @name, color = @color, hourlyRate = @hourlyRate, address = @address, 
+            contactInfo = @contactInfo, notes = @notes, isRecurring = @isRecurring, 
+            recurrencePattern = @recurrencePattern, recurrenceEndDate = @recurrenceEndDate, 
+            updatedAt = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
 
     res.json({
       success: true,
       message: 'Workplace updated successfully',
-      data: (workplaces as any[])[0]
+      data: updateResult.recordset[0]
     });
   } catch (error: any) {
     console.error('Update workplace error:', error);
@@ -193,33 +181,27 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to update workplace',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Delete workplace
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    const checkResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT id FROM Workplaces WHERE id = @id AND userId = @userId');
 
-    const [checkResult] = await connection.execute(
-      'SELECT id FROM Workplaces WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
-
-    if ((checkResult as any[]).length === 0) {
+    if (checkResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Workplace not found'
       });
     }
 
-    await connection.execute(
-      'DELETE FROM Workplaces WHERE id = ?',
-      [req.params.id]
-    );
+    await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .query('DELETE FROM Workplaces WHERE id = @id');
 
     res.json({
       success: true,
@@ -232,8 +214,6 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to delete workplace',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 

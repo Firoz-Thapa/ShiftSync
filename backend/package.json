@@ -27,7 +27,7 @@
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.14.1",
+    "mssql": "^12.2.0",
     "xss": "^1.0.15",
     "zod": "^4.1.13"
   },
@@ -38,6 +38,7 @@
     "@types/express-rate-limit": "^6.0.2",
     "@types/hpp": "^0.2.7",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/mssql": "^9.1.9",
     "@types/node": "^22.19.1",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

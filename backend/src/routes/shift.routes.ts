@@ -3,8 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { sqlPool } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { createLimiter } from '../middleware/rateLimiter';
-import { PoolConnection } from 'mysql2/promise';
-import { create } from 'domain';
+import sql from 'mssql';
 
 const router = express.Router();
 
@@ -13,41 +12,40 @@ router.use(authMiddleware);
 
 // Get all shifts for logged-in user with optional filters
 router.get('/', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
     const { startDate, endDate, workplaceId, limit = 100 } = req.query;
-    connection = await sqlPool.getConnection();
 
     let query = `
-      SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate
+      SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate 
       FROM Shifts s
       LEFT JOIN Workplaces w ON s.workplaceId = w.id
-      WHERE s.userId = ?
+      WHERE s.userId = @userId
     `;
 
-    const params: any[] = [req.userId];
+    const request = sqlPool.request();
+    request.input('userId', sql.Int, req.userId);
 
     if (startDate) {
-      query += ' AND s.startDatetime >= ?';
-      params.push(startDate);
+      query += ' AND s.startDatetime >= @startDate';
+      request.input('startDate', sql.DateTime, startDate);
     }
 
     if (endDate) {
-      query += ' AND s.startDatetime <= ?';
-      params.push(endDate);
+      query += ' AND s.startDatetime <= @endDate';
+      request.input('endDate', sql.DateTime, endDate);
     }
 
     if (workplaceId) {
-      query += ' AND s.workplaceId = ?';
-      params.push(workplaceId);
+      query += ' AND s.workplaceId = @workplaceId';
+      request.input('workplaceId', sql.Int, workplaceId);
     }
 
     query += ' ORDER BY s.startDatetime DESC';
 
-    const [result] = await connection.execute(query, params);
+    const result = await request.query(query);
 
     // Transform to include workplace object
-    const shifts = (result as any[]).map(row => ({
+    const shifts = result.recordset.map(row => ({
       id: row.id,
       userId: row.userId,
       workplaceId: row.workplaceId,
@@ -86,25 +84,21 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       message: 'Failed to fetch shifts',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Get single shift
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
-    const [result] = await connection.execute(
-      `SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query(`SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate
        FROM Shifts s
        LEFT JOIN Workplaces w ON s.workplaceId = w.id
-       WHERE s.id = ? AND s.userId = ?`,
-      [req.params.id, req.userId]
-    );
+       WHERE s.id = @id AND s.userId = @userId`);
 
-    const rows = result as any[];
+    const rows = result.recordset;
     if (rows.length === 0) {
       return res.status(404).json({
         success: false,
@@ -146,8 +140,6 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to fetch shift',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
@@ -163,7 +155,6 @@ router.post(
     body('breakDuration').optional().isInt({ min: 0 }).withMessage('Invalid break duration'),
   ],
   async (req: AuthRequest, res: Response) => {
-    let connection: PoolConnection | null = null;
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -175,41 +166,44 @@ router.post(
       }
 
       const { workplaceId, title, startDatetime, endDatetime, breakDuration, notes, isConfirmed } = req.body;
-      connection = await sqlPool.getConnection();
 
       // Verify workplace belongs to user
-      const [workplaceCheck] = await connection.execute(
-        'SELECT id FROM Workplaces WHERE id = ? AND userId = ?',
-        [workplaceId, req.userId]
-      );
+      const workplaceCheck = await sqlPool.request()
+        .input('workplaceId', sql.Int, workplaceId)
+        .input('userId', sql.Int, req.userId)
+        .query('SELECT id FROM Workplaces WHERE id = @workplaceId AND userId = @userId');
 
-      if ((workplaceCheck as any[]).length === 0) {
+      if (workplaceCheck.recordset.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Workplace not found'
         });
       }
 
-      const [insertResult] = await connection.execute(
-        `INSERT INTO Shifts (userId, workplaceId, title, startDatetime, endDatetime, breakDuration, notes, isConfirmed, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [req.userId, workplaceId, title, startDatetime, endDatetime, breakDuration || 0, notes || null, isConfirmed || false]
-      );
+      const insertResult = await sqlPool.request()
+        .input('userId', sql.Int, req.userId)
+        .input('workplaceId', sql.Int, workplaceId)
+        .input('title', sql.NVarChar, title)
+        .input('startDatetime', sql.DateTime, startDatetime)
+        .input('endDatetime', sql.DateTime, endDatetime)
+        .input('breakDuration', sql.Int, breakDuration || 0)
+        .input('notes', sql.NVarChar, notes || null)
+        .input('isConfirmed', sql.Bit, isConfirmed || false)
+        .query(`INSERT INTO Shifts (userId, workplaceId, title, startDatetime, endDatetime, breakDuration, notes, isConfirmed, createdAt, updatedAt)
+         OUTPUT INSERTED.id
+         VALUES (@userId, @workplaceId, @title, @startDatetime, @endDatetime, @breakDuration, @notes, @isConfirmed, GETDATE(), GETDATE())`);
 
-      const insertId = (insertResult as any).insertId;
+      const insertId = insertResult.recordset[0].id;
 
       // Get the inserted shift
-      const [shifts] = await connection.execute(
-        'SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate FROM Shifts s LEFT JOIN Workplaces w ON s.workplaceId = w.id WHERE s.id = ?',
-        [insertId]
-      );
-
-      const shift = (shifts as any[])[0];
+      const shifts = await sqlPool.request()
+        .input('id', sql.Int, insertId)
+        .query('SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate FROM Shifts s LEFT JOIN Workplaces w ON s.workplaceId = w.id WHERE s.id = @id');
 
       res.status(201).json({
         success: true,
         message: 'Shift created successfully',
-        data: shift
+        data: shifts.recordset[0]
       });
     } catch (error: any) {
       console.error('Create shift error:', error);
@@ -218,54 +212,53 @@ router.post(
         message: 'Failed to create shift',
         error: error.message
       });
-    } finally {
-      if (connection) connection.release();
     }
   }
 );
 
 // Update shift
 router.put('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
     const { workplaceId, title, startDatetime, endDatetime, breakDuration, notes, isConfirmed } = req.body;
-    connection = await sqlPool.getConnection();
 
     // Check if shift exists and belongs to user
-    const [checkResult] = await connection.execute(
-      'SELECT id FROM Shifts WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
+    const checkResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT id FROM Shifts WHERE id = @id AND userId = @userId');
 
-    if ((checkResult as any[]).length === 0) {
+    if (checkResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Shift not found'
       });
     }
 
-    await connection.execute(
-      `UPDATE Shifts 
-       SET workplaceId = ?, title = ?, startDatetime = ?, endDatetime = ?, breakDuration = ?, notes = ?, isConfirmed = ?, updatedAt = NOW()
-       WHERE id = ?`,
-      [workplaceId, title, startDatetime, endDatetime, breakDuration, notes || null, isConfirmed, req.params.id]
-    );
+    await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('workplaceId', sql.Int, workplaceId)
+      .input('title', sql.NVarChar, title)
+      .input('startDatetime', sql.DateTime, startDatetime)
+      .input('endDatetime', sql.DateTime, endDatetime)
+      .input('breakDuration', sql.Int, breakDuration)
+      .input('notes', sql.NVarChar, notes || null)
+      .input('isConfirmed', sql.Bit, isConfirmed)
+      .query(`UPDATE Shifts
+       SET workplaceId = @workplaceId, title = @title, startDatetime = @startDatetime, endDatetime = @endDatetime, breakDuration = @breakDuration, notes = @notes, isConfirmed = @isConfirmed, updatedAt = GETDATE()
+       WHERE id = @id`);
 
     // Get updated shift with workplace details
-    const [shifts] = await connection.execute(
-      `SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate 
+    const shifts = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .query(`SELECT s.*, w.name as workplaceName, w.color as workplaceColor, w.hourlyRate as workplaceHourlyRate
        FROM Shifts s
        LEFT JOIN Workplaces w ON s.workplaceId = w.id
-       WHERE s.id = ?`,
-      [req.params.id]
-    );
-
-    const shift = (shifts as any[])[0];
+       WHERE s.id = @id`);
 
     res.json({
       success: true,
       message: 'Shift updated successfully',
-      data: shift
+      data: shifts.recordset[0]
     });
   } catch (error: any) {
     console.error('Update shift error:', error);
@@ -274,33 +267,27 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to update shift',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Delete shift
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    const checkResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT id FROM Shifts WHERE id = @id AND userId = @userId');
 
-    const [checkResult] = await connection.execute(
-      'SELECT id FROM Shifts WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
-
-    if ((checkResult as any[]).length === 0) {
+    if (checkResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Shift not found'
       });
     }
 
-    await connection.execute(
-      'DELETE FROM Shifts WHERE id = ?',
-      [req.params.id]
-    );
+    await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .query('DELETE FROM Shifts WHERE id = @id');
 
     res.json({
       success: true,
@@ -313,30 +300,25 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to delete shift',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Confirm shift
 router.put('/:id/confirm', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query(`UPDATE Shifts
+       SET isConfirmed = 1, updatedAt = GETDATE()
+       WHERE id = @id AND userId = @userId`);
 
-    await connection.execute(
-      `UPDATE Shifts 
-       SET isConfirmed = true, updatedAt = NOW()
-       WHERE id = ? AND userId = ?`,
-      [req.params.id, req.userId]
-    );
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT * FROM Shifts WHERE id = @id AND userId = @userId');
 
-    const [result] = await connection.execute(
-      'SELECT * FROM Shifts WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
-
-    if ((result as any[]).length === 0) {
+    if (result.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Shift not found'
@@ -346,7 +328,7 @@ router.put('/:id/confirm', async (req: AuthRequest, res: Response) => {
     res.json({
       success: true,
       message: 'Shift confirmed successfully',
-      data: (result as any[])[0]
+      data: result.recordset[0]
     });
   } catch (error: any) {
     console.error('Confirm shift error:', error);
@@ -355,40 +337,34 @@ router.put('/:id/confirm', async (req: AuthRequest, res: Response) => {
       message: 'Failed to confirm shift',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Clock in
 router.put('/:id/clock-in', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query(`UPDATE Shifts
+       SET actualStartTime = GETDATE(), updatedAt = GETDATE()
+       WHERE id = @id AND userId = @userId AND actualStartTime IS NULL`);
 
-    const [result] = await connection.execute(
-      `UPDATE Shifts 
-       SET actualStartTime = NOW(), updatedAt = NOW()
-       WHERE id = ? AND userId = ? AND actualStartTime IS NULL`,
-      [req.params.id, req.userId]
-    );
-
-    if ((result as any).affectedRows === 0) {
+    if (result.rowsAffected[0] === 0) {
       return res.status(400).json({
         success: false,
         message: 'Cannot clock in - shift not found or already clocked in'
       });
     }
 
-    const [shifts] = await connection.execute(
-      'SELECT * FROM Shifts WHERE id = ?',
-      [req.params.id]
-    );
+    const shifts = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .query('SELECT * FROM Shifts WHERE id = @id');
 
     res.json({
       success: true,
       message: 'Clocked in successfully',
-      data: (shifts as any[])[0]
+      data: shifts.recordset[0]
     });
   } catch (error: any) {
     console.error('Clock in error:', error);
@@ -397,40 +373,34 @@ router.put('/:id/clock-in', async (req: AuthRequest, res: Response) => {
       message: 'Failed to clock in',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Clock out
 router.put('/:id/clock-out', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query(`UPDATE Shifts
+       SET actualEndTime = GETDATE(), updatedAt = GETDATE()
+       WHERE id = @id AND userId = @userId AND actualStartTime IS NOT NULL AND actualEndTime IS NULL`);
 
-    const [result] = await connection.execute(
-      `UPDATE Shifts 
-       SET actualEndTime = NOW(), updatedAt = NOW()
-       WHERE id = ? AND userId = ? AND actualStartTime IS NOT NULL AND actualEndTime IS NULL`,
-      [req.params.id, req.userId]
-    );
-
-    if ((result as any).affectedRows === 0) {
+    if (result.rowsAffected[0] === 0) {
       return res.status(400).json({
         success: false,
         message: 'Cannot clock out - shift not found or not clocked in'
       });
     }
 
-    const [shifts] = await connection.execute(
-      'SELECT * FROM Shifts WHERE id = ?',
-      [req.params.id]
-    );
+    const shifts = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .query('SELECT * FROM Shifts WHERE id = @id');
 
     res.json({
       success: true,
       message: 'Clocked out successfully',
-      data: (shifts as any[])[0]
+      data: shifts.recordset[0]
     });
   } catch (error: any) {
     console.error('Clock out error:', error);
@@ -439,8 +409,6 @@ router.put('/:id/clock-out', async (req: AuthRequest, res: Response) => {
       message: 'Failed to clock out',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 

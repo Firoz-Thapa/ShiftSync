@@ -1,26 +1,32 @@
-import mysql from 'mysql2/promise';
+import sql from 'mssql';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig = {
-    host: process.env.DB_HOST || 'mysql',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    database: process.env.DB_NAME || 'shiftsync',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'password',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
+const dbConfig: sql.config = {
+  server: process.env.DB_SERVER || 'localhost',
+  port: parseInt(process.env.DB_PORT || '1433'),
+  database: process.env.DB_DATABASE || 'ShiftSyncDB',
+  user: process.env.DB_USER || 'shiftsync_user',
+  password: process.env.DB_PASSWORD || 'NewSecurePassword@2024!',
+  options: {
+    encrypt: false,
+    trustServerCertificate: true,
+    enableArithAbort: true,
+  },
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000,
+  },
 };
 
-export const sqlPool = mysql.createPool(dbConfig);
+export const sqlPool = new sql.ConnectionPool(dbConfig);
 
 export const connectDatabase = async () => {
   try {
-    const connection = await sqlPool.getConnection();
-    console.log('Database connected successfully!');
-    connection.release();
+    await sqlPool.connect();
+    console.log('Database connected successfully to ShiftSyncDB!');
     return sqlPool;
   } catch (err) {
     console.error('Database connection failed:', err);
@@ -28,4 +34,4 @@ export const connectDatabase = async () => {
   }
 };
 
-export default mysql;
+export default sql;

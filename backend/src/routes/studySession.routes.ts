@@ -3,8 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { sqlPool } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { createLimiter } from '../middleware/rateLimiter';
-import { PoolConnection } from 'mysql2/promise';
-import { create } from 'domain';
+import sql from 'mssql';
 
 const router = express.Router();
 
@@ -13,44 +12,43 @@ router.use(authMiddleware);
 
 // Get all study sessions for logged-in user with optional filters
 router.get('/', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
     const { startDate, endDate, subject, sessionType, priority, limit = 100 } = req.query;
-    connection = await sqlPool.getConnection();
 
-    let query = 'SELECT * FROM StudySessions WHERE userId = ?';
-    const params: any[] = [req.userId];
+    let query = 'SELECT * FROM StudySessions WHERE userId = @userId';
+    const request = sqlPool.request();
+    request.input('userId', sql.Int, req.userId);
 
     if (startDate) {
-      query += ' AND startDatetime >= ?';
-      params.push(startDate);
+      query += ' AND startDatetime >= @startDate';
+      request.input('startDate', sql.DateTime, startDate);
     }
 
     if (endDate) {
-      query += ' AND startDatetime <= ?';
-      params.push(endDate);
+      query += ' AND startDatetime <= @endDate';
+      request.input('endDate', sql.DateTime, endDate);
     }
 
     if (subject) {
-      query += ' AND subject = ?';
-      params.push(subject);
+      query += ' AND subject = @subject';
+      request.input('subject', sql.NVarChar, subject);
     }
 
     if (sessionType) {
-      query += ' AND sessionType = ?';
-      params.push(sessionType);
+      query += ' AND sessionType = @sessionType';
+      request.input('sessionType', sql.NVarChar, sessionType);
     }
 
     if (priority) {
-      query += ' AND priority = ?';
-      params.push(priority);
+      query += ' AND priority = @priority';
+      request.input('priority', sql.NVarChar, priority);
     }
 
     query += ' ORDER BY startDatetime DESC';
 
-    const [result] = await connection.execute(query, params);
+    const result = await request.query(query);
+    const sessions = result.recordset;
 
-    const sessions = result as any[];
     res.json({
       success: true,
       data: sessions,
@@ -68,23 +66,18 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       message: 'Failed to fetch study sessions',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Get single study session
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
-    const [result] = await connection.execute(
-      'SELECT * FROM StudySessions WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT * FROM StudySessions WHERE id = @id AND userId = @userId');
 
-    const rows = result as any[];
-    if (rows.length === 0) {
+    if (result.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Study session not found'
@@ -93,7 +86,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 
     res.json({
       success: true,
-      data: rows[0]
+      data: result.recordset[0]
     });
   } catch (error: any) {
     console.error('Get study session error:', error);
@@ -102,8 +95,6 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to fetch study session',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
@@ -121,7 +112,6 @@ router.post(
     body('recurrencePattern').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Invalid recurrence pattern'),
   ],
   async (req: AuthRequest, res: Response) => {
-    let connection: PoolConnection | null = null;
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -132,40 +122,42 @@ router.post(
         });
       }
 
-      const { 
-        title, 
-        subject, 
-        startDatetime, 
-        endDatetime, 
-        location, 
-        sessionType, 
-        priority, 
+      const {
+        title,
+        subject,
+        startDatetime,
+        endDatetime,
+        location,
+        sessionType,
+        priority,
         notes,
         isRecurring,
         recurrencePattern,
         recurrenceEndDate
       } = req.body;
-      
-      connection = await sqlPool.getConnection();
 
-      const [insertResult] = await connection.execute(
-        `INSERT INTO StudySessions 
+      const insertResult = await sqlPool.request()
+        .input('userId', sql.Int, req.userId)
+        .input('title', sql.NVarChar, title)
+        .input('subject', sql.NVarChar, subject || null)
+        .input('startDatetime', sql.DateTime, startDatetime)
+        .input('endDatetime', sql.DateTime, endDatetime)
+        .input('location', sql.NVarChar, location || null)
+        .input('sessionType', sql.NVarChar, sessionType || 'other')
+        .input('priority', sql.NVarChar, priority || 'medium')
+        .input('notes', sql.NVarChar, notes || null)
+        .input('isRecurring', sql.Bit, isRecurring || false)
+        .input('recurrencePattern', sql.NVarChar, recurrencePattern || null)
+        .input('recurrenceEndDate', sql.DateTime, recurrenceEndDate || null)
+        .query(`INSERT INTO StudySessions
          (userId, title, subject, startDatetime, endDatetime, location, sessionType, priority, notes, isRecurring, recurrencePattern, recurrenceEndDate, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [req.userId, title, subject || null, startDatetime, endDatetime, location || null, sessionType || 'other', priority || 'medium', notes || null, isRecurring || false, recurrencePattern || null, recurrenceEndDate || null]
-      );
-
-      const insertId = (insertResult as any).insertId;
-
-      const [sessions] = await connection.execute(
-        'SELECT * FROM StudySessions WHERE id = ?',
-        [insertId]
-      );
+         OUTPUT INSERTED.*
+         VALUES (@userId, @title, @subject, @startDatetime, @endDatetime, @location, @sessionType, @priority, @notes, @isRecurring, @recurrencePattern, @recurrenceEndDate, GETDATE(), GETDATE())`);
 
       res.status(201).json({
         success: true,
         message: 'Study session created successfully',
-        data: (sessions as any[])[0]
+        data: insertResult.recordset[0]
       });
     } catch (error: any) {
       console.error('Create study session error:', error);
@@ -174,62 +166,67 @@ router.post(
         message: 'Failed to create study session',
         error: error.message
       });
-    } finally {
-      if (connection) connection.release();
     }
   }
 );
 
 // Update study session
 router.put('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    const { 
-      title, 
-      subject, 
-      startDatetime, 
-      endDatetime, 
-      location, 
-      sessionType, 
-      priority, 
+    const {
+      title,
+      subject,
+      startDatetime,
+      endDatetime,
+      location,
+      sessionType,
+      priority,
       isCompleted,
       notes,
       isRecurring,
       recurrencePattern,
       recurrenceEndDate
     } = req.body;
-    
-    connection = await sqlPool.getConnection();
 
     // Check if session exists and belongs to user
-    const [checkResult] = await connection.execute(
-      'SELECT id FROM StudySessions WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
+    const checkResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT id FROM StudySessions WHERE id = @id AND userId = @userId');
 
-    if ((checkResult as any[]).length === 0) {
+    if (checkResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Study session not found'
       });
     }
 
-    await connection.execute(
-      `UPDATE StudySessions 
-       SET title = ?, subject = ?, startDatetime = ?, endDatetime = ?, location = ?, sessionType = ?, priority = ?, isCompleted = ?, notes = ?, isRecurring = ?, recurrencePattern = ?, recurrenceEndDate = ?, updatedAt = NOW()
-       WHERE id = ?`,
-      [title, subject || null, startDatetime, endDatetime, location || null, sessionType, priority, isCompleted !== undefined ? isCompleted : false, notes || null, isRecurring || false, recurrencePattern || null, recurrenceEndDate || null, req.params.id]
-    );
-
-    const [sessions] = await connection.execute(
-      'SELECT * FROM StudySessions WHERE id = ?',
-      [req.params.id]
-    );
+    const updateResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('title', sql.NVarChar, title)
+      .input('subject', sql.NVarChar, subject || null)
+      .input('startDatetime', sql.DateTime, startDatetime)
+      .input('endDatetime', sql.DateTime, endDatetime)
+      .input('location', sql.NVarChar, location || null)
+      .input('sessionType', sql.NVarChar, sessionType)
+      .input('priority', sql.NVarChar, priority)
+      .input('isCompleted', sql.Bit, isCompleted !== undefined ? isCompleted : false)
+      .input('notes', sql.NVarChar, notes || null)
+      .input('isRecurring', sql.Bit, isRecurring || false)
+      .input('recurrencePattern', sql.NVarChar, recurrencePattern || null)
+      .input('recurrenceEndDate', sql.DateTime, recurrenceEndDate || null)
+      .query(`UPDATE StudySessions
+       SET title = @title, subject = @subject, startDatetime = @startDatetime, endDatetime = @endDatetime, 
+           location = @location, sessionType = @sessionType, priority = @priority, isCompleted = @isCompleted, 
+           notes = @notes, isRecurring = @isRecurring, recurrencePattern = @recurrencePattern, 
+           recurrenceEndDate = @recurrenceEndDate, updatedAt = GETDATE()
+       OUTPUT INSERTED.*
+       WHERE id = @id`);
 
     res.json({
       success: true,
       message: 'Study session updated successfully',
-      data: (sessions as any[])[0]
+      data: updateResult.recordset[0]
     });
   } catch (error: any) {
     console.error('Update study session error:', error);
@@ -238,33 +235,27 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to update study session',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Delete study session
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    const checkResult = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT id FROM StudySessions WHERE id = @id AND userId = @userId');
 
-    const [checkResult] = await connection.execute(
-      'SELECT id FROM StudySessions WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
-
-    if ((checkResult as any[]).length === 0) {
+    if (checkResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Study session not found'
       });
     }
 
-    await connection.execute(
-      'DELETE FROM StudySessions WHERE id = ?',
-      [req.params.id]
-    );
+    await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .query('DELETE FROM StudySessions WHERE id = @id');
 
     res.json({
       success: true,
@@ -277,31 +268,25 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
       message: 'Failed to delete study session',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
 // Mark as completed
 router.put('/:id/complete', async (req: AuthRequest, res: Response) => {
-  let connection: PoolConnection | null = null;
   try {
-    connection = await sqlPool.getConnection();
+    await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query(`UPDATE StudySessions
+       SET isCompleted = 1, updatedAt = GETDATE()
+       WHERE id = @id AND userId = @userId`);
 
-    const [result] = await connection.execute(
-      `UPDATE StudySessions 
-       SET isCompleted = true, updatedAt = NOW()
-       WHERE id = ? AND userId = ?`,
-      [req.params.id, req.userId]
-    );
+    const result = await sqlPool.request()
+      .input('id', sql.Int, req.params.id)
+      .input('userId', sql.Int, req.userId)
+      .query('SELECT * FROM StudySessions WHERE id = @id AND userId = @userId');
 
-    const [sessions] = await connection.execute(
-      'SELECT * FROM StudySessions WHERE id = ? AND userId = ?',
-      [req.params.id, req.userId]
-    );
-
-    const rows = sessions as any[];
-    if (rows.length === 0) {
+    if (result.recordset.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Study session not found'
@@ -311,7 +296,7 @@ router.put('/:id/complete', async (req: AuthRequest, res: Response) => {
     res.json({
       success: true,
       message: 'Study session marked as completed',
-      data: rows[0]
+      data: result.recordset[0]
     });
   } catch (error: any) {
     console.error('Complete study session error:', error);
@@ -320,8 +305,6 @@ router.put('/:id/complete', async (req: AuthRequest, res: Response) => {
       message: 'Failed to mark study session as completed',
       error: error.message
     });
-  } finally {
-    if (connection) connection.release();
   }
 });
 
