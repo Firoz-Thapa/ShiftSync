@@ -95,17 +95,14 @@ export const Profile: React.FC = () => {
       
       localStorage.setItem('shiftsync_user', JSON.stringify(updatedUser));
       
-      // Close modal first
       setIsEditModalOpen(false);
       
-      // Show success toast
       success(
         'Profile Updated!',
         'Your profile information has been successfully updated.',
         4000
       );
       
-      // Reload page after a short delay to see the toast
       setTimeout(() => {
         window.location.reload();
       }, 1500);
@@ -166,7 +163,7 @@ export const Profile: React.FC = () => {
           {/* Theme Preferences */}
           <Card>
             <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              🎨 Appearance
+              Appearance
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -221,98 +218,10 @@ export const Profile: React.FC = () => {
             </div>
           </Card>
 
-          {/* Accessibility Settings */}
-          <Card>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              ♿ Accessibility
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
-                <div style={{ flex: 1 }}>
-                  <label 
-                    htmlFor="reduce-motion-toggle"
-                    style={{ 
-                      fontSize: '0.875rem', 
-                      fontWeight: '500', 
-                      color: 'var(--text-primary)', 
-                      display: 'block',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Reduce Motion
-                  </label>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}>
-                    Minimize animations and transitions
-                  </p>
-                </div>
-                <input 
-                  id="reduce-motion-toggle"
-                  type="checkbox" 
-                  checked={reduceMotion}
-                  onChange={handleReduceMotionChange}
-                  style={{ 
-                    width: '16px', 
-                    height: '16px',
-                    marginLeft: '1rem',
-                    cursor: 'pointer'
-                  }}
-                  aria-describedby="reduce-motion-description"
-                />
-              </div>
-              
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
-                <div style={{ flex: 1 }}>
-                  <label 
-                    htmlFor="high-contrast-toggle"
-                    style={{ 
-                      fontSize: '0.875rem', 
-                      fontWeight: '500', 
-                      color: 'var(--text-primary)', 
-                      display: 'block',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    High Contrast
-                  </label>
-                  <p 
-                    id="high-contrast-description"
-                    style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}
-                  >
-                    Increase color contrast for better readability
-                  </p>
-                </div>
-                <input 
-                  id="high-contrast-toggle"
-                  type="checkbox" 
-                  checked={highContrast}
-                  onChange={handleHighContrastChange}
-                  style={{ 
-                    width: '16px', 
-                    height: '16px',
-                    marginLeft: '1rem',
-                    cursor: 'pointer'
-                  }}
-                  aria-describedby="high-contrast-description"
-                />
-              </div>
-
-              <div style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px dashed var(--border-primary)' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                  Browser Accessibility Settings
-                </h4>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.4 }}>
-                  For more accessibility options, check your browser settings or operating system preferences. 
-                  These include text size, zoom level, and screen reader compatibility.
-                </p>
-              </div>
-            </div>
-          </Card>
-
           {/* Notification Preferences */}
           <Card>
             <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              🔔 Notifications
+              Notifications
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -413,7 +322,6 @@ export const Profile: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -526,7 +434,6 @@ export const Profile: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );

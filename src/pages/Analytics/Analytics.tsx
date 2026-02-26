@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -105,6 +105,21 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 export const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('6weeks');
   const [selectedMetric, setSelectedMetric] = useState('earnings');
+
+  // export dropdown state
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
 
   // Calculate date range
   const dateRange = useMemo(() => {
@@ -256,6 +271,44 @@ export const Analytics: React.FC = () => {
     };
   }, [processedData]);
 
+  const generateCSV = () => {
+    if (!processedData || !totals) return;
+    const rows: string[][] = [];
+    rows.push(['Week','Earnings','Hours','Study Hours']);
+    processedData.earningsData.forEach(w => {
+      rows.push([w.week, w.earnings.toString(), w.hours.toString(), w.studyHours.toString()]);
+    });
+    rows.push(['Totals', totals.totalEarnings.toString(), totals.totalWorkHours.toString(), totals.totalStudyHours.toString()]);
+    const csvContent = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download','analytics.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const generatePDF = () => {
+    if (!processedData || !totals) return;
+    import('jspdf').then(({ jsPDF }) => {
+      const doc = new jsPDF();
+      doc.text('Analytics Report', 10, 10);
+      let y = 20;
+      doc.text(`Time range: ${timeRange}`, 10, y);
+      y += 10;
+      doc.text(`Total Earnings: $${totals.totalEarnings}`, 10, y);
+      y += 10;
+      doc.text('Weekly Data:', 10, y);
+      y += 10;
+      processedData.earningsData.forEach(w => {
+        doc.text(`${w.week} - Earnings: $${w.earnings}, Hours: ${w.hours}, Study: ${w.studyHours}`, 10, y);
+        y += 8;
+      });
+      doc.save('analytics.pdf');
+    });
+  };
+
   if (shiftsLoading || studyLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -294,9 +347,34 @@ export const Analytics: React.FC = () => {
               <option value="6weeks">Last 6 Weeks</option>
               <option value="12weeks">Last 3 Months</option>
             </select>
-            <Button variant="secondary" size="small">
-              📤 Export
-            </Button>
+            {/* export dropdown wrapper */}
+            <div ref={exportRef} className="relative">
+              <Button
+                variant="secondary"
+                size="small"
+                onClick={() => setExportMenuOpen(prev => !prev)}
+              >
+                📤 Export
+              </Button>
+              {exportMenuOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    onClick={() => { generatePDF(); setExportMenuOpen(false);} }
+                    type="button"
+                  >
+                    PDF
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    onClick={() => { generateCSV(); setExportMenuOpen(false);} }
+                    type="button"
+                  >
+                    CSV
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         }
       />
