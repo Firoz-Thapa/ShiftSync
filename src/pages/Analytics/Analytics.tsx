@@ -339,7 +339,7 @@ export const Analytics: React.FC = () => {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-shadow duration-150"
               title="Select time range"
             >
               <option value="1week">Last Week</option>
@@ -347,30 +347,31 @@ export const Analytics: React.FC = () => {
               <option value="6weeks">Last 6 Weeks</option>
               <option value="12weeks">Last 3 Months</option>
             </select>
-            {/* export dropdown wrapper */}
             <div ref={exportRef} className="relative">
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="small"
+                className={`${exportMenuOpen ? 'bg-gray-100 shadow-inner' : ''} tracking-wide hover:shadow-md`}
                 onClick={() => setExportMenuOpen(prev => !prev)}
               >
                 📤 Export
               </Button>
               {exportMenuOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden transition-opacity duration-200 ease-out">
+                  <span className="absolute top-0 right-3 w-3 h-3 bg-white transform rotate-45 -mt-1 border-t border-l border-gray-200"></span>
                   <button
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 focus:bg-blue-100 transition-colors duration-150 focus:outline-none"
                     onClick={() => { generatePDF(); setExportMenuOpen(false);} }
                     type="button"
                   >
-                    PDF
+                    📄 PDF
                   </button>
                   <button
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 focus:bg-blue-100 transition-colors duration-150 focus:outline-none border-t border-gray-200"
                     onClick={() => { generateCSV(); setExportMenuOpen(false);} }
                     type="button"
                   >
-                    CSV
+                    🗒️ CSV
                   </button>
                 </div>
               )}

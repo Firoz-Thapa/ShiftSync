@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '../../common';
+import { Button, Modal } from '../../common';
 import { useWorkplaces } from '../../../hooks/useWorkplaces';
 import { useShifts } from '../../../hooks/useShifts';
 import { ShiftFormData } from '../../../types';
@@ -25,6 +25,7 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     notes: initialData?.notes || '',
     isConfirmed: initialData?.isConfirmed || false,
   });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -115,10 +116,8 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
       const newShift = await createShift(formData);
       console.log('✅ Shift created successfully:', newShift);
       
-      // Show success message
-      alert('✅ Shift created successfully!');
-      
-      onSuccess();
+      // Show success message in a modal dialog instead of a browser alert
+      setShowSuccessModal(true);
     } catch (error: any) {
       console.error('❌ Failed to create shift:', error);
       setErrors({ general: error.message || 'Failed to create shift' });
@@ -143,7 +142,8 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="shift-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <>
+      <form onSubmit={handleSubmit} className="shift-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {errors.general && (
         <div style={{ 
           background: '#fed7d7', 
@@ -330,5 +330,26 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
         </Button>
       </div>
     </form>
+
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          onSuccess();
+        }}
+        title="✅ Shift created successfully!"
+        size="small"
+        actions={
+          <Button variant="primary" onClick={() => {
+            setShowSuccessModal(false);
+            onSuccess();
+          }}>
+            OK
+          </Button>
+        }
+      >
+        <p>Your shift has been added to your schedule.</p>
+      </Modal>
+    </>
   );
 };

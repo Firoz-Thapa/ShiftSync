@@ -7,21 +7,29 @@ import { formatCurrency } from '../../utils/formatters';
 
 export const Workplaces: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name?: string } | null>(null);
   const { workplaces, isLoading, fetchWorkplaces, deleteWorkplace } = useWorkplaces();
 
-  const handleDelete = async (id: number, name?: string) => {
-    const confirmed = window.confirm(
-      `Delete workplace "${name || ''}"? This action cannot be undone.`
-    );
-    if (!confirmed) return;
+  const handleDelete = (id: number, name?: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await deleteWorkplace(id);
+      await deleteWorkplace(deleteTarget.id);
       await fetchWorkplaces();
     } catch (err) {
       console.error('Failed to delete workplace', err);
-      // Optionally show toast / UI feedback here
+      // Optionally show toast/UI feedback here
+    } finally {
+      setDeleteTarget(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteTarget(null);
   };
 
   const handleSuccess = async () => {
@@ -102,6 +110,27 @@ export const Workplaces: React.FC = () => {
           onSuccess={handleSuccess}
           onCancel={() => setIsModalOpen(false)}
         />
+      </Modal>
+
+      <Modal
+        isOpen={deleteTarget !== null}
+        onClose={cancelDelete}
+        title="Confirm Deletion"
+        size="small"
+        actions={
+          <>
+            <Button variant="secondary" onClick={cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="error" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </>
+        }
+      >
+        <p>
+          Delete workplace "{deleteTarget?.name ?? ''}"? This action cannot be undone.
+        </p>
       </Modal>
     </>
   );
