@@ -3,12 +3,14 @@ import { Modal } from '../../common/Modal/Modal';
 import { Button } from '../../common/Button/Button';
 import { ShiftForm } from '../../forms/ShiftForm';
 import { StudyForm } from '../../forms/StudyForm';
+import { NotepadModal } from '../../common/Notepad/NotepadModal';
 import './FloatingActionButton.css';
 
 export const FloatingActionButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<'shift' | 'study' | 'break' | 'note' | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; message: string } | null>(null);
+  const [isNotepadOpen, setIsNotepadOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -36,18 +38,7 @@ export const FloatingActionButton: React.FC = () => {
         message: 'Enjoy your 15-minute break with a refreshing pause and a cup of coffee.',
       });
     } else if (actionId === 'note') {
-      const note = prompt('📝 Quick note:');
-      if (note && note.trim()) {
-        const timestamp = new Date().toLocaleString();
-        const existingNotes = localStorage.getItem('shiftsync_quick_notes');
-        const notes = existingNotes ? JSON.parse(existingNotes) : [];
-        notes.unshift({ text: note.trim(), timestamp });
-        localStorage.setItem('shiftsync_quick_notes', JSON.stringify(notes.slice(0, 10))); // Keep last 10 notes
-        setAlertData({
-          title: 'Note saved! 📝',
-          message: 'Your quick note has been saved successfully.',
-        });
-      }
+      setIsNotepadOpen(true);
     }
     setIsOpen(false);
   };
@@ -65,13 +56,9 @@ export const FloatingActionButton: React.FC = () => {
               <div
                 key={action.id}
                 className="quick-action-item"
-                style={{ 
-                  animationDelay: `${index * 100}ms`
-                }}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <span className="quick-action-label">
-                  {action.label}
-                </span>
+                <span className="quick-action-label">{action.label}</span>
                 <button
                   className="quick-action-btn"
                   style={{ backgroundColor: action.color }}
@@ -94,6 +81,7 @@ export const FloatingActionButton: React.FC = () => {
         </button>
       </div>
 
+      {/* Shift Modal */}
       <Modal
         isOpen={activeModal === 'shift'}
         onClose={closeModal}
@@ -103,6 +91,7 @@ export const FloatingActionButton: React.FC = () => {
         <ShiftForm onSuccess={closeModal} onCancel={closeModal} />
       </Modal>
 
+      {/* Study Modal */}
       <Modal
         isOpen={activeModal === 'study'}
         onClose={closeModal}
@@ -112,6 +101,7 @@ export const FloatingActionButton: React.FC = () => {
         <StudyForm onSuccess={closeModal} onCancel={closeModal} />
       </Modal>
 
+      {/* Alert Modal */}
       <Modal
         isOpen={!!alertData}
         onClose={() => setAlertData(null)}
@@ -127,6 +117,12 @@ export const FloatingActionButton: React.FC = () => {
       >
         <p style={{ margin: 0 }}>{alertData?.message}</p>
       </Modal>
+
+      {/* Notepad Modal */}
+      <NotepadModal
+        isOpen={isNotepadOpen}
+        onClose={() => setIsNotepadOpen(false)}
+      />
     </>
   );
 };
