@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
 import './NotepadModal.css';
@@ -17,12 +19,30 @@ interface NotepadModalProps {
 
 const STORAGE_KEY = 'shiftsync_quick_notes';
 
+const QUILL_MODULES = {
+  toolbar: [
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ header: [1, 2, 3, false] }],
+    ['blockquote', 'code-block'],
+    ['clean'],
+  ],
+};
+
+const QUILL_FORMATS = [
+  'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet',
+  'header',
+  'blockquote', 'code-block',
+];
+
 export const NotepadModal: React.FC<NotepadModalProps> = ({ isOpen, onClose }) => {
   const [view, setView] = useState<'write' | 'list'>('write');
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,23 +61,61 @@ export const NotepadModal: React.FC<NotepadModalProps> = ({ isOpen, onClose }) =
     setTitle('');
     setText('');
     setSelectedNote(null);
+    setEditingId(null);
+  };
+
+  const handleEdit = (note: Note) => {
+    setTitle(note.title === 'Untitled Note' ? '' : note.title);
+    setText(note.text);
+    setEditingId(note.id);
+    setSelectedNote(null);
+    setView('write');
+  };
+
+  // Strip HTML tags to get plain text length
+  const getPlainTextLength = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent?.length ?? 0;
+  };
+
+  const isTextEmpty = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return (div.textContent ?? '').trim().length === 0;
   };
 
   const handleSave = () => {
-    if (!text.trim()) return;
-
-    const note: Note = {
-      id: Date.now().toString(),
-      title: title.trim() || 'Untitled Note',
-      text: text.trim(),
-      timestamp: new Date().toLocaleString(),
-    };
+    if (isTextEmpty(text)) return;
 
     const stored = localStorage.getItem(STORAGE_KEY);
     const existing: Note[] = stored ? JSON.parse(stored) : [];
-    const updated = [note, ...existing].slice(0, 20);
+    let updated: Note[];
+
+    if (editingId) {
+      updated = existing.map(n =>
+        n.id === editingId
+          ? {
+              ...n,
+              title: title.trim() || 'Untitled Note',
+              text,
+              timestamp: new Date().toLocaleString() + ' (edited)',
+            }
+          : n
+      );
+    } else {
+      const note: Note = {
+        id: Date.now().toString(),
+        title: title.trim() || 'Untitled Note',
+        text,
+        timestamp: new Date().toLocaleString(),
+      };
+      updated = [note, ...existing].slice(0, 20);
+    }
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     setNotes(updated);
+    setEditingId(null);
     resetForm();
     setView('list');
   };
@@ -75,22 +133,31 @@ export const NotepadModal: React.FC<NotepadModalProps> = ({ isOpen, onClose }) =
     onClose();
   };
 
+  const charCount = getPlainTextLength(text);
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="📝 Notepad"
+      title={editingId ? '📝 Edit Note' : '📝 Notepad'}
       size="medium"
       showCloseButton={true}
       closeOnOverlayClick={false}
       actions={
         view === 'write' ? (
           <>
-            <Button variant="secondary" onClick={() => { setView('list'); resetForm(); }}>
+            <Button
+              variant="secondary"
+              onClick={() => { setView('list'); resetForm(); }}
+            >
               My Notes {notes.length > 0 && `(${notes.length})`}
             </Button>
-            <Button variant="primary" onClick={handleSave} disabled={!text.trim()}>
-              Save Note
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={isTextEmpty(text)}
+            >
+              {editingId ? 'Update Note' : 'Save Note'}
             </Button>
           </>
         ) : (
@@ -110,17 +177,18 @@ export const NotepadModal: React.FC<NotepadModalProps> = ({ isOpen, onClose }) =
             onChange={e => setTitle(e.target.value)}
             maxLength={80}
           />
-          <textarea
-            className="notepad-textarea"
-            placeholder="Write your note here..."
-            value={text}
-            onChange={e => setText(e.target.value)}
-            maxLength={1000}
-            rows={9}
-            autoFocus
-          />
-          <div className={`notepad-char-count ${text.length > 900 ? 'notepad-char-count--warning' : ''}`}>
-            {text.length} / 1000
+          <div className="notepad-quill-wrapper">
+            <ReactQuill
+              theme="snow"
+              value={text}
+              onChange={setText}
+              modules={QUILL_MODULES}
+              formats={QUILL_FORMATS}
+              placeholder="Write your note here..."
+            />
+          </div>
+          <div className={`notepad-char-count ${charCount > 900 ? 'notepad-char-count--warning' : ''}`}>
+            {charCount} / 1000
           </div>
         </div>
       ) : (
@@ -129,27 +197,57 @@ export const NotepadModal: React.FC<NotepadModalProps> = ({ isOpen, onClose }) =
             <div className="notepad-empty">No saved notes yet.</div>
           ) : selectedNote ? (
             <div className="notepad-detail">
-              <button className="notepad-back-btn" onClick={() => setSelectedNote(null)}>← Back</button>
+              <button className="notepad-back-btn" onClick={() => setSelectedNote(null)}>
+                ← Back
+              </button>
               <h3 className="notepad-detail-title">{selectedNote.title}</h3>
               <p className="notepad-detail-timestamp">{selectedNote.timestamp}</p>
-              <p className="notepad-detail-text">{selectedNote.text}</p>
-              <Button variant="secondary" onClick={() => handleDelete(selectedNote.id)}>
-                🗑 Delete
-              </Button>
+              {/* Render rich text safely */}
+              <div
+                className="notepad-detail-text ql-editor"
+                dangerouslySetInnerHTML={{ __html: selectedNote.text }}
+              />
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <Button variant="secondary" onClick={() => handleEdit(selectedNote)}>
+                  ✏️ Edit
+                </Button>
+                <Button variant="secondary" onClick={() => handleDelete(selectedNote.id)}>
+                  🗑 Delete
+                </Button>
+              </div>
             </div>
           ) : (
             <ul className="notepad-list">
               {notes.map(note => (
-                <li key={note.id} className="notepad-list-item" onClick={() => setSelectedNote(note)}>
+                <li
+                  key={note.id}
+                  className="notepad-list-item"
+                  onClick={() => setSelectedNote(note)}
+                >
                   <div className="notepad-list-item-header">
                     <span className="notepad-list-item-title">{note.title}</span>
-                    <button
-                      className="notepad-list-item-delete"
-                      onClick={e => { e.stopPropagation(); handleDelete(note.id); }}
-                      title="Delete"
-                    >✕</button>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        className="notepad-list-item-edit"
+                        onClick={e => { e.stopPropagation(); handleEdit(note); }}
+                        title="Edit"
+                      >✏️</button>
+                      <button
+                        className="notepad-list-item-delete"
+                        onClick={e => { e.stopPropagation(); handleDelete(note.id); }}
+                        title="Delete"
+                      >✕</button>
+                    </div>
                   </div>
-                  <span className="notepad-list-item-preview">{note.text.slice(0, 60)}{note.text.length > 60 ? '…' : ''}</span>
+                  {/* Strip HTML for preview */}
+                  <span className="notepad-list-item-preview">
+                    {(() => {
+                      const div = document.createElement('div');
+                      div.innerHTML = note.text;
+                      const plain = div.textContent ?? '';
+                      return plain.slice(0, 60) + (plain.length > 60 ? '…' : '');
+                    })()}
+                  </span>
                   <span className="notepad-list-item-time">{note.timestamp}</span>
                 </li>
               ))}

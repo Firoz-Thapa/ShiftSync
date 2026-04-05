@@ -1,3 +1,4 @@
+/* Write view */
 .notepad-write-view {
   display: flex;
   flex-direction: column;
@@ -50,6 +51,10 @@
 }
 
 /* List view */
+.notepad-list-view {
+  min-height: 200px;
+}
+
 .notepad-empty {
   text-align: center;
   color: var(--text-secondary, #999);
@@ -95,6 +100,19 @@
   color: var(--text-primary, #333);
 }
 
+.notepad-list-item-edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.notepad-list-item-edit:hover {
+  background: #eaf4fb;
+}
+
 .notepad-list-item-delete {
   background: none;
   border: none;
@@ -120,7 +138,6 @@
   color: var(--text-secondary, #aaa);
 }
 
-/* Detail view */
 .notepad-detail {
   display: flex;
   flex-direction: column;
@@ -135,6 +152,10 @@
   font-size: 13px;
   padding: 0;
   text-align: left;
+}
+
+.notepad-back-btn:hover {
+  text-decoration: underline;
 }
 
 .notepad-detail-title {
@@ -155,4 +176,37 @@
   line-height: 1.6;
   color: var(--text-primary, #444);
   white-space: pre-wrap;
+}
+
+.notepad-quill-wrapper .ql-toolbar {
+  border-radius: 8px 8px 0 0;
+  border-color: var(--border-color, #ddd);
+  background: var(--input-bg, #f9f9f9);
+}
+
+.notepad-quill-wrapper .ql-container {
+  border-radius: 0 0 8px 8px;
+  border-color: var(--border-color, #ddd);
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 180px;
+  background: var(--input-bg, #fff);
+  color: var(--text-primary, #333);
+}
+
+.notepad-quill-wrapper .ql-editor {
+  min-height: 180px;
+  line-height: 1.6;
+}
+
+.notepad-quill-wrapper .ql-editor.ql-blank::before {
+  color: var(--text-secondary, #aaa);
+  font-style: normal;
+}
+
+.notepad-detail-text.ql-editor {
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary, #444);
 }

@@ -13,8 +13,10 @@
     "date-fns": "^4.1.0",
     "frontend": "file:",
     "jspdf": "^2.5.2",
+    "quill": "^2.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^6.8.1",
     "react-scripts": "5.0.1",
     "recharts": "^2.8.0",
@@ -47,6 +49,7 @@
   },
   "devDependencies": {
     "@types/jspdf": "^2.0.0",
+    "@types/quill": "^2.0.14",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/recharts": "^2.0.1"
