@@ -18,17 +18,6 @@ export default function LandingPage() {
               ShiftSync helps teams, managers, and students synchronize schedules,
               coordinate study sessions, and stay on track with effortless shift planning.
             </p>
-            <div className="hero-actions">
-              <Link className="cta-button primary" to={ROUTES.REGISTER}>
-                Sign Up
-              </Link>
-              <Link className="cta-button secondary" to={ROUTES.LOGIN}>
-                Log In
-              </Link>
-              <a className="cta-button tertiary" href="#features">
-                See Features
-              </a>
-            </div>
           </div>
 
           <div className="hero-visual">
