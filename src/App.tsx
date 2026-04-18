@@ -11,7 +11,9 @@ import { Workplaces } from './pages/Workplaces/Workplaces';
 import { Analytics } from './pages/Analytics/Analytics';
 import { Profile } from './pages/Profile/Profile';
 import { Login } from './pages/Login/Login';
+import { Register } from './pages/Register/Register';
 import { Email } from './pages/Email';
+import LandingPage from './components/LandingPage/LandingPage';
 
 import './styles/globals.css';
 import './styles/theme.css';
@@ -26,8 +28,16 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route 
+        path={ROUTES.HOME} 
+        element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <LandingPage />} 
+      />
+      <Route 
         path={ROUTES.LOGIN} 
         element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Login />} 
+      />
+      <Route 
+        path={ROUTES.REGISTER} 
+        element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Register />} 
       />
 
       <Route 
@@ -79,14 +89,9 @@ const AppRoutes = () => {
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
       
-      {/* Default Routes */}
-      <Route 
-        path={ROUTES.HOME} 
-        element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Navigate to={ROUTES.LOGIN} replace />} 
-      />
       <Route 
         path="*" 
-        element={<Navigate to={user ? ROUTES.DASHBOARD : ROUTES.LOGIN} replace />} 
+        element={<Navigate to={user ? ROUTES.DASHBOARD : ROUTES.HOME} replace />} 
       />
     </Routes>
   );

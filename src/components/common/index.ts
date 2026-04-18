@@ -9,3 +9,4 @@ export { ColorPicker } from './ColorPicker/ColorPicker';
 export { FloatingActionButton } from '../layout/FloatingActionButton';
 export { Toast, ToastContainer, useToast } from './Toast';
 export type { ToastType, ToastProps } from './Toast';
+export { NotepadModal } from './Notepad/NotepadModal';
