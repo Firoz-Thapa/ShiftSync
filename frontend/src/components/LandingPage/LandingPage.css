@@ -80,7 +80,7 @@
 .hero-copy .eyebrow {
   display: inline-block;
   margin-bottom: 1.25rem;
-  color: var(--color-primary);
+  color: white;
   font-size: 0.85rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
