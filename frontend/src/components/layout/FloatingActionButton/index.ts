@@ -1,1 +1,0 @@
-export { FloatingActionButton } from './FloatingActionButton';

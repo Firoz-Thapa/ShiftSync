@@ -1,1 +1,0 @@
-export { NotepadModal } from './NotepadModal';
