@@ -18,7 +18,7 @@ A comprehensive app to manage work shifts, study sessions, and email for student
 
 ### Requirements
 - Node.js (v16+)
-- SQL Server database
+- .NET SDK (10.0+)
 
 ### Setup
 
@@ -32,37 +32,25 @@ A comprehensive app to manage work shifts, study sessions, and email for student
    ```bash
    # Backend
    cd backend
-   npm install
+   dotnet restore
 
    # Frontend  
    cd ../frontend
    npm install
    ```
 
-3. **Environment setup**
-   
-   Create `.env` in the backend folder:
-   ```env
-   PORT=3001
-   DB_HOST=localhost
-   DB_NAME=shiftsync
-   DB_USER=your_username
-   DB_PASSWORD=your_password
-   JWT_SECRET=your_secret_key
-   ```
-   
-   **Note:** SQL Server connection string format is used internally
-
-4. **Run the app**
+3. **Run the app**
    ```bash
-   # Start backend (in backend folder)
-   npm run dev
+   # Start backend
+   cd backend
+   dotnet run
 
-   # Start frontend (in frontend folder)  
+   # Start frontend
+   cd ../frontend
    npm start
    ```
 
-5. **Open http://localhost:3000**
+4. **Open http://localhost:3000**
 
 ## Docker Setup
 
@@ -74,7 +62,7 @@ A comprehensive app to manage work shifts, study sessions, and email for student
 
 1. **Clone the project**
    ```bash
-   git clone https://github.com/Firoz-Thapa/ShiftSync.git
+   git clone https://github.com/yourusername/shiftsync.git
    cd shiftsync
    ```
 
@@ -96,8 +84,8 @@ A comprehensive app to manage work shifts, study sessions, and email for student
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, CSS-in-JS
-- **Backend**: Node.js, Express, TypeScript
-- **Database**: SQL Server (MSSQL)
+- **Backend**: ASP.NET Core, C#
+- **Database**: TBD (.NET data layer pending)
 - **Charts**: Recharts
 - **Authentication**: JWT
 - **Containerization**: Docker, Docker Compose
@@ -107,13 +95,14 @@ A comprehensive app to manage work shifts, study sessions, and email for student
 ```
 ShiftSync/
 ├── backend/
-│   ├── src/
-│   │   ├── routes/        # API endpoints
-│   │   ├── config/        # Database & environment config
-│   │   ├── middleware/    # Auth, validation, security
-│   │   └── index.ts       # Express server entry
-│   ├── Dockerfile
-│   └── package.json
+│   ├── Controllers/      # API controllers
+│   │   ├── EmailsController.cs
+│   │   ├── HealthController.cs
+│   │   ├── ShiftsController.cs
+│   │   └── WorkplacesController.cs
+│   ├── Models/           # DTOs and response types
+│   ├── Program.cs        # ASP.NET startup
+│   └── backend.csproj
 ├── frontend/
 │   ├── src/
 │   │   ├── components/    # React components (forms, layout, pages)

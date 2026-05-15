@@ -3,6 +3,7 @@ SQLQuery*.sql
 
 # Frontend
 frontend/
+!frontend/nginx.conf
 
 # Backend build outputs
 backend/bin/
