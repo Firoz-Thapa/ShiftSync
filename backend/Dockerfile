@@ -1,15 +1,15 @@
-FROM node:18-alpine
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
 
-WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm ci --omit=dev
+COPY ["backend.csproj", "./"]
+RUN dotnet restore "backend.csproj"
 
 COPY . .
+RUN dotnet publish "backend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-RUN npm run build
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
 
-EXPOSE 3001
-
-CMD ["npm", "start"]
+EXPOSE 80
+ENTRYPOINT ["dotnet", "backend-dotnet.dll"]
