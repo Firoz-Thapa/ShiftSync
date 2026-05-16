@@ -4,6 +4,7 @@ SQLQuery*.sql
 # Frontend
 frontend/
 !frontend/nginx.conf
+!frontend/package-lock.json
 
 # Backend build outputs
 backend/bin/
