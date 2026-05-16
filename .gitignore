@@ -1,13 +1,6 @@
 *.sql
 SQLQuery*.sql
 
-# Frontend
-frontend/
-
-# Backend build outputs
-backend/bin/
-backend/obj/
-
 # Dependencies
 node_modules/
 

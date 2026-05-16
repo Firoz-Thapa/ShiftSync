@@ -1,0 +1,1 @@
+export { WorkplaceForm } from './WorkplaceForm';

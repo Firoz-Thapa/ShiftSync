@@ -1,0 +1,229 @@
+.active-clockin {
+  background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+  border: 2px solid #48bb78;
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2);
+  animation: slideIn 0.3s ease-out;
+}
+
+.active-clockin__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(72, 187, 120, 0.3);
+  position: relative;
+}
+
+.active-clockin__indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.active-clockin__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  flex: 1;
+}
+
+.active-clockin__pulse {
+  color: #48bb78;
+  font-size: 1.25rem;
+  animation: pulse 2s ease-in-out infinite;
+  line-height: 1;
+}
+
+.active-clockin__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.active-clockin__workplace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.active-clockin__workplace-name {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.875rem;
+}
+
+.active-clockin__rate {
+  font-size: 0.875rem;
+  color: #48bb78;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  background: rgba(72, 187, 120, 0.1);
+  border-radius: 4px;
+}
+
+.active-clockin__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.active-clockin__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.active-clockin__stat-label {
+  font-size: 0.75rem;
+  color: #718096;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.active-clockin__stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.active-clockin__stat-value--time {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  letter-spacing: 0.05em;
+  color: #48bb78;
+}
+
+.active-clockin__stat-value--money {
+  color: #2f855a;
+}
+
+.active-clockin__details {
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(72, 187, 120, 0.1);
+  border-radius: 6px;
+}
+
+.active-clockin__started {
+  font-size: 0.75rem;
+  color: #2f855a;
+  font-weight: 500;
+}
+
+.active-clockin__button {
+  margin-top: 0.5rem;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+/* Dark Theme Support */
+[data-theme="dark"] .active-clockin {
+  background: linear-gradient(135deg, #1a3d2e 0%, #2d5a45 100%);
+  border-color: #68d391;
+  box-shadow: 0 4px 12px rgba(104, 211, 145, 0.2);
+}
+
+[data-theme="dark"] .active-clockin__title {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .active-clockin__workplace {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .active-clockin__workplace-name {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .active-clockin__stat {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .active-clockin__stat-label {
+  color: #a0aec0;
+}
+
+[data-theme="dark"] .active-clockin__stat-value {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .active-clockin__stat-value--time {
+  color: #68d391;
+}
+
+[data-theme="dark"] .active-clockin__stat-value--money {
+  color: #9ae6b4;
+}
+
+[data-theme="dark"] .active-clockin__details {
+  background: rgba(104, 211, 145, 0.1);
+}
+
+[data-theme="dark"] .active-clockin__started {
+  color: #9ae6b4;
+}
+
+[data-theme="dark"] .active-clockin__header {
+  border-bottom-color: rgba(104, 211, 145, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .active-clockin__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .active-clockin__stat-value {
+    font-size: 1.25rem;
+  }
+
+  .active-clockin__workplace {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .active-clockin,
+  .active-clockin__pulse {
+    animation: none;
+  }
+}
