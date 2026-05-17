@@ -15,32 +15,32 @@ describe('LandingPage Component', () => {
   describe('Hero Section', () => {
     it('renders ShiftSync brand name in eyebrow', () => {
       renderLandingPage();
-      const eyebrowText = screen.getByText('ShiftSync', { selector: '.eyebrow' });
+      const eyebrowText = screen.getByText('ShiftSync workforce scheduling', { selector: '.eyebrow' });
       expect(eyebrowText).toBeInTheDocument();
     });
 
     it('renders main heading', () => {
       renderLandingPage();
-      expect(screen.getByText('Schedule smarter, work together better.')).toBeInTheDocument();
+      expect(screen.getByText('Professional scheduling for teams with moving parts.')).toBeInTheDocument();
     });
 
     it('renders hero description text', () => {
       renderLandingPage();
-      const description = screen.getByText(/ShiftSync helps teams, managers, and students synchronize schedules/i);
+      const description = screen.getByText(/Plan shifts, coordinate study sessions/i);
       expect(description).toBeInTheDocument();
     });
 
-    it('renders feature pills', () => {
+    it('renders hero calls to action', () => {
       renderLandingPage();
-      expect(screen.getByText('Live shifts')).toBeInTheDocument();
-      expect(screen.getByText('Team email reminders')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /start planning/i })).toHaveAttribute('href', '/register');
+      expect(screen.getByRole('link', { name: /view dashboard/i })).toHaveAttribute('href', '/login');
     });
 
-    it('renders hero card with key value proposition', () => {
+    it('renders dashboard preview with key operational details', () => {
       renderLandingPage();
-      expect(screen.getByText('One place for every schedule.')).toBeInTheDocument();
-      const heroCardText = screen.getByText(/Track workplace shifts, study sessions, and email communications/i);
-      expect(heroCardText).toBeInTheDocument();
+      expect(screen.getByText('Operations dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Front desk coverage')).toBeInTheDocument();
+      expect(screen.getByText('Study group - 14:30')).toBeInTheDocument();
     });
   });
 
@@ -53,21 +53,32 @@ describe('LandingPage Component', () => {
 
     it('renders features section title', () => {
       renderLandingPage();
-      expect(screen.getByText('Everything your team needs to stay aligned.')).toBeInTheDocument();
+      expect(screen.getByText('Built for clear decisions before the day gets busy.')).toBeInTheDocument();
     });
 
     it('renders all feature cards', () => {
       renderLandingPage();
       expect(screen.getByText('Shift planning')).toBeInTheDocument();
-      expect(screen.getByText('Automated reminders')).toBeInTheDocument();
-      expect(screen.getByText('Workplace management')).toBeInTheDocument();
+      expect(screen.getByText('Communication built in')).toBeInTheDocument();
+      expect(screen.getByText('Workplace control')).toBeInTheDocument();
     });
 
     it('renders feature descriptions', () => {
       renderLandingPage();
-      expect(screen.getByText(/Build schedules quickly, assign shifts/i)).toBeInTheDocument();
+      expect(screen.getByText(/Create schedules, assign coverage/i)).toBeInTheDocument();
       expect(screen.getByText(/Send email reminders for upcoming shifts/i)).toBeInTheDocument();
       expect(screen.getByText(/Manage locations, roles, and team assignments/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Workflow Section', () => {
+    it('renders workflow section content', () => {
+      renderLandingPage();
+      expect(screen.getByText('Workflow', { selector: '.section-heading' })).toBeInTheDocument();
+      expect(screen.getByText('A calmer way to run the week.')).toBeInTheDocument();
+      expect(screen.getByText('Map commitments')).toBeInTheDocument();
+      expect(screen.getByText('Coordinate people')).toBeInTheDocument();
+      expect(screen.getByText('Track progress')).toBeInTheDocument();
     });
   });
 
@@ -81,13 +92,13 @@ describe('LandingPage Component', () => {
     it('renders about section title', () => {
       renderLandingPage();
       expect(
-        screen.getByText('Designed for teams that need clear schedules and better collaboration.')
+        screen.getByText('Designed for teams that need dependable schedules and less noise.')
       ).toBeInTheDocument();
     });
 
     it('renders about description', () => {
       renderLandingPage();
-      const aboutText = screen.getByText(/ShiftSync removes the stress from scheduling/i);
+      const aboutText = screen.getByText(/ShiftSync combines calendar planning/i);
       expect(aboutText).toBeInTheDocument();
     });
   });

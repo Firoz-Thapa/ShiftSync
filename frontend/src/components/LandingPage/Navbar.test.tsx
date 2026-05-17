@@ -20,6 +20,7 @@ describe('LandingPageNavbar Component', () => {
   it('renders navigation links', () => {
     renderNavbar();
     expect(screen.getByText('Features')).toBeInTheDocument();
+    expect(screen.getByText('Workflow')).toBeInTheDocument();
     expect(screen.getByText('About')).toBeInTheDocument();
   });
 
@@ -45,6 +46,12 @@ describe('LandingPageNavbar Component', () => {
     renderNavbar();
     const aboutLink = screen.getByText('About');
     expect(aboutLink).toHaveAttribute('href', '#about');
+  });
+
+  it('has correct href for Workflow section link', () => {
+    renderNavbar();
+    const workflowLink = screen.getByText('Workflow');
+    expect(workflowLink).toHaveAttribute('href', '#workflow');
   });
 
   it('Log In link navigates to /login', () => {

@@ -11,14 +11,15 @@ export const LandingPageNavbar = () => {
 
       <nav className="landing-nav">
         <a href="#features">Features</a>
+        <a href="#workflow">Workflow</a>
         <a href="#about">About</a>
       </nav>
 
       <div className="landing-actions">
-        <Link className="nav-link" to={ROUTES.LOGIN}>
+        <Link className="nav-link nav-link--secondary" to={ROUTES.LOGIN}>
           Log In
         </Link>
-        <Link className="nav-link" to={ROUTES.REGISTER}>
+        <Link className="nav-link nav-link--primary" to={ROUTES.REGISTER}>
           Sign Up
         </Link>
       </div>
