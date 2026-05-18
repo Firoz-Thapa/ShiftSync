@@ -4,6 +4,12 @@ SQLQuery*.sql
 # Dependencies
 node_modules/
 
+# Build outputs
+bin/
+obj/
+dist/
+build/
+
 # IDE
 .vscode/
 .vs/
