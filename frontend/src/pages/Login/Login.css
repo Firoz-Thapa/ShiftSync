@@ -82,6 +82,8 @@
 }
 
 .form-group input {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.75rem;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
