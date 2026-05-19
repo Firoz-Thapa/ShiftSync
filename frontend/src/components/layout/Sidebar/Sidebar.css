@@ -1,12 +1,13 @@
 .sidebar {
+  --sidebar-left: max(0px, calc((100vw - 1200px) / 2));
   position: fixed;
   top: 80px;
-  left: 0;
+  left: var(--sidebar-left);
   bottom: 0;
   width: 240px;
   background: white;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
-  transform: translateX(-100%);
+  transform: translateX(calc(-100% - var(--sidebar-left)));
   transition: transform 0.3s ease;
   z-index: 50;
   overflow-y: auto;
@@ -93,4 +94,25 @@
 
 .sidebar::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    --sidebar-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    top: 72px;
+    --sidebar-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    top: 64px;
+    --sidebar-left: 0;
+    width: min(240px, 100vw);
+  }
 }

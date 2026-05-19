@@ -50,7 +50,7 @@ export const QuickActions: React.FC = () => {
 
   return (
     <>
-      <Card className="ml-auto w-fit">
+      <Card>
         <div className="quick-actions">
           <h3 className="quick-actions__title">⚡ Quick Actions</h3>
           

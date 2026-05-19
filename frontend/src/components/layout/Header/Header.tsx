@@ -24,8 +24,11 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMenuOpen }) => {
               className="header__menu-button"
               onClick={onMenuClick}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMenuOpen}
             >
-              {isMenuOpen ? '✕' : '☰'}
+              <span className="header__menu-line" />
+              <span className="header__menu-line" />
+              <span className="header__menu-line" />
             </button>
           )}
           
