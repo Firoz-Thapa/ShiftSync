@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/layout';
 import { TodaySchedule } from '../../components/dashboard/TodaySchedule';
 import { QuickActions } from '../../components/dashboard/QuickActions';
 import { StatsOverview } from '../../components/dashboard/StatsOverview';
+import { ShiftsByRoleChart } from '../../components/dashboard/ShiftsByRoleChart';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
@@ -19,6 +20,7 @@ export const Dashboard: React.FC = () => {
       <div className="dashboard-grid">
         <div className="dashboard-main">
           <TodaySchedule />
+          <ShiftsByRoleChart />
         </div>
         
         <div className="dashboard-sidebar">
