@@ -237,10 +237,13 @@ export const Schedule: React.FC = () => {
               <span className="stat-value">
                 {formatCurrency(shifts.reduce((total, shift) => {
                   const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
+                  if (shift.workplace?.payType === 'monthly') {
+                    return total;
+                  }
                   return total + (hours * (shift.workplace?.hourlyRate || 0));
                 }, 0))}
               </span>
-              <span className="stat-label">Estimated Earnings</span>
+              <span className="stat-label">Hourly Earnings</span>
             </div>
           </div>
         </Card>
@@ -479,13 +482,19 @@ const EventDetails: React.FC<{ event: CalendarEvent; onClose: () => void }> = ({
                 <span>{data.workplace?.name}</span>
               </div>
               <div className="detail-item">
-                <strong>Hourly Rate:</strong>
-                <span>{formatCurrency(data.workplace?.hourlyRate || 0)}</span>
+                <strong>{data.workplace?.payType === 'monthly' ? 'Monthly Salary:' : 'Hourly Rate:'}</strong>
+                <span>
+                  {data.workplace?.payType === 'monthly'
+                    ? `${formatCurrency(data.workplace?.monthlySalary || 0)}/month`
+                    : `${formatCurrency(data.workplace?.hourlyRate || 0)}/hour`}
+                </span>
               </div>
-              <div className="detail-item">
-                <strong>Estimated Earnings:</strong>
-                <span>{formatCurrency(calculateDuration(event.startTime, event.endTime) * (data.workplace?.hourlyRate || 0))}</span>
-              </div>
+              {data.workplace?.payType !== 'monthly' && (
+                <div className="detail-item">
+                  <strong>Estimated Earnings:</strong>
+                  <span>{formatCurrency(calculateDuration(event.startTime, event.endTime) * (data.workplace?.hourlyRate || 0))}</span>
+                </div>
+              )}
               <div className="detail-item">
                 <strong>Status:</strong>
                 <span className={`status ${data.isConfirmed ? 'confirmed' : 'pending'}`}>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RecurrencePattern } from '../../../types';
+import { PayType, RecurrencePattern } from '../../../types';
 
 interface WorkplaceFormProps {
   onSuccess: () => void;
@@ -9,7 +9,9 @@ interface WorkplaceFormProps {
 export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
+    payType: 'hourly' as PayType,
     hourlyRate: '',
+    monthlySalary: '',
     color: '#667eea',
     address: '',
     contactInfo: '',
@@ -61,10 +63,14 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
       newErrors.name = 'Workplace name is required';
     }
     
-    if (!formData.hourlyRate) {
-      newErrors.hourlyRate = 'Hourly rate is required';
-    } else if (isNaN(Number(formData.hourlyRate)) || Number(formData.hourlyRate) <= 0) {
-      newErrors.hourlyRate = 'Please enter a valid hourly rate';
+    const payAmount = formData.payType === 'hourly' ? formData.hourlyRate : formData.monthlySalary;
+    const payField = formData.payType === 'hourly' ? 'hourlyRate' : 'monthlySalary';
+    const payLabel = formData.payType === 'hourly' ? 'hourly rate' : 'monthly salary';
+
+    if (!payAmount) {
+      newErrors[payField] = `${payLabel.charAt(0).toUpperCase() + payLabel.slice(1)} is required`;
+    } else if (isNaN(Number(payAmount)) || Number(payAmount) <= 0) {
+      newErrors[payField] = `Please enter a valid ${payLabel}`;
     }
     
     setErrors(newErrors);
@@ -84,7 +90,8 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
       const newWorkplace = {
         id: Date.now().toString(),
         ...formData,
-        hourlyRate: parseFloat(formData.hourlyRate),
+        hourlyRate: formData.payType === 'hourly' ? parseFloat(formData.hourlyRate) : 0,
+        monthlySalary: formData.payType === 'monthly' ? parseFloat(formData.monthlySalary) : undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -105,7 +112,9 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
   const handleCancel = () => {
     setFormData({
       name: '',
+      payType: 'hourly',
       hourlyRate: '',
+      monthlySalary: '',
       color: '#667eea',
       address: '',
       contactInfo: '',
@@ -193,10 +202,72 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
             )}
           </div>
 
-          {/* Hourly Rate */}
+          {/* Pay Type */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: '600',
+                color: '#2d3748',
+                marginBottom: '0.5rem',
+                fontSize: '0.95rem'
+              }}
+            >
+              <span>€</span> Pay Type *
+            </label>
+            <div
+              role="radiogroup"
+              aria-label="Pay type"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.75rem',
+                padding: '0.25rem',
+                background: '#f7fafc',
+                border: '2px solid #e2e8f0',
+                borderRadius: '12px'
+              }}
+            >
+              {[
+                { value: 'hourly' as PayType, label: 'Hourly rate' },
+                { value: 'monthly' as PayType, label: 'Monthly salary' }
+              ].map((option) => {
+                const isSelected = formData.payType === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, payType: option.value }));
+                      setErrors(prev => ({ ...prev, hourlyRate: '', monthlySalary: '' }));
+                    }}
+                    style={{
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '9px',
+                      background: isSelected ? '#667eea' : 'transparent',
+                      color: isSelected ? 'white' : '#4a5568',
+                      fontSize: '0.95rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Pay Amount */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label 
-              htmlFor="hourlyRate"
+              htmlFor={formData.payType === 'hourly' ? 'hourlyRate' : 'monthlySalary'}
               style={{ 
                 display: 'flex',
                 alignItems: 'center',
@@ -207,7 +278,7 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
                 fontSize: '0.95rem'
               }}
             >
-              <span>💰</span> Hourly Rate *
+              <span>💰</span> {formData.payType === 'hourly' ? 'Hourly Rate' : 'Monthly Salary'} *
             </label>
             <div style={{ position: 'relative' }}>
               <span style={{
@@ -219,21 +290,21 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
                 fontSize: '1.1rem',
                 fontWeight: '600'
               }}>
-                $
+                €
               </span>
               <input
                 type="number"
-                id="hourlyRate"
-                name="hourlyRate"
-                value={formData.hourlyRate}
+                id={formData.payType === 'hourly' ? 'hourlyRate' : 'monthlySalary'}
+                name={formData.payType === 'hourly' ? 'hourlyRate' : 'monthlySalary'}
+                value={formData.payType === 'hourly' ? formData.hourlyRate : formData.monthlySalary}
                 onChange={handleChange}
-                placeholder="15.00"
+                placeholder={formData.payType === 'hourly' ? '15.00' : '2500.00'}
                 step="0.01"
                 min="0"
                 style={{
                   width: '100%',
                   padding: '0.875rem 1rem 0.875rem 2.25rem',
-                  border: errors.hourlyRate ? '2px solid #e74c3c' : '2px solid #e2e8f0',
+                  border: (formData.payType === 'hourly' ? errors.hourlyRate : errors.monthlySalary) ? '2px solid #e74c3c' : '2px solid #e2e8f0',
                   borderRadius: '12px',
                   fontSize: '1rem',
                   transition: 'all 0.2s ease',
@@ -241,20 +312,20 @@ export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCance
                   boxSizing: 'border-box'
                 }}
                 onFocus={(e) => {
-                  if (!errors.hourlyRate) {
+                  if (!(formData.payType === 'hourly' ? errors.hourlyRate : errors.monthlySalary)) {
                     e.target.style.borderColor = '#667eea';
                     e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
                   }
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = errors.hourlyRate ? '#e74c3c' : '#e2e8f0';
+                  e.target.style.borderColor = (formData.payType === 'hourly' ? errors.hourlyRate : errors.monthlySalary) ? '#e74c3c' : '#e2e8f0';
                   e.target.style.boxShadow = 'none';
                 }}
               />
             </div>
-            {errors.hourlyRate && (
+            {(formData.payType === 'hourly' ? errors.hourlyRate : errors.monthlySalary) && (
               <p style={{ color: '#e74c3c', fontSize: '0.875rem', marginTop: '0.375rem', marginBottom: 0 }}>
-                {errors.hourlyRate}
+                {formData.payType === 'hourly' ? errors.hourlyRate : errors.monthlySalary}
               </p>
             )}
           </div>

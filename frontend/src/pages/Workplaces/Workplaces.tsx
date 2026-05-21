@@ -38,6 +38,14 @@ export const Workplaces: React.FC = () => {
     await fetchWorkplaces();
   };
 
+  const formatPay = (workplace: typeof workplaces[number]) => {
+    if (workplace.payType === 'monthly') {
+      return `${formatCurrency(workplace.monthlySalary || 0)}/month`;
+    }
+
+    return `${formatCurrency(workplace.hourlyRate || 0)}/hour`;
+  };
+
   return (
     <>
       <PageHeader
@@ -75,7 +83,7 @@ export const Workplaces: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-lg">{workplace.name}</h3>
                     <p className="text-green-600 font-medium">
-                      {formatCurrency(workplace.hourlyRate)}/hour
+                      {formatPay(workplace)}
                     </p>
                     {workplace.address && (
                       <p className="text-gray-600 text-sm mt-1">{workplace.address}</p>

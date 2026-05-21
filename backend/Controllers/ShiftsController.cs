@@ -59,7 +59,7 @@ public class ShiftsController : ControllerBase
         shift.Id = Shifts.Count + 1;
         shift.CreatedAt = DateTime.UtcNow;
         shift.UpdatedAt = DateTime.UtcNow;
-        shift.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        shift.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         Shifts.Add(shift);
 
         return CreatedAtAction(nameof(GetById), new { id = shift.Id }, ApiResponse<ShiftDto>.Ok(shift, "Shift created successfully"));
@@ -84,7 +84,7 @@ public class ShiftsController : ControllerBase
         existing.ActualStartTime = shift.ActualStartTime;
         existing.ActualEndTime = shift.ActualEndTime;
         existing.UpdatedAt = DateTime.UtcNow;
-        existing.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        existing.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
 
         return Ok(ApiResponse<ShiftDto>.Ok(existing, "Shift updated successfully"));
     }
