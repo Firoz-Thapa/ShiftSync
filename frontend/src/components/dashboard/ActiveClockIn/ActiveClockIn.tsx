@@ -9,7 +9,9 @@ interface ActiveClockInData {
   workplace?: {
     name: string;
     color: string;
+    payType?: 'hourly' | 'monthly';
     hourlyRate: number;
+    monthlySalary?: number;
   };
 }
 
@@ -48,8 +50,10 @@ export const ActiveClockIn: React.FC = () => {
       setElapsedTime(diffHours);
       
       // Calculate current earnings
-      if (activeClockIn.workplace?.hourlyRate) {
+      if (activeClockIn.workplace?.payType !== 'monthly' && activeClockIn.workplace?.hourlyRate) {
         setCurrentEarnings(diffHours * activeClockIn.workplace.hourlyRate);
+      } else {
+        setCurrentEarnings(0);
       }
     }, 1000);
 
@@ -66,7 +70,9 @@ export const ActiveClockIn: React.FC = () => {
       // Show success notification
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('Clocked Out Successfully! 🎉', {
-          body: `You worked ${formatElapsedTime(elapsedTime)} and earned $${currentEarnings.toFixed(2)}`,
+          body: activeClockIn.workplace?.payType === 'monthly'
+            ? `You worked ${formatElapsedTime(elapsedTime)} on a monthly salary role`
+            : `You worked ${formatElapsedTime(elapsedTime)} and earned €${currentEarnings.toFixed(2)}`,
           icon: '💼'
         });
       }
@@ -106,7 +112,9 @@ export const ActiveClockIn: React.FC = () => {
               {activeClockIn.workplace.name}
             </span>
             <span className="active-clockin__rate">
-              ${activeClockIn.workplace.hourlyRate.toFixed(2)}/hr
+              {activeClockIn.workplace.payType === 'monthly'
+                ? `€${(activeClockIn.workplace.monthlySalary || 0).toFixed(2)}/mo`
+                : `€${activeClockIn.workplace.hourlyRate.toFixed(2)}/hr`}
             </span>
           </div>
         )}
@@ -120,9 +128,13 @@ export const ActiveClockIn: React.FC = () => {
           </div>
 
           <div className="active-clockin__stat">
-            <span className="active-clockin__stat-label">Current Earnings</span>
+            <span className="active-clockin__stat-label">
+              {activeClockIn.workplace?.payType === 'monthly' ? 'Monthly Salary' : 'Current Earnings'}
+            </span>
             <span className="active-clockin__stat-value active-clockin__stat-value--money">
-              ${currentEarnings.toFixed(2)}
+              {activeClockIn.workplace?.payType === 'monthly'
+                ? `€${(activeClockIn.workplace.monthlySalary || 0).toFixed(2)}`
+                : `€${currentEarnings.toFixed(2)}`}
             </span>
           </div>
         </div>

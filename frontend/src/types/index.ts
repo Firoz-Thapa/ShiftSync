@@ -12,7 +12,9 @@ export interface Workplace {
   userId: number;
   name: string;
   color: string;
+  payType?: PayType;
   hourlyRate: number;
+  monthlySalary?: number;
   address?: string;
   contactInfo?: string;
   notes?: string;
@@ -62,6 +64,7 @@ export interface StudySession {
 export type SessionType = 'lecture' | 'exam' | 'assignment' | 'study_group' | 'lab' | 'other';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 export type RecurrencePattern = 'daily' | 'weekly' | 'monthly';
+export type PayType = 'hourly' | 'monthly';
 
 export interface TimeLog {
   id: number;
@@ -147,7 +150,9 @@ export interface ShiftFormData {
 export interface WorkplaceFormData {
   name: string;
   color: string;
+  payType?: PayType;
   hourlyRate: number;
+  monthlySalary?: number;
   address?: string;
   contactInfo?: string;
   notes?: string;

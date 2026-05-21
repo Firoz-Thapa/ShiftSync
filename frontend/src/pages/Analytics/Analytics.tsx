@@ -93,7 +93,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
         <p className="font-medium">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {entry.name.includes('earnings') || entry.name.includes('$') ? `$${entry.value}` : `${entry.value}h`}
+            {entry.name}: {entry.name.includes('earnings') || entry.name.includes('€') ? `€${entry.value}` : `${entry.value}h`}
           </p>
         ))}
       </div>
@@ -178,6 +178,9 @@ export const Analytics: React.FC = () => {
       
       const weekEarnings = weekShifts.reduce((total, shift) => {
         const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
+        if (shift.workplace?.payType === 'monthly') {
+          return total;
+        }
         return total + (hours * (shift.workplace?.hourlyRate || 0));
       }, 0);
       
@@ -202,7 +205,7 @@ export const Analytics: React.FC = () => {
     shifts.forEach(shift => {
       if (!shift.workplace) return;
       const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
-      const earnings = hours * shift.workplace.hourlyRate;
+      const earnings = shift.workplace.payType === 'monthly' ? 0 : hours * shift.workplace.hourlyRate;
       
       if (workplaceMap.has(shift.workplace.name)) {
         const existing = workplaceMap.get(shift.workplace.name)!;
@@ -297,7 +300,7 @@ export const Analytics: React.FC = () => {
       let y = 20;
       doc.text(`Time range: ${timeRange}`, 10, y);
       y += 10;
-      doc.text(`Total Earnings: $${totals.totalEarnings}`, 10, y);
+      doc.text(`Total Earnings: €${totals.totalEarnings}`, 10, y);
       y += 10;
       doc.text('Weekly Data:', 10, y);
       y += 10;
@@ -384,7 +387,7 @@ export const Analytics: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Earnings"
-          value={`$${totals.totalEarnings.toLocaleString()}`}
+          value={`€${totals.totalEarnings.toLocaleString()}`}
           icon="💰"
           color="green"
         />
@@ -402,7 +405,7 @@ export const Analytics: React.FC = () => {
         />
         <StatCard
           title="Avg Hourly Rate"
-          value={`$${totals.avgHourlyRate.toFixed(2)}`}
+          value={`€${totals.avgHourlyRate.toFixed(2)}`}
           icon="📈"
           color="orange"
         />
@@ -444,7 +447,7 @@ export const Analytics: React.FC = () => {
                 strokeWidth={3}
                 dot={{ fill: '#3498db', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6 }}
-                name="Earnings ($)"
+                name="Earnings (€)"
               />
               <Line 
                 type="monotone" 
@@ -500,7 +503,7 @@ export const Analytics: React.FC = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [`$${value}`, 'Earnings']}
+                  formatter={(value: number) => [`€${value}`, 'Earnings']}
                 />
                 <Legend />
               </PieChart>

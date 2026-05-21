@@ -40,6 +40,9 @@ export const StatsOverview: React.FC = () => {
 
   const weeklyEarnings = shifts.reduce((total, shift) => {
     const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
+    if (shift.workplace?.payType === 'monthly') {
+      return total;
+    }
     const rate = shift.workplace?.hourlyRate || 0;
     return total + (hours * rate);
   }, 0);
@@ -120,7 +123,7 @@ export const StatsOverview: React.FC = () => {
                 <div className="stat-item__icon">💰</div>
                 <div className="stat-item__content">
                   <span className="stat-item__value">{formatCurrency(weeklyEarnings)}</span>
-                  <span className="stat-item__label">Earnings</span>
+                  <span className="stat-item__label">Hourly Earnings</span>
                 </div>
               </div>
 

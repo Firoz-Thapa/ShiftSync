@@ -5,7 +5,9 @@ public sealed class WorkplaceDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Color { get; set; } = "#000000";
+    public string PayType { get; set; } = "hourly";
     public decimal HourlyRate { get; set; }
+    public decimal? MonthlySalary { get; set; }
     public string? Address { get; set; }
     public string? ContactInfo { get; set; }
     public string? Notes { get; set; }

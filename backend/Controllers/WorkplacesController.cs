@@ -58,7 +58,9 @@ public class WorkplacesController : ControllerBase
 
         existing.Name = workplace.Name;
         existing.Color = workplace.Color;
+        existing.PayType = workplace.PayType;
         existing.HourlyRate = workplace.HourlyRate;
+        existing.MonthlySalary = workplace.MonthlySalary;
         existing.Address = workplace.Address;
         existing.ContactInfo = workplace.ContactInfo;
         existing.Notes = workplace.Notes;
