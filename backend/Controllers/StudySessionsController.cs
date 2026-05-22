@@ -4,7 +4,7 @@ using backend.Models;
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/study-sessions")]
 public class StudySessionsController : ControllerBase
 {
     private static readonly List<StudySessionDto> StudySessions = new();
@@ -21,7 +21,7 @@ public class StudySessionsController : ControllerBase
 
         if (endDate.HasValue)
         {
-            query = query.Where(x => x.StartDatetime <= endDate.Value);
+            query = query.Where(x => x.StartDatetime < GetExclusiveEndDate(endDate.Value));
         }
 
         if (!string.IsNullOrEmpty(subject))
@@ -43,10 +43,13 @@ public class StudySessionsController : ControllerBase
         var response = new PaginatedResponse<StudySessionDto>
         {
             Data = items,
-            CurrentPage = 1,
-            TotalPages = 1,
-            TotalItems = items.Count,
-            ItemsPerPage = items.Count
+            Pagination = new PaginationMetadata
+            {
+                CurrentPage = 1,
+                TotalPages = 1,
+                TotalItems = items.Count,
+                ItemsPerPage = items.Count
+            }
         };
 
         return Ok(ApiResponse<PaginatedResponse<StudySessionDto>>.Ok(response));
@@ -67,7 +70,13 @@ public class StudySessionsController : ControllerBase
     [HttpPost]
     public ActionResult<ApiResponse<StudySessionDto>> Create(StudySessionDto session)
     {
-        session.Id = StudySessions.Count + 1;
+        var validationError = ValidateStudySession(session);
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<StudySessionDto>.Fail(validationError));
+        }
+
+        session.Id = StudySessions.Count == 0 ? 1 : StudySessions.Max(x => x.Id) + 1;
         session.CreatedAt = DateTime.UtcNow;
         session.UpdatedAt = DateTime.UtcNow;
         StudySessions.Add(session);
@@ -82,6 +91,12 @@ public class StudySessionsController : ControllerBase
         if (existing is null)
         {
             return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
+        }
+
+        var validationError = ValidateStudySession(session);
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<StudySessionDto>.Fail(validationError));
         }
 
         existing.Title = session.Title;
@@ -126,5 +141,33 @@ public class StudySessionsController : ControllerBase
         session.IsCompleted = true;
         session.UpdatedAt = DateTime.UtcNow;
         return Ok(ApiResponse<StudySessionDto>.Ok(session, "Study session marked as completed"));
+    }
+
+    private static DateTime GetExclusiveEndDate(DateTime endDate) =>
+        endDate.TimeOfDay == TimeSpan.Zero ? endDate.Date.AddDays(1) : endDate;
+
+    private static string? ValidateStudySession(StudySessionDto session)
+    {
+        if (string.IsNullOrWhiteSpace(session.Title))
+        {
+            return "Study session title is required";
+        }
+
+        if (session.EndDatetime <= session.StartDatetime)
+        {
+            return "Study session end time must be after start time";
+        }
+
+        if (session.SessionType is not "lecture" and not "exam" and not "assignment" and not "study_group" and not "lab" and not "other")
+        {
+            return "Invalid study session type";
+        }
+
+        if (session.Priority is not "low" and not "medium" and not "high" and not "urgent")
+        {
+            return "Invalid study session priority";
+        }
+
+        return null;
     }
 }

@@ -61,3 +61,40 @@ public sealed class EmailProviderResponse
     public string Provider { get; set; } = string.Empty;
     public string RedirectUrl { get; set; } = string.Empty;
 }
+
+public sealed class EmailConnectRequest
+{
+    public string Provider { get; set; } = string.Empty;
+    public EmailCredentials? Credentials { get; set; }
+}
+
+public sealed class EmailCredentials
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public sealed class EmailAccountDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Provider { get; set; } = string.Empty;
+    public bool IsConnected { get; set; }
+    public DateTime? LastSync { get; set; }
+}
+
+public sealed class EmailMessageDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string From { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public DateTime Date { get; set; }
+    public bool IsRead { get; set; }
+    public bool HasAttachments { get; set; }
+}
+
+public sealed class UpdateEmailRequest
+{
+    public bool? IsRead { get; set; }
+}

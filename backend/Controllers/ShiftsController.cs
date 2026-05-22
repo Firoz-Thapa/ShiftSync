@@ -20,7 +20,7 @@ public class ShiftsController : ControllerBase
 
         if (endDate.HasValue)
         {
-            query = query.Where(x => x.StartDatetime <= endDate.Value);
+            query = query.Where(x => x.StartDatetime < GetExclusiveEndDate(endDate.Value));
         }
 
         if (workplaceId.HasValue)
@@ -32,10 +32,13 @@ public class ShiftsController : ControllerBase
         var response = new PaginatedResponse<ShiftDto>
         {
             Data = items,
-            CurrentPage = 1,
-            TotalPages = 1,
-            TotalItems = items.Count,
-            ItemsPerPage = items.Count
+            Pagination = new PaginationMetadata
+            {
+                CurrentPage = 1,
+                TotalPages = 1,
+                TotalItems = items.Count,
+                ItemsPerPage = items.Count
+            }
         };
 
         return Ok(ApiResponse<PaginatedResponse<ShiftDto>>.Ok(response));
@@ -56,7 +59,13 @@ public class ShiftsController : ControllerBase
     [HttpPost]
     public ActionResult<ApiResponse<ShiftDto>> Create(ShiftDto shift)
     {
-        shift.Id = Shifts.Count + 1;
+        var validationError = ValidateShift(shift);
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<ShiftDto>.Fail(validationError));
+        }
+
+        shift.Id = Shifts.Count == 0 ? 1 : Shifts.Max(x => x.Id) + 1;
         shift.CreatedAt = DateTime.UtcNow;
         shift.UpdatedAt = DateTime.UtcNow;
         shift.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
@@ -72,6 +81,12 @@ public class ShiftsController : ControllerBase
         if (existing is null)
         {
             return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+        }
+
+        var validationError = ValidateShift(shift);
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<ShiftDto>.Fail(validationError));
         }
 
         existing.WorkplaceId = shift.WorkplaceId;
@@ -125,7 +140,13 @@ public class ShiftsController : ControllerBase
             return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
         }
 
+        if (shift.ActualStartTime.HasValue && !shift.ActualEndTime.HasValue)
+        {
+            return BadRequest(ApiResponse<ShiftDto>.Fail("Shift is already clocked in"));
+        }
+
         shift.ActualStartTime = DateTime.UtcNow;
+        shift.ActualEndTime = null;
         shift.UpdatedAt = DateTime.UtcNow;
         return Ok(ApiResponse<ShiftDto>.Ok(shift, "Shift clocked in"));
     }
@@ -139,8 +160,46 @@ public class ShiftsController : ControllerBase
             return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
         }
 
+        if (!shift.ActualStartTime.HasValue)
+        {
+            return BadRequest(ApiResponse<ShiftDto>.Fail("Cannot clock out before clocking in"));
+        }
+
+        if (shift.ActualEndTime.HasValue)
+        {
+            return BadRequest(ApiResponse<ShiftDto>.Fail("Shift is already clocked out"));
+        }
+
         shift.ActualEndTime = DateTime.UtcNow;
         shift.UpdatedAt = DateTime.UtcNow;
         return Ok(ApiResponse<ShiftDto>.Ok(shift, "Shift clocked out"));
+    }
+
+    private static DateTime GetExclusiveEndDate(DateTime endDate) =>
+        endDate.TimeOfDay == TimeSpan.Zero ? endDate.Date.AddDays(1) : endDate;
+
+    private static string? ValidateShift(ShiftDto shift)
+    {
+        if (shift.WorkplaceId <= 0)
+        {
+            return "Workplace is required";
+        }
+
+        if (string.IsNullOrWhiteSpace(shift.Title))
+        {
+            return "Shift title is required";
+        }
+
+        if (shift.EndDatetime <= shift.StartDatetime)
+        {
+            return "Shift end time must be after start time";
+        }
+
+        if (shift.BreakDuration < 0)
+        {
+            return "Break duration cannot be negative";
+        }
+
+        return null;
     }
 }
