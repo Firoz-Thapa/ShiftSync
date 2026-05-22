@@ -15,10 +15,13 @@ public class WorkplacesController : ControllerBase
         var response = new PaginatedResponse<WorkplaceDto>
         {
             Data = Workplaces,
-            CurrentPage = 1,
-            TotalPages = 1,
-            TotalItems = Workplaces.Count,
-            ItemsPerPage = Workplaces.Count
+            Pagination = new PaginationMetadata
+            {
+                CurrentPage = 1,
+                TotalPages = 1,
+                TotalItems = Workplaces.Count,
+                ItemsPerPage = Workplaces.Count
+            }
         };
 
         return Ok(ApiResponse<PaginatedResponse<WorkplaceDto>>.Ok(response));
@@ -39,7 +42,13 @@ public class WorkplacesController : ControllerBase
     [HttpPost]
     public ActionResult<ApiResponse<WorkplaceDto>> Create(WorkplaceDto workplace)
     {
-        workplace.Id = Workplaces.Count + 1;
+        var validationError = ValidateWorkplace(workplace);
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<WorkplaceDto>.Fail(validationError));
+        }
+
+        workplace.Id = Workplaces.Count == 0 ? 1 : Workplaces.Max(x => x.Id) + 1;
         workplace.CreatedAt = DateTime.UtcNow;
         workplace.UpdatedAt = DateTime.UtcNow;
         Workplaces.Add(workplace);
@@ -56,9 +65,17 @@ public class WorkplacesController : ControllerBase
             return NotFound(ApiResponse<WorkplaceDto>.Fail("Workplace not found"));
         }
 
+        var validationError = ValidateWorkplace(workplace);
+        if (validationError is not null)
+        {
+            return BadRequest(ApiResponse<WorkplaceDto>.Fail(validationError));
+        }
+
         existing.Name = workplace.Name;
         existing.Color = workplace.Color;
+        existing.PayType = workplace.PayType;
         existing.HourlyRate = workplace.HourlyRate;
+        existing.MonthlySalary = workplace.MonthlySalary;
         existing.Address = workplace.Address;
         existing.ContactInfo = workplace.ContactInfo;
         existing.Notes = workplace.Notes;
@@ -81,5 +98,30 @@ public class WorkplacesController : ControllerBase
 
         Workplaces.Remove(workplace);
         return Ok(ApiResponse<object>.Ok(null, "Workplace deleted successfully"));
+    }
+
+    private static string? ValidateWorkplace(WorkplaceDto workplace)
+    {
+        if (string.IsNullOrWhiteSpace(workplace.Name))
+        {
+            return "Workplace name is required";
+        }
+
+        if (workplace.PayType is not "hourly" and not "monthly")
+        {
+            return "Pay type must be hourly or monthly";
+        }
+
+        if (workplace.PayType == "hourly" && workplace.HourlyRate <= 0)
+        {
+            return "Hourly rate must be greater than zero";
+        }
+
+        if (workplace.PayType == "monthly" && (!workplace.MonthlySalary.HasValue || workplace.MonthlySalary <= 0))
+        {
+            return "Monthly salary must be greater than zero";
+        }
+
+        return null;
     }
 }

@@ -27,6 +27,11 @@ public sealed class ApiResponse<T>
 public sealed class PaginatedResponse<T>
 {
     public IEnumerable<T> Data { get; set; } = Array.Empty<T>();
+    public PaginationMetadata Pagination { get; set; } = new();
+}
+
+public sealed class PaginationMetadata
+{
     public int CurrentPage { get; set; }
     public int TotalPages { get; set; }
     public int TotalItems { get; set; }
