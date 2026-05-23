@@ -24,9 +24,18 @@
 @media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
   
   .dashboard-sidebar {
     position: static;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid,
+  .dashboard-main,
+  .dashboard-sidebar {
+    gap: 1rem;
   }
 }

@@ -36,6 +36,7 @@
 .stat-item__content {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .stat-item__value {
@@ -49,6 +50,7 @@
   font-size: 0.75rem;
   color: #718096;
   margin-top: 0.25rem;
+  overflow-wrap: anywhere;
 }
 
 .productivity-bar {
@@ -76,4 +78,15 @@
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   border-radius: 4px;
   transition: width 0.3s ease;
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-item {
+    padding: 0.875rem;
+  }
 }

@@ -1,7 +1,8 @@
 .sidebar {
   --sidebar-left: max(0px, calc((100vw - 1200px) / 2));
+  --sidebar-top: 80px;
   position: fixed;
-  top: 80px;
+  top: var(--sidebar-top);
   left: var(--sidebar-left);
   bottom: 0;
   width: 240px;
@@ -19,7 +20,7 @@
 
 .sidebar__overlay {
   position: fixed;
-  top: 0;
+  top: var(--sidebar-top, 80px);
   left: 0;
   right: 0;
   bottom: 0;
@@ -68,7 +69,7 @@
 
 @media (min-width: 1024px) {
   .sidebar {
-    top: 80px;
+    --sidebar-top: 80px;
     z-index: 50;
   }
 
@@ -104,15 +105,30 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    top: 72px;
+    --sidebar-top: 64px;
     --sidebar-left: 0;
+    width: min(280px, 82vw);
+    z-index: 120;
+  }
+
+  .sidebar__overlay {
+    --sidebar-top: 64px;
+    z-index: 110;
   }
 }
 
 @media (max-width: 480px) {
   .sidebar {
-    top: 64px;
+    --sidebar-top: 56px;
     --sidebar-left: 0;
-    width: min(240px, 100vw);
+    width: min(260px, 78vw);
+  }
+
+  .sidebar__overlay {
+    --sidebar-top: 56px;
+  }
+
+  .sidebar__link {
+    padding: 0.75rem 1rem;
   }
 }

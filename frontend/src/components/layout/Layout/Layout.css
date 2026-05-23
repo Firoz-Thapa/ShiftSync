@@ -28,6 +28,7 @@
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
+  min-width: 0;
 }
 
 .layout__content-wrapper {
@@ -35,6 +36,8 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 1rem;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 @media (min-width: 1024px) {
@@ -94,11 +97,17 @@
   }
 
   .layout__content {
-    padding: 1rem;
+    padding: 1rem 0.75rem;
   }
   
   .layout__content-wrapper {
     padding: 0;
     max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout__content {
+    padding: 0.75rem 0.5rem 1.25rem;
   }
 }

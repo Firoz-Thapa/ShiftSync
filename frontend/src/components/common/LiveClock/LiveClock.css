@@ -33,7 +33,7 @@
   .live-clock {
     text-align: center;
     margin-right: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
   }
   
   .clock-time {
@@ -65,4 +65,18 @@
 
 .live-clock:hover .clock-time {
   animation: pulse 1s ease-in-out;
+}
+
+@media (max-width: 480px) {
+  .clock-greeting,
+  .clock-date {
+    display: none;
+  }
+
+  .clock-time {
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
 }

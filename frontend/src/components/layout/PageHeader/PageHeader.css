@@ -15,6 +15,7 @@
 
 .page-header__text {
   flex: 1;
+  min-width: 0;
 }
 
 .page-header__title {
@@ -22,6 +23,7 @@
   font-weight: 700;
   color: #2d3748;
   margin: 0 0 0.5rem 0;
+  overflow-wrap: anywhere;
 }
 
 .page-header__subtitle {
@@ -44,6 +46,8 @@
 @media (max-width: 768px) {
   .page-header {
     padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
   }
 
   .page-header__main {
@@ -56,8 +60,27 @@
     font-size: 1.5rem;
   }
 
+  .page-header__subtitle {
+    font-size: 1rem;
+  }
+
   .page-header__actions {
     width: 100%;
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 1rem;
+  }
+
+  .page-header__title {
+    font-size: 1.25rem;
+  }
+
+  .page-header__subtitle {
+    font-size: 0.9375rem;
+    line-height: 1.4;
   }
 }

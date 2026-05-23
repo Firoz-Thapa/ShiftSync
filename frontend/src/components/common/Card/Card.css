@@ -4,6 +4,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .card--padding-none {
@@ -29,4 +31,19 @@
 
 .card--clickable {
   cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .card {
+    border-radius: 8px;
+  }
+
+  .card--padding-large {
+    padding: 1rem;
+  }
+
+  .card--padding-small,
+  .card--padding-medium {
+    padding: 0.75rem;
+  }
 }

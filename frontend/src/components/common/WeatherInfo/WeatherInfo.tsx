@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './WeatherInfo.css';
 
 const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const DEFAULT_LAT = 60.1699; // Helsinki fallback
