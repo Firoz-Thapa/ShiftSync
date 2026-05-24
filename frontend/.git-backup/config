@@ -1,0 +1,13 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "shift"]
+	url = https://github.com/Firoz-Thapa/ShiftSync.git
+	fetch = +refs/heads/*:refs/remotes/shift/*
+[branch "master"]
+	remote = shift
+	merge = refs/heads/master
