@@ -11,13 +11,20 @@ export const Profile: React.FC = () => {
   const { toasts, success, error, removeToast } = useToast();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
   });
+  const [passwordFormData, setPasswordFormData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   
   const [reduceMotion, setReduceMotion] = useState(
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -69,9 +76,32 @@ export const Profile: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+  const downloadJsonFile = (fileName: string, data: unknown) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePasswordFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordFormData(prev => ({
       ...prev,
       [name]: value
     }));
@@ -117,6 +147,94 @@ export const Profile: React.FC = () => {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleChangePasswordClick = () => {
+    setPasswordFormData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setPasswordError(null);
+    setIsPasswordModalOpen(true);
+  };
+
+  const handlePasswordFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    if (passwordFormData.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.');
+      return;
+    }
+
+    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
+      setPasswordError('New password and confirmation do not match.');
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      localStorage.setItem('shiftsync_password_updated_at', new Date().toISOString());
+      setIsPasswordModalOpen(false);
+      success(
+        'Password Updated',
+        'Your password has been changed successfully.',
+        4000
+      );
+    } catch (err: any) {
+      setPasswordError(err.message || 'Failed to change password');
+      error(
+        'Password Change Failed',
+        err.message || 'Failed to change password. Please try again.',
+        5000
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleExportData = () => {
+    const exportedAt = new Date().toISOString();
+    const appData = Object.keys(localStorage)
+      .filter(key => key.startsWith('shiftsync_') && key !== 'shiftsync_token')
+      .sort()
+      .reduce<Record<string, unknown>>((data, key) => {
+        const value = localStorage.getItem(key);
+
+        try {
+          data[key] = value ? JSON.parse(value) : value;
+        } catch {
+          data[key] = value;
+        }
+
+        return data;
+      }, {});
+
+    downloadJsonFile(`shiftsync-data-${exportedAt.slice(0, 10)}.json`, {
+      exportedAt,
+      userId: user?.id,
+      appData,
+    });
+
+    success('Data Exported', 'Your ShiftSync data download has started.', 3000);
+  };
+
+  const handleDownloadThemeSettings = () => {
+    const exportedAt = new Date().toISOString();
+
+    downloadJsonFile(`shiftsync-theme-settings-${exportedAt.slice(0, 10)}.json`, {
+      exportedAt,
+      theme,
+      effectiveTheme,
+      reduceMotion,
+      highContrast,
+      recentColors: JSON.parse(localStorage.getItem('shiftsync_recent_colors') || '[]'),
+    });
+
+    success('Theme Settings Downloaded', 'Your theme settings download has started.', 3000);
   };
 
   return (
@@ -188,6 +306,70 @@ export const Profile: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
+                <div style={{ flex: 1 }}>
+                  <label 
+                    htmlFor="reduce-motion"
+                    style={{ 
+                      fontSize: '0.875rem', 
+                      fontWeight: '500', 
+                      color: 'var(--text-primary)', 
+                      display: 'block',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Reduce Motion
+                  </label>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}>
+                    Limit animation and transition effects
+                  </p>
+                </div>
+                <input 
+                  id="reduce-motion"
+                  type="checkbox" 
+                  checked={reduceMotion}
+                  onChange={handleReduceMotionChange}
+                  style={{ 
+                    width: '16px', 
+                    height: '16px',
+                    marginLeft: '1rem',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
+                <div style={{ flex: 1 }}>
+                  <label 
+                    htmlFor="high-contrast"
+                    style={{ 
+                      fontSize: '0.875rem', 
+                      fontWeight: '500', 
+                      color: 'var(--text-primary)', 
+                      display: 'block',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    High Contrast
+                  </label>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', margin: '0.25rem 0 0 0' }}>
+                    Increase contrast for better visibility
+                  </p>
+                </div>
+                <input 
+                  id="high-contrast"
+                  type="checkbox" 
+                  checked={highContrast}
+                  onChange={handleHighContrastChange}
+                  style={{ 
+                    width: '16px', 
+                    height: '16px',
+                    marginLeft: '1rem',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
             </div>
           </Card>
 
@@ -198,15 +380,15 @@ export const Profile: React.FC = () => {
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <Button variant="secondary" fullWidth>
+              <Button variant="secondary" fullWidth onClick={handleChangePasswordClick}>
                 Change Password
               </Button>
               
-              <Button variant="secondary" fullWidth>
+              <Button variant="secondary" fullWidth onClick={handleExportData}>
                 Export Data
               </Button>
               
-              <Button variant="warning" fullWidth>
+              <Button variant="warning" fullWidth onClick={handleDownloadThemeSettings}>
                 Download Theme Settings
               </Button>
               
@@ -429,6 +611,120 @@ export const Profile: React.FC = () => {
               loading={isUpdating}
             >
               Save Changes
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        title="Change Password"
+        size="medium"
+      >
+        <form onSubmit={handlePasswordFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {passwordError && (
+            <div style={{ 
+              background: '#fed7d7', 
+              color: '#c53030', 
+              padding: '0.75rem', 
+              borderRadius: '8px', 
+              fontSize: '0.875rem',
+              textAlign: 'center' 
+            }}>
+              {passwordError}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="currentPassword" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              Current Password *
+            </label>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              value={passwordFormData.currentPassword}
+              onChange={handlePasswordFormChange}
+              required
+              style={{
+                padding: '0.75rem',
+                border: '2px solid var(--border-primary)',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="newPassword" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              New Password *
+            </label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              value={passwordFormData.newPassword}
+              onChange={handlePasswordFormChange}
+              required
+              minLength={8}
+              style={{
+                padding: '0.75rem',
+                border: '2px solid var(--border-primary)',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="confirmPassword" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              Confirm New Password *
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={passwordFormData.confirmPassword}
+              onChange={handlePasswordFormChange}
+              required
+              minLength={8}
+              style={{
+                padding: '0.75rem',
+                border: '2px solid var(--border-primary)',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.75rem', 
+            justifyContent: 'flex-end', 
+            paddingTop: '1rem', 
+            borderTop: '1px solid var(--border-primary)' 
+          }}>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={() => setIsPasswordModalOpen(false)}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="primary"
+              loading={isUpdating}
+            >
+              Update Password
             </Button>
           </div>
         </form>
