@@ -2,19 +2,23 @@ import React, { useState } from 'react';
 import { Button, Modal } from '../../common';
 import { useWorkplaces } from '../../../hooks/useWorkplaces';
 import { useShifts } from '../../../hooks/useShifts';
-import { ShiftFormData } from '../../../types';
+import { useStudySessions } from '../../../hooks/useStudySessions';
+import { ShiftFormData, StudySession } from '../../../types';
 import { validateRequired, validateDateRange } from '../../../utils/validators';
+import { findOverlappingTimeRanges, formatDate, formatTime } from '../../../utils/dateUtils';
 
 interface ShiftFormProps {
   onSuccess: () => void;
   onCancel: () => void;
   initialData?: Partial<ShiftFormData>;
+  studySessions?: StudySession[];
 }
 
 export const ShiftForm: React.FC<ShiftFormProps> = ({
   onSuccess,
   onCancel,
   initialData,
+  studySessions = [],
 }) => {
   const [formData, setFormData] = useState<ShiftFormData>({
     workplaceId: initialData?.workplaceId || 0,
@@ -26,12 +30,19 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     isConfirmed: initialData?.isConfirmed || false,
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [overlappingStudySessions, setOverlappingStudySessions] = useState<StudySession[]>([]);
+  const [showOverlapModal, setShowOverlapModal] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const { workplaces } = useWorkplaces();
   const { createShift } = useShifts();
+  const { studySessions: allStudySessions } = useStudySessions();
+  const studySessionsToCheck = [
+    ...studySessions,
+    ...allStudySessions.filter(session => !studySessions.some(existing => existing.id === session.id)),
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -48,6 +59,11 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
 
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    if (showOverlapModal || overlappingStudySessions.length > 0) {
+      setShowOverlapModal(false);
+      setOverlappingStudySessions([]);
     }
   };
 
@@ -110,6 +126,13 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     }
 
     console.log('✅ Form validation passed, creating shift...');
+    const overlaps = findOverlappingTimeRanges(formData, studySessionsToCheck);
+    if (overlaps.length > 0) {
+      setOverlappingStudySessions(overlaps);
+      setShowOverlapModal(true);
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -120,6 +143,22 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
       setShowSuccessModal(true);
     } catch (error: any) {
       console.error('❌ Failed to create shift:', error);
+      setErrors({ general: error.message || 'Failed to create shift' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveAnyway = async () => {
+    setShowOverlapModal(false);
+    setIsLoading(true);
+
+    try {
+      const newShift = await createShift(formData);
+      console.log('Shift created successfully after conflict override:', newShift);
+      setShowSuccessModal(true);
+    } catch (error: any) {
+      console.error('Failed to create shift:', error);
       setErrors({ general: error.message || 'Failed to create shift' });
     } finally {
       setIsLoading(false);
@@ -349,6 +388,32 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
         }
       >
         <p>Your shift has been added to your schedule.</p>
+      </Modal>
+
+      <Modal
+        isOpen={showOverlapModal}
+        onClose={() => setShowOverlapModal(false)}
+        title="Schedule conflict"
+        size="small"
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setShowOverlapModal(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button variant="warning" onClick={handleSaveAnyway} loading={isLoading}>
+              Save Anyway
+            </Button>
+          </>
+        }
+      >
+        <p>This shift overlaps with {overlappingStudySessions.length === 1 ? 'a study session' : 'study sessions'}:</p>
+        <ul style={{ margin: '0.75rem 0 0', paddingLeft: '1.25rem' }}>
+          {overlappingStudySessions.map(session => (
+            <li key={session.id} style={{ marginBottom: '0.5rem' }}>
+              <strong>{session.title}</strong> on {formatDate(session.startDatetime)} from {formatTime(session.startDatetime)} to {formatTime(session.endDatetime)}
+            </li>
+          ))}
+        </ul>
       </Modal>
     </>
   );
