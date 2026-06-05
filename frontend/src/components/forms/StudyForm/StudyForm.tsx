@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
-import { Button } from '../../common';
+import { Button, Modal } from '../../common';
 import { useStudySessions } from '../../../hooks/useStudySessions';
-import { StudySessionFormData, SessionType, Priority, RecurrencePattern } from '../../../types';
+import { useShifts } from '../../../hooks/useShifts';
+import { StudySessionFormData, RecurrencePattern, Shift } from '../../../types';
 import { SESSION_TYPES, PRIORITIES } from '../../../constants';
 import { validateRequired, validateDateRange } from '../../../utils/validators';
+import { findOverlappingTimeRanges, formatDate, formatTime } from '../../../utils/dateUtils';
 
 interface StudyFormProps {
   onSuccess: () => void;
   onCancel: () => void;
   initialData?: Partial<StudySessionFormData>;
+  shifts?: Shift[];
 }
 
 export const StudyForm: React.FC<StudyFormProps> = ({
   onSuccess,
   onCancel,
   initialData,
+  shifts = [],
 }) => {
   const [formData, setFormData] = useState<StudySessionFormData>({
     title: initialData?.title || '',
@@ -32,8 +36,15 @@ export const StudyForm: React.FC<StudyFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [overlappingShifts, setOverlappingShifts] = useState<Shift[]>([]);
+  const [showOverlapModal, setShowOverlapModal] = useState(false);
 
   const { createStudySession } = useStudySessions();
+  const { shifts: allShifts } = useShifts();
+  const shiftsToCheck = [
+    ...shifts,
+    ...allShifts.filter(shift => !shifts.some(existing => existing.id === shift.id)),
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -46,6 +57,11 @@ export const StudyForm: React.FC<StudyFormProps> = ({
 
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    if (showOverlapModal || overlappingShifts.length > 0) {
+      setShowOverlapModal(false);
+      setOverlappingShifts([]);
     }
   };
 
@@ -75,6 +91,13 @@ export const StudyForm: React.FC<StudyFormProps> = ({
     
     if (!validateForm()) return;
 
+    const overlaps = findOverlappingTimeRanges(formData, shiftsToCheck);
+    if (overlaps.length > 0) {
+      setOverlappingShifts(overlaps);
+      setShowOverlapModal(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       await createStudySession(formData);
@@ -86,7 +109,22 @@ export const StudyForm: React.FC<StudyFormProps> = ({
     }
   };
 
+  const handleSaveAnyway = async () => {
+    setShowOverlapModal(false);
+    setIsLoading(true);
+
+    try {
+      await createStudySession(formData);
+      onSuccess();
+    } catch (error: any) {
+      setErrors({ general: error.message || 'Failed to create study session' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
+    <>
     <form onSubmit={handleSubmit} className="study-form">
       {errors.general && (
         <div className="error-message">{errors.general}</div>
@@ -337,5 +375,31 @@ export const StudyForm: React.FC<StudyFormProps> = ({
         </Button>
       </div>
     </form>
+      <Modal
+        isOpen={showOverlapModal}
+        onClose={() => setShowOverlapModal(false)}
+        title="Schedule conflict"
+        size="small"
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setShowOverlapModal(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button variant="warning" onClick={handleSaveAnyway} loading={isLoading}>
+              Save Anyway
+            </Button>
+          </>
+        }
+      >
+        <p>This study session overlaps with {overlappingShifts.length === 1 ? 'a shift' : 'shifts'}:</p>
+        <ul style={{ margin: '0.75rem 0 0', paddingLeft: '1.25rem' }}>
+          {overlappingShifts.map(shift => (
+            <li key={shift.id} style={{ marginBottom: '0.5rem' }}>
+              <strong>{shift.title}</strong> on {formatDate(shift.startDatetime)} from {formatTime(shift.startDatetime)} to {formatTime(shift.endDatetime)}
+            </li>
+          ))}
+        </ul>
+      </Modal>
+    </>
   );
 };

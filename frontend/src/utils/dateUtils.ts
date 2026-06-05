@@ -47,3 +47,22 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
   const diffMs = end.getTime() - start.getTime();
   return diffMs / (1000 * 60 * 60); // Convert to hours
 };
+
+export interface TimeRange {
+  startDatetime: string;
+  endDatetime: string;
+}
+
+export const doTimeRangesOverlap = (first: TimeRange, second: TimeRange): boolean => {
+  const firstStart = new Date(first.startDatetime).getTime();
+  const firstEnd = new Date(first.endDatetime).getTime();
+  const secondStart = new Date(second.startDatetime).getTime();
+  const secondEnd = new Date(second.endDatetime).getTime();
+
+  return firstStart < secondEnd && secondStart < firstEnd;
+};
+
+export const findOverlappingTimeRanges = <T extends TimeRange>(
+  target: TimeRange,
+  ranges: T[]
+): T[] => ranges.filter(range => doTimeRangesOverlap(target, range));

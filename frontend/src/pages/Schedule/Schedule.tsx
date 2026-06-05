@@ -256,7 +256,7 @@ export const Schedule: React.FC = () => {
         title="💼 Add New Shift"
         size="medium"
       >
-        <ShiftForm onSuccess={closeModals} onCancel={closeModals} />
+        <ShiftForm onSuccess={closeModals} onCancel={closeModals} studySessions={studySessions} />
       </Modal>
 
       {/* Study Session Modal */}
@@ -266,7 +266,7 @@ export const Schedule: React.FC = () => {
         title="📚 Schedule Study Session"
         size="medium"
       >
-        <StudyForm onSuccess={closeModals} onCancel={closeModals} />
+        <StudyForm onSuccess={closeModals} onCancel={closeModals} shifts={shifts} />
       </Modal>
 
       {/* Event Details Modal */}
