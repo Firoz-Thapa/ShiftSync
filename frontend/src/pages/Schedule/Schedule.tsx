@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Modal, Loading } from '../../components/common';
 import { ShiftForm } from '../../components/forms/ShiftForm';
 import { StudyForm } from '../../components/forms/StudyForm';
 import { useShifts } from '../../hooks/useShifts';
 import { useStudySessions } from '../../hooks/useStudySessions';
-import { formatTime, formatDate, getRelativeDateLabel, calculateDuration } from '../../utils/dateUtils';
+import { downloadCalendarFile, generateShiftCalendar } from '../../utils/calendarUtils';
+import { formatTime, formatDate, calculateDuration } from '../../utils/dateUtils';
 import { formatCurrency } from '../../utils/formatters';
 import './Schedule.css';
 
@@ -150,6 +151,11 @@ export const Schedule: React.FC = () => {
     setModalType('study');
   };
 
+  const handleExportShifts = () => {
+    const calendarContent = generateShiftCalendar(shifts);
+    downloadCalendarFile(`shiftsync-shifts-${dateRange.startDate}-to-${dateRange.endDate}.ics`, calendarContent);
+  };
+
   if (shiftsLoading || studyLoading) {
     return <Loading fullScreen text="Loading your schedule..." />;
   }
@@ -206,6 +212,9 @@ export const Schedule: React.FC = () => {
           </div>
 
           <div className="schedule-controls__right">
+            <Button variant="secondary" size="small" onClick={handleExportShifts} disabled={shifts.length === 0}>
+              Export Shifts
+            </Button>
             <Button variant="ghost" size="small" onClick={goToToday}>
               Today
             </Button>
