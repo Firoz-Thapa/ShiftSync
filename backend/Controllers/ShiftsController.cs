@@ -68,6 +68,7 @@ public class ShiftsController : ControllerBase
         shift.Id = Shifts.Count == 0 ? 1 : Shifts.Max(x => x.Id) + 1;
         shift.CreatedAt = DateTime.UtcNow;
         shift.UpdatedAt = DateTime.UtcNow;
+        shift.ReminderMinutesBefore = shift.ReminderEnabled ? shift.ReminderMinutesBefore : null;
         shift.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         Shifts.Add(shift);
 
@@ -96,6 +97,8 @@ public class ShiftsController : ControllerBase
         existing.BreakDuration = shift.BreakDuration;
         existing.Notes = shift.Notes;
         existing.IsConfirmed = shift.IsConfirmed;
+        existing.ReminderEnabled = shift.ReminderEnabled;
+        existing.ReminderMinutesBefore = shift.ReminderEnabled ? shift.ReminderMinutesBefore : null;
         existing.ActualStartTime = shift.ActualStartTime;
         existing.ActualEndTime = shift.ActualEndTime;
         existing.UpdatedAt = DateTime.UtcNow;
@@ -198,6 +201,11 @@ public class ShiftsController : ControllerBase
         if (shift.BreakDuration < 0)
         {
             return "Break duration cannot be negative";
+        }
+
+        if (shift.ReminderEnabled && shift.ReminderMinutesBefore is not (15 or 30 or 60))
+        {
+            return "Reminder must be 15, 30, or 60 minutes before the shift";
         }
 
         return null;

@@ -510,6 +510,14 @@ const EventDetails: React.FC<{ event: CalendarEvent; onClose: () => void }> = ({
                   {data.isConfirmed ? '✅ Confirmed' : '⏳ Pending'}
                 </span>
               </div>
+              <div className="detail-item">
+                <strong>Reminder:</strong>
+                <span>
+                  {data.reminderEnabled && data.reminderMinutesBefore
+                    ? `${data.reminderMinutesBefore === 60 ? '1 hour' : `${data.reminderMinutesBefore} minutes`} before`
+                    : 'Off'}
+                </span>
+              </div>
             </>
           )}
 
