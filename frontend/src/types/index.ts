@@ -36,6 +36,8 @@ export interface Shift {
   breakDuration: number;
   notes?: string;
   isConfirmed: boolean;
+  reminderEnabled?: boolean;
+  reminderMinutesBefore?: number | null;
   actualStartTime?: string;
   actualEndTime?: string;
   createdAt: string;
@@ -145,6 +147,8 @@ export interface ShiftFormData {
   breakDuration: number;
   notes?: string;
   isConfirmed: boolean;
+  reminderEnabled?: boolean;
+  reminderMinutesBefore?: number | null;
 }
 
 export interface WorkplaceFormData {

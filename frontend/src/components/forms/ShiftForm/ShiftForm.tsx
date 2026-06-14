@@ -28,6 +28,8 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     breakDuration: initialData?.breakDuration || 0,
     notes: initialData?.notes || '',
     isConfirmed: initialData?.isConfirmed || false,
+    reminderEnabled: initialData?.reminderEnabled || false,
+    reminderMinutesBefore: initialData?.reminderMinutesBefore ?? 15,
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [overlappingStudySessions, setOverlappingStudySessions] = useState<StudySession[]>([]);
@@ -49,6 +51,10 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     const checked = (e.target as HTMLInputElement).checked;
     
     console.log(`Field changed: ${name} = ${value}, type: ${type}`);
+
+    if (name === 'reminderEnabled' && checked && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
     
     setFormData(prev => ({
       ...prev,
@@ -340,6 +346,43 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
           }}
         />
       </div>
+
+      <div className="form-group">
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            name="reminderEnabled"
+            checked={formData.reminderEnabled || false}
+            onChange={handleChange}
+            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+          />
+          <span>Remind me before this shift</span>
+        </label>
+      </div>
+
+      {formData.reminderEnabled && (
+        <div className="form-group">
+          <label htmlFor="reminderMinutesBefore">Reminder Time</label>
+          <select
+            id="reminderMinutesBefore"
+            name="reminderMinutesBefore"
+            value={formData.reminderMinutesBefore ?? 15}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              border: '2px solid #e2e8f0',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              background: 'white'
+            }}
+          >
+            <option value={15}>15 minutes before</option>
+            <option value={30}>30 minutes before</option>
+            <option value={60}>1 hour before</option>
+          </select>
+        </div>
+      )}
 
       <div className="form-group">
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>

@@ -30,6 +30,8 @@ public sealed class ShiftDto
     public int BreakDuration { get; set; }
     public string? Notes { get; set; }
     public bool IsConfirmed { get; set; }
+    public bool ReminderEnabled { get; set; }
+    public int? ReminderMinutesBefore { get; set; }
     public DateTime? ActualStartTime { get; set; }
     public DateTime? ActualEndTime { get; set; }
     public DateTime CreatedAt { get; set; }

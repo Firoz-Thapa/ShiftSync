@@ -14,6 +14,7 @@ import { Login } from './pages/Login/Login';
 import { Register } from './pages/Register/Register';
 import { Email } from './pages/Email';
 import LandingPage from './components/LandingPage/LandingPage';
+import { ShiftReminderNotifications } from './components/common/ShiftReminderNotifications';
 
 import './styles/globals.css';
 import './styles/theme.css';
@@ -104,6 +105,7 @@ const App: React.FC = () => {
         <Router>
           <div className="app">
             <AppRoutes />
+            <ShiftReminderNotifications />
           </div>
         </Router>
       </AuthProvider>

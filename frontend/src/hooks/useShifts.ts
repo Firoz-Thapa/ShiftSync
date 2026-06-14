@@ -59,6 +59,8 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
         breakDuration: data.breakDuration || 0,
         notes: data.notes,
         isConfirmed: data.isConfirmed || false,
+        reminderEnabled: data.reminderEnabled || false,
+        reminderMinutesBefore: data.reminderEnabled ? data.reminderMinutesBefore ?? 15 : null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
