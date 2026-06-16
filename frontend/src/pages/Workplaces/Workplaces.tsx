@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Modal } from '../../components/common';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
@@ -6,6 +7,7 @@ import { WorkplaceForm } from '../../components/forms/WorkplaceForm';
 import { formatCurrency } from '../../utils/formatters';
 
 export const Workplaces: React.FC = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name?: string } | null>(null);
   const { workplaces, isLoading, fetchWorkplaces, deleteWorkplace } = useWorkplaces();
@@ -94,7 +96,13 @@ export const Workplaces: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex-shrink-0 ml-3">
+                <div className="flex flex-col gap-2 flex-shrink-0 ml-3">
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate(`/notice-board/${workplace.id}`)}
+                  >
+                    📋 Board
+                  </Button>
                   <Button
                     variant="error"
                     onClick={() => handleDelete(workplace.id, workplace.name)}

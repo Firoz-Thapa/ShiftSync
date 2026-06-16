@@ -100,3 +100,46 @@ public sealed class UpdateEmailRequest
 {
     public bool? IsRead { get; set; }
 }
+
+public sealed class AttachmentDto
+{
+    public int Id { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string FileUrl { get; set; } = string.Empty;
+    public string FileType { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+}
+
+public sealed class NoticeDto
+{
+    public int Id { get; set; }
+    public int WorkplaceId { get; set; }
+    public int CreatedByUserId { get; set; }
+    public string CreatedByUserName { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string Category { get; set; } = "general";
+    public List<string> Tags { get; set; } = new();
+    public List<AttachmentDto> Attachments { get; set; } = new();
+    public bool IsPinned { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public sealed class CreateNoticeRequest
+{
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string Category { get; set; } = "general";
+    public List<string> Tags { get; set; } = new();
+    public bool IsPinned { get; set; }
+}
+
+public sealed class UpdateNoticeRequest
+{
+    public string? Title { get; set; }
+    public string? Content { get; set; }
+    public string? Category { get; set; }
+    public List<string>? Tags { get; set; }
+    public bool? IsPinned { get; set; }
+}
