@@ -3,6 +3,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   SCHEDULE: '/schedule',
   WORKPLACES: '/workplaces',
+  NOTICE_BOARD: '/notice-board/:workplaceId',
   ANALYTICS: '/analytics',
   EMAIL: '/email',
   PROFILE: '/profile',

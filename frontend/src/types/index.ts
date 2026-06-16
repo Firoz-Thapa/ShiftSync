@@ -207,3 +207,35 @@ export interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
 }
+
+// Notice types
+export interface Attachment {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+}
+
+export interface Notice {
+  id: number;
+  workplaceId: number;
+  createdByUserId: number;
+  createdByUserName: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  attachments: Attachment[];
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNoticeData {
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  isPinned: boolean;
+}

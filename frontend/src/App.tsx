@@ -8,6 +8,7 @@ import { ROUTES } from './constants/routes';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 import { Schedule } from './pages/Schedule/Schedule';
 import { Workplaces } from './pages/Workplaces/Workplaces';
+import { NoticeBoard } from './pages/NoticeBoard/NoticeBoard';
 import { Analytics } from './pages/Analytics/Analytics';
 import { Profile } from './pages/Profile/Profile';
 import { Login } from './pages/Login/Login';
@@ -62,6 +63,14 @@ const AppRoutes = () => {
         element={user ? (
           <Layout>
             <Workplaces />
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />} 
+      />
+      <Route 
+        path={ROUTES.NOTICE_BOARD} 
+        element={user ? (
+          <Layout>
+            <NoticeBoard />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
