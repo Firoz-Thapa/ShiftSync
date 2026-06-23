@@ -1,0 +1,33 @@
+name: Azure Container Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install latest Azure CLI App Service extension
+        run: |
+          az extension add --name appservice || true
+          az extension update --name appservice || true
+
+      - name: Run Azure deployment script
+        run: bash ./deploy/azure-deploy.sh
+        env:
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+          AZURE_ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
+          AZURE_APP_SERVICE_PLAN: ${{ secrets.AZURE_APP_SERVICE_PLAN }}
+          AZURE_WEBAPP_BACKEND: ${{ secrets.AZURE_WEBAPP_BACKEND }}
+          AZURE_WEBAPP_FRONTEND: ${{ secrets.AZURE_WEBAPP_FRONTEND }}
