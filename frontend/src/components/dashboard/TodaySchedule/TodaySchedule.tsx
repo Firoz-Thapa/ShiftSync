@@ -45,28 +45,33 @@ export const TodaySchedule: React.FC = () => {
 
   return (
     <Card>
-      <div className="today-schedule">
-        <h2 className="today-schedule__title">
-          📅 Today's Schedule
+      <section className="today-schedule" aria-labelledby="today-schedule-title">
+        <div className="today-schedule__header">
+          <div>
+            <span className="today-schedule__eyebrow">Daily plan</span>
+            <h2 id="today-schedule-title" className="today-schedule__title">
+              Today's schedule
+            </h2>
+          </div>
           <span className="today-schedule__date">
             {getRelativeDateLabel(today)}
           </span>
-        </h2>
+        </div>
 
         {allItems.length === 0 ? (
           <div className="today-schedule__empty">
-            <p>🎉 No scheduled items for today!</p>
-            <p>Time for some spontaneous productivity?</p>
+            <strong>No scheduled items for today</strong>
+            <p>Use a quick action to add work or study time.</p>
           </div>
         ) : (
           <div className="today-schedule__items">
             {allItems.map((item) => (
-              <div key={item.id} className="schedule-item">
-                <div 
+              <article key={item.id} className="schedule-item">
+                <div
                   className="schedule-item__indicator"
                   style={{ backgroundColor: item.color }}
                 />
-                
+
                 <div className="schedule-item__content">
                   <div className="schedule-item__header">
                     <h3 className="schedule-item__title">{item.title}</h3>
@@ -74,33 +79,33 @@ export const TodaySchedule: React.FC = () => {
                       {formatTime(item.startTime)} - {formatTime(item.endTime)}
                     </span>
                   </div>
-                  
+
                   <div className="schedule-item__details">
                     <span className="schedule-item__subtitle">{item.subtitle}</span>
                     <div className="schedule-item__badges">
                       <span className={`schedule-badge schedule-badge--${item.type}`}>
-                        {item.type === 'work' ? '💼' : '📚'} {item.type}
+                        {item.type}
                       </span>
-                      
+
                       {item.type === 'work' && !item.isConfirmed && (
                         <span className="schedule-badge schedule-badge--pending">
-                          ⏳ Pending
+                          Pending
                         </span>
                       )}
-                      
+
                       {item.type === 'study' && item.priority === 'urgent' && (
                         <span className="schedule-badge schedule-badge--urgent">
-                          🔥 Urgent
+                          Urgent
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}
-      </div>
+      </section>
     </Card>
   );
 };
