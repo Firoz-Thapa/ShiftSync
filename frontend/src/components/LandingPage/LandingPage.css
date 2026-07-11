@@ -436,6 +436,15 @@
   text-decoration: none;
 }
 
+/* The landing page intentionally uses a light surface in every app theme.
+   Override the global dark-theme heading rule so these headings retain contrast. */
+[data-theme="dark"] .landing-page .hero-copy h1,
+[data-theme="dark"] .landing-page .section-title,
+[data-theme="dark"] .landing-page .feature-card-small h3,
+[data-theme="dark"] .landing-page .workflow-steps h3 {
+  color: #172033 !important;
+}
+
 @media (max-width: 900px) {
   .landing-content {
     padding: 1.5rem 1.25rem 3rem;
