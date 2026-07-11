@@ -17,57 +17,62 @@ export const QuickActions: React.FC = () => {
     {
       id: 'shift',
       title: 'Add Shift',
-      icon: '💼',
-      gradient: 'from-blue-500 to-blue-600',
+      icon: 'S',
+      tone: 'blue',
       action: openShiftModal,
-      description: 'Schedule a new work shift'
+      description: 'Schedule a new work shift',
     },
     {
       id: 'study',
       title: 'Schedule Study',
-      icon: '📚',
-      gradient: 'from-purple-500 to-purple-600',
+      icon: 'B',
+      tone: 'violet',
       action: openStudyModal,
-      description: 'Plan a study session'
+      description: 'Plan a study session',
     },
     {
       id: 'clock-in',
       title: 'Clock In',
-      icon: '🕐',
-      gradient: 'from-green-500 to-green-600',
+      icon: 'C',
+      tone: 'green',
       action: openClockInModal,
-      description: 'Start tracking time'
+      description: 'Start tracking time',
     },
     {
       id: 'analytics',
       title: 'View Stats',
-      icon: '📊',
-      gradient: 'from-orange-500 to-orange-600',
-      action: () => { window.location.href = '/analytics'; },
-      description: 'Check your progress'
-    }
+      icon: 'A',
+      tone: 'amber',
+      action: () => {
+        window.location.href = '/analytics';
+      },
+      description: 'Check your progress',
+    },
   ];
 
   return (
     <>
       <Card>
         <div className="quick-actions">
-          <h3 className="quick-actions__title">⚡ Quick Actions</h3>
-          
+          <div className="quick-actions__header">
+            <span className="quick-actions__eyebrow">Shortcuts</span>
+            <h3 className="quick-actions__title">Quick actions</h3>
+          </div>
+
           <div className="quick-actions__grid">
             {actionItems.map((item) => (
               <button
                 key={item.id}
-                className={`action-card bg-gradient-to-r ${item.gradient} text-white hover:scale-105 transition-all duration-200 cursor-pointer border-none rounded-lg p-4 text-left`}
+                className={`action-card action-card--${item.tone}`}
                 onClick={item.action}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{item.icon}</span>
-                  <div>
-                    <div className="font-semibold text-sm">{item.title}</div>
-                    <div className="text-xs opacity-90">{item.description}</div>
-                  </div>
-                </div>
+                <span className="action-card__icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="action-card__text">
+                  <span className="action-card__title">{item.title}</span>
+                  <span className="action-card__description">{item.description}</span>
+                </span>
               </button>
             ))}
           </div>

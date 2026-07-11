@@ -15,7 +15,7 @@
   margin: 0;
   color: var(--text-primary);
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .shifts-by-role__subtitle {
@@ -28,6 +28,7 @@
   flex: 0 0 auto;
   color: var(--text-tertiary);
   font-size: 0.75rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -40,7 +41,8 @@
 
 .shifts-by-role__chart {
   position: relative;
-  min-height: 280px;
+  min-height: 260px;
+  min-width: 0;
 }
 
 .shifts-by-role__total {
@@ -117,6 +119,7 @@
   text-align: center;
   color: var(--text-tertiary);
   background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
 }
 
@@ -141,6 +144,16 @@
   }
 
   .shifts-by-role__chart {
-    min-height: 240px;
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 420px) {
+  .shifts-by-role__range {
+    white-space: normal;
+  }
+
+  .shifts-by-role__chart {
+    min-height: 200px;
   }
 }
