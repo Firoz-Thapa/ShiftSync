@@ -418,18 +418,20 @@ export const Analytics: React.FC = () => {
           title="Earnings & Hours Trend"
           actions={
             <>
-              <button 
-                className={`px-3 py-1 rounded text-sm ${selectedMetric === 'earnings' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+              <Button
+                variant={selectedMetric === 'earnings' ? 'primary' : 'ghost'}
+                size="small"
                 onClick={() => setSelectedMetric('earnings')}
               >
                 Earnings
-              </button>
-              <button 
-                className={`px-3 py-1 rounded text-sm ${selectedMetric === 'hours' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+              </Button>
+              <Button
+                variant={selectedMetric === 'hours' ? 'primary' : 'ghost'}
+                size="small"
                 onClick={() => setSelectedMetric('hours')}
               >
                 Hours
-              </button>
+              </Button>
             </>
           }
         >
