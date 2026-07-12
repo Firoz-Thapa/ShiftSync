@@ -55,4 +55,19 @@ describe('Analytics page', () => {
     fireEvent.click(screen.getByText(/csv/i));
     await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
   });
+
+  it('styles the selected trend metric as the primary action', () => {
+    render(<Analytics />);
+
+    const earningsButton = screen.getByRole('button', { name: 'Earnings' });
+    const hoursButton = screen.getByRole('button', { name: 'Hours' });
+
+    expect(earningsButton).toHaveClass('btn--primary');
+    expect(hoursButton).toHaveClass('btn--ghost');
+
+    fireEvent.click(hoursButton);
+
+    expect(earningsButton).toHaveClass('btn--ghost');
+    expect(hoursButton).toHaveClass('btn--primary');
+  });
 });
