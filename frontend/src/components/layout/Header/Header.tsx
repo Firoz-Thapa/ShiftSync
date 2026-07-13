@@ -25,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMenuOpen }) => {
               onClick={onMenuClick}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMenuOpen}
+              aria-controls="primary-navigation"
             >
               <span className="header__menu-line" />
               <span className="header__menu-line" />

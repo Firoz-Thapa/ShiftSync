@@ -8,7 +8,7 @@
 .layout__container {
   flex: 1;
   display: flex;
-  position: relative;
+  min-width: 0;
 }
 
 .layout__main {
@@ -16,8 +16,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  width: 100%;
-  transition: margin-left 0.3s ease;
+  width: 0;
 }
 
 .layout__content {
@@ -45,17 +44,8 @@
     display: flex !important;
   }
 
-  .layout__main {
-    margin-left: 0;
-    transition: margin-left 0.3s ease;
-  }
-
-  .layout__main.sidebar-open {
-    margin-left: 240px;
-  }
-  
   .layout__content {
-    padding: 2rem;
+    padding: 2rem clamp(1.5rem, 3vw, 3rem);
   }
   
   .layout__content-wrapper {
@@ -71,14 +61,14 @@
 }
 
 @media (max-width: 1023px) {
+  .layout__container {
+    position: relative;
+  }
+
   .layout__menu-button {
     display: flex !important;
   }
 
-  .layout__main {
-    margin-left: 0;
-  }
-  
   .layout__content {
     padding: 2rem 1rem;
   }

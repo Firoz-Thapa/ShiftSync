@@ -27,7 +27,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="layout__container">
         <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
         
-        <main className={`layout__main ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <main className="layout__main">
           <div className="layout__content">
             <div className="layout__content-wrapper">
               {children}
