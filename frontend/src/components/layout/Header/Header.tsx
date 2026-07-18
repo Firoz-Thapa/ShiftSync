@@ -47,6 +47,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMenuOpen }) => {
             <div className="header__user">
               <LiveClock />
               <WeatherInfo />
+
+              <div className="header__avatar">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
+                ) : (
+                  <span>{user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
               
               <div className="header__user-info">
                 <span className="header__welcome">
