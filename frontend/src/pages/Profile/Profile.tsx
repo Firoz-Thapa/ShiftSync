@@ -16,6 +16,7 @@ export const Profile: React.FC = () => {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
+    avatarUrl: user?.avatarUrl || '',
   });
   const [passwordFormData, setPasswordFormData] = useState({
     currentPassword: '',
@@ -25,11 +26,11 @@ export const Profile: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  const [reduceMotion, setReduceMotion] = useState(
+  const [previewAvatar, setPreviewAvatar] = useState<string>(user?.avatarUrl || '');
+  const [reduceMotion] = useState(
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
-  const [highContrast, setHighContrast] = useState(
+  const [highContrast] = useState(
     window.matchMedia('(prefers-contrast: high)').matches
   );
 
@@ -46,32 +47,14 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const handleReduceMotionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setReduceMotion(e.target.checked);
-    if (e.target.checked) {
-      document.documentElement.style.setProperty('--animation-duration', '0ms');
-      document.documentElement.style.setProperty('--transition-duration', '0ms');
-    } else {
-      document.documentElement.style.removeProperty('--animation-duration');
-      document.documentElement.style.removeProperty('--transition-duration');
-    }
-  };
-
-  const handleHighContrastChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHighContrast(e.target.checked);
-    if (e.target.checked) {
-      document.documentElement.setAttribute('data-high-contrast', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-high-contrast');
-    }
-  };
-
   const handleEditClick = () => {
     setEditFormData({
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
+      avatarUrl: user?.avatarUrl || '',
     });
+    setPreviewAvatar(user?.avatarUrl || '');
     setUpdateError(null);
     setIsEditModalOpen(true);
   };
@@ -99,6 +82,22 @@ export const Profile: React.FC = () => {
     }));
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setPreviewAvatar(result);
+      setEditFormData(prev => ({
+        ...prev,
+        avatarUrl: result,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handlePasswordFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordFormData(prev => ({
@@ -120,6 +119,7 @@ export const Profile: React.FC = () => {
         firstName: editFormData.firstName,
         lastName: editFormData.lastName,
         email: editFormData.email,
+        avatarUrl: editFormData.avatarUrl || user?.avatarUrl || '',
         updatedAt: new Date().toISOString(),
       };
 
@@ -254,13 +254,28 @@ export const Profile: React.FC = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                  Full Name
-                </label>
-                <p style={{ color: 'var(--text-primary)', margin: 0 }}>
-                  {user?.firstName} {user?.lastName}
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'grid', placeItems: 'center', width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(102, 126, 234, 0.15)' }}>
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>
+                      {user?.firstName?.charAt(0).toUpperCase() || user?.email.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                    Full Name
+                  </label>
+                  <p style={{ color: 'var(--text-primary)', margin: 0 }}>
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -459,6 +474,40 @@ export const Profile: React.FC = () => {
               {updateError}
             </div>
           )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="avatar" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              Profile Photo
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(102, 126, 234, 0.1)', display: 'grid', placeItems: 'center' }}>
+                {previewAvatar ? (
+                  <img
+                    src={previewAvatar}
+                    alt="Avatar preview"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>
+                    {editFormData.firstName?.charAt(0).toUpperCase() || editFormData.email?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <input
+                type="file"
+                id="avatar"
+                accept="image/png, image/jpeg"
+                onChange={handleAvatarChange}
+                style={{
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  border: '2px solid var(--border-primary)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)'
+                }}
+              />
+            </div>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label htmlFor="firstName" style={{ fontWeight: '500', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
