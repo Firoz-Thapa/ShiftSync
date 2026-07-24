@@ -310,17 +310,7 @@ export const Profile: React.FC = () => {
                 </p>
               </div>
 
-              <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-primary)' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                  Theme Preview
-                </h4>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-primary)' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--color-primary)' }}></div>
-                  <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                    Sample card with {effectiveTheme} theme
-                  </span>
-                </div>
-              </div>
+              {/* Theme preview removed per issue #76 */}
             </div>
           </Card>
 
