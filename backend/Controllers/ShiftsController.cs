@@ -7,28 +7,17 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class ShiftsController : ControllerBase
 {
-    private static readonly List<ShiftDto> Shifts = new();
+    private readonly backend.Services.IShiftService _service;
+
+    public ShiftsController(backend.Services.IShiftService service)
+    {
+        _service = service;
+    }
 
     [HttpGet]
-    public ActionResult<ApiResponse<PaginatedResponse<ShiftDto>>> Get([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int? workplaceId)
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<ShiftDto>>>> Get([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int? workplaceId)
     {
-        var query = Shifts.AsEnumerable();
-        if (startDate.HasValue)
-        {
-            query = query.Where(x => x.StartDatetime >= startDate.Value);
-        }
-
-        if (endDate.HasValue)
-        {
-            query = query.Where(x => x.StartDatetime < GetExclusiveEndDate(endDate.Value));
-        }
-
-        if (workplaceId.HasValue)
-        {
-            query = query.Where(x => x.WorkplaceId == workplaceId.Value);
-        }
-
-        var items = query.OrderByDescending(x => x.StartDatetime).ToList();
+        var items = await _service.GetAllAsync(startDate, endDate, workplaceId);
         var response = new PaginatedResponse<ShiftDto>
         {
             Data = items,
@@ -45,137 +34,86 @@ public class ShiftsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<ApiResponse<ShiftDto>> GetById(int id)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> GetById(int id)
     {
-        var shift = Shifts.FirstOrDefault(x => x.Id == id);
-        if (shift is null)
-        {
-            return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
-        }
-
+        var shift = await _service.GetByIdAsync(id);
+        if (shift is null) return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
         return Ok(ApiResponse<ShiftDto>.Ok(shift));
     }
 
     [HttpPost]
-    public ActionResult<ApiResponse<ShiftDto>> Create(ShiftDto shift)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> Create(ShiftDto shift)
     {
-        var validationError = ValidateShift(shift);
-        if (validationError is not null)
+        try
         {
-            return BadRequest(ApiResponse<ShiftDto>.Fail(validationError));
+            var created = await _service.CreateAsync(shift);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<ShiftDto>.Ok(created, "Shift created successfully"));
         }
-
-        shift.Id = Shifts.Count == 0 ? 1 : Shifts.Max(x => x.Id) + 1;
-        shift.CreatedAt = DateTime.UtcNow;
-        shift.UpdatedAt = DateTime.UtcNow;
-        shift.ReminderMinutesBefore = shift.ReminderEnabled ? shift.ReminderMinutesBefore : null;
-        shift.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-        Shifts.Add(shift);
-
-        return CreatedAtAction(nameof(GetById), new { id = shift.Id }, ApiResponse<ShiftDto>.Ok(shift, "Shift created successfully"));
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<ShiftDto>.Fail(ex.Message));
+        }
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<ApiResponse<ShiftDto>> Update(int id, ShiftDto shift)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> Update(int id, ShiftDto shift)
     {
-        var existing = Shifts.FirstOrDefault(x => x.Id == id);
-        if (existing is null)
+        try
         {
-            return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+            var updated = await _service.UpdateAsync(id, shift);
+            if (updated is null) return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+            return Ok(ApiResponse<ShiftDto>.Ok(updated, "Shift updated successfully"));
         }
-
-        var validationError = ValidateShift(shift);
-        if (validationError is not null)
+        catch (ArgumentException ex)
         {
-            return BadRequest(ApiResponse<ShiftDto>.Fail(validationError));
+            return BadRequest(ApiResponse<ShiftDto>.Fail(ex.Message));
         }
-
-        existing.WorkplaceId = shift.WorkplaceId;
-        existing.Title = shift.Title;
-        existing.StartDatetime = shift.StartDatetime;
-        existing.EndDatetime = shift.EndDatetime;
-        existing.BreakDuration = shift.BreakDuration;
-        existing.Notes = shift.Notes;
-        existing.IsConfirmed = shift.IsConfirmed;
-        existing.ReminderEnabled = shift.ReminderEnabled;
-        existing.ReminderMinutesBefore = shift.ReminderEnabled ? shift.ReminderMinutesBefore : null;
-        existing.ActualStartTime = shift.ActualStartTime;
-        existing.ActualEndTime = shift.ActualEndTime;
-        existing.UpdatedAt = DateTime.UtcNow;
-        existing.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-
-        return Ok(ApiResponse<ShiftDto>.Ok(existing, "Shift updated successfully"));
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult<ApiResponse<object>> Delete(int id)
+    public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
-        var shift = Shifts.FirstOrDefault(x => x.Id == id);
-        if (shift is null)
-        {
-            return NotFound(ApiResponse<object>.Fail("Shift not found"));
-        }
-
-        Shifts.Remove(shift);
+        var removed = await _service.DeleteAsync(id);
+        if (!removed) return NotFound(ApiResponse<object>.Fail("Shift not found"));
         return Ok(ApiResponse<object>.Ok(null, "Shift deleted successfully"));
     }
 
     [HttpPut("{id:int}/confirm")]
-    public ActionResult<ApiResponse<ShiftDto>> Confirm(int id)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> Confirm(int id)
     {
-        var shift = Shifts.FirstOrDefault(x => x.Id == id);
-        if (shift is null)
-        {
-            return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
-        }
-
-        shift.IsConfirmed = true;
-        shift.UpdatedAt = DateTime.UtcNow;
-        return Ok(ApiResponse<ShiftDto>.Ok(shift, "Shift confirmed"));
+        var updated = await _service.ConfirmAsync(id);
+        if (updated is null) return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+        return Ok(ApiResponse<ShiftDto>.Ok(updated, "Shift confirmed"));
     }
 
     [HttpPut("{id:int}/clock-in")]
-    public ActionResult<ApiResponse<ShiftDto>> ClockIn(int id)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> ClockIn(int id)
     {
-        var shift = Shifts.FirstOrDefault(x => x.Id == id);
-        if (shift is null)
+        try
         {
-            return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+            var updated = await _service.ClockInAsync(id);
+            if (updated is null) return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+            return Ok(ApiResponse<ShiftDto>.Ok(updated, "Shift clocked in"));
         }
-
-        if (shift.ActualStartTime.HasValue && !shift.ActualEndTime.HasValue)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(ApiResponse<ShiftDto>.Fail("Shift is already clocked in"));
+            return BadRequest(ApiResponse<ShiftDto>.Fail(ex.Message));
         }
-
-        shift.ActualStartTime = DateTime.UtcNow;
-        shift.ActualEndTime = null;
-        shift.UpdatedAt = DateTime.UtcNow;
-        return Ok(ApiResponse<ShiftDto>.Ok(shift, "Shift clocked in"));
     }
 
     [HttpPut("{id:int}/clock-out")]
-    public ActionResult<ApiResponse<ShiftDto>> ClockOut(int id)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> ClockOut(int id)
     {
-        var shift = Shifts.FirstOrDefault(x => x.Id == id);
-        if (shift is null)
+        try
         {
-            return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+            var updated = await _service.ClockOutAsync(id);
+            if (updated is null) return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
+            return Ok(ApiResponse<ShiftDto>.Ok(updated, "Shift clocked out"));
         }
-
-        if (!shift.ActualStartTime.HasValue)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(ApiResponse<ShiftDto>.Fail("Cannot clock out before clocking in"));
+            return BadRequest(ApiResponse<ShiftDto>.Fail(ex.Message));
         }
-
-        if (shift.ActualEndTime.HasValue)
-        {
-            return BadRequest(ApiResponse<ShiftDto>.Fail("Shift is already clocked out"));
-        }
-
-        shift.ActualEndTime = DateTime.UtcNow;
-        shift.UpdatedAt = DateTime.UtcNow;
-        return Ok(ApiResponse<ShiftDto>.Ok(shift, "Shift clocked out"));
     }
 
     private static DateTime GetExclusiveEndDate(DateTime endDate) =>
@@ -183,31 +121,12 @@ public class ShiftsController : ControllerBase
 
     private static string? ValidateShift(ShiftDto shift)
     {
-        if (shift.WorkplaceId <= 0)
-        {
-            return "Workplace is required";
-        }
-
-        if (string.IsNullOrWhiteSpace(shift.Title))
-        {
-            return "Shift title is required";
-        }
-
-        if (shift.EndDatetime <= shift.StartDatetime)
-        {
-            return "Shift end time must be after start time";
-        }
-
-        if (shift.BreakDuration < 0)
-        {
-            return "Break duration cannot be negative";
-        }
-
-        if (shift.ReminderEnabled && shift.ReminderMinutesBefore is not (15 or 30 or 60))
-        {
-            return "Reminder must be 15, 30, or 60 minutes before the shift";
-        }
-
+        // kept for compatibility; validation happens in service
+        if (shift.WorkplaceId <= 0) return "Workplace is required";
+        if (string.IsNullOrWhiteSpace(shift.Title)) return "Shift title is required";
+        if (shift.EndDatetime <= shift.StartDatetime) return "Shift end time must be after start time";
+        if (shift.BreakDuration < 0) return "Break duration cannot be negative";
+        if (shift.ReminderEnabled && shift.ReminderMinutesBefore is not (15 or 30 or 60)) return "Reminder must be 15, 30, or 60 minutes before the shift";
         return null;
     }
 }

@@ -7,39 +7,17 @@ namespace backend.Controllers;
 [Route("api/study-sessions")]
 public class StudySessionsController : ControllerBase
 {
-    private static readonly List<StudySessionDto> StudySessions = new();
+    private readonly backend.Services.IStudySessionService _service;
+
+    public StudySessionsController(backend.Services.IStudySessionService service)
+    {
+        _service = service;
+    }
 
     [HttpGet]
-    public ActionResult<ApiResponse<PaginatedResponse<StudySessionDto>>> Get([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? subject, [FromQuery] string? sessionType, [FromQuery] string? priority)
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<StudySessionDto>>>> Get([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? subject, [FromQuery] string? sessionType, [FromQuery] string? priority)
     {
-        var query = StudySessions.AsEnumerable();
-
-        if (startDate.HasValue)
-        {
-            query = query.Where(x => x.StartDatetime >= startDate.Value);
-        }
-
-        if (endDate.HasValue)
-        {
-            query = query.Where(x => x.StartDatetime < GetExclusiveEndDate(endDate.Value));
-        }
-
-        if (!string.IsNullOrEmpty(subject))
-        {
-            query = query.Where(x => x.Subject == subject);
-        }
-
-        if (!string.IsNullOrEmpty(sessionType))
-        {
-            query = query.Where(x => x.SessionType == sessionType);
-        }
-
-        if (!string.IsNullOrEmpty(priority))
-        {
-            query = query.Where(x => x.Priority == priority);
-        }
-
-        var items = query.OrderByDescending(x => x.StartDatetime).ToList();
+        var items = await _service.GetAllAsync(startDate, endDate, subject, sessionType, priority);
         var response = new PaginatedResponse<StudySessionDto>
         {
             Data = items,
@@ -56,91 +34,56 @@ public class StudySessionsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<ApiResponse<StudySessionDto>> GetById(int id)
+    public async Task<ActionResult<ApiResponse<StudySessionDto>>> GetById(int id)
     {
-        var session = StudySessions.FirstOrDefault(x => x.Id == id);
-        if (session is null)
-        {
-            return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
-        }
-
+        var session = await _service.GetByIdAsync(id);
+        if (session is null) return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
         return Ok(ApiResponse<StudySessionDto>.Ok(session));
     }
 
     [HttpPost]
-    public ActionResult<ApiResponse<StudySessionDto>> Create(StudySessionDto session)
+    public async Task<ActionResult<ApiResponse<StudySessionDto>>> Create(StudySessionDto session)
     {
-        var validationError = ValidateStudySession(session);
-        if (validationError is not null)
+        try
         {
-            return BadRequest(ApiResponse<StudySessionDto>.Fail(validationError));
+            var created = await _service.CreateAsync(session);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<StudySessionDto>.Ok(created, "Study session created successfully"));
         }
-
-        session.Id = StudySessions.Count == 0 ? 1 : StudySessions.Max(x => x.Id) + 1;
-        session.CreatedAt = DateTime.UtcNow;
-        session.UpdatedAt = DateTime.UtcNow;
-        StudySessions.Add(session);
-
-        return CreatedAtAction(nameof(GetById), new { id = session.Id }, ApiResponse<StudySessionDto>.Ok(session, "Study session created successfully"));
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<StudySessionDto>.Fail(ex.Message));
+        }
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<ApiResponse<StudySessionDto>> Update(int id, StudySessionDto session)
+    public async Task<ActionResult<ApiResponse<StudySessionDto>>> Update(int id, StudySessionDto session)
     {
-        var existing = StudySessions.FirstOrDefault(x => x.Id == id);
-        if (existing is null)
+        try
         {
-            return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
+            var updated = await _service.UpdateAsync(id, session);
+            if (updated is null) return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
+            return Ok(ApiResponse<StudySessionDto>.Ok(updated, "Study session updated successfully"));
         }
-
-        var validationError = ValidateStudySession(session);
-        if (validationError is not null)
+        catch (ArgumentException ex)
         {
-            return BadRequest(ApiResponse<StudySessionDto>.Fail(validationError));
+            return BadRequest(ApiResponse<StudySessionDto>.Fail(ex.Message));
         }
-
-        existing.Title = session.Title;
-        existing.Subject = session.Subject;
-        existing.StartDatetime = session.StartDatetime;
-        existing.EndDatetime = session.EndDatetime;
-        existing.Location = session.Location;
-        existing.SessionType = session.SessionType;
-        existing.Priority = session.Priority;
-        existing.IsCompleted = session.IsCompleted;
-        existing.Notes = session.Notes;
-        existing.IsRecurring = session.IsRecurring;
-        existing.RecurrencePattern = session.RecurrencePattern;
-        existing.RecurrenceEndDate = session.RecurrenceEndDate;
-        existing.UpdatedAt = DateTime.UtcNow;
-
-        return Ok(ApiResponse<StudySessionDto>.Ok(existing, "Study session updated successfully"));
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult<ApiResponse<object>> Delete(int id)
+    public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
-        var session = StudySessions.FirstOrDefault(x => x.Id == id);
-        if (session is null)
-        {
-            return NotFound(ApiResponse<object>.Fail("Study session not found"));
-        }
-
-        StudySessions.Remove(session);
+        var removed = await _service.DeleteAsync(id);
+        if (!removed) return NotFound(ApiResponse<object>.Fail("Study session not found"));
         return Ok(ApiResponse<object>.Ok(null, "Study session deleted successfully"));
     }
 
     [HttpPut("{id:int}/complete")]
-    public ActionResult<ApiResponse<StudySessionDto>> MarkComplete(int id)
+    public async Task<ActionResult<ApiResponse<StudySessionDto>>> MarkComplete(int id)
     {
-        var session = StudySessions.FirstOrDefault(x => x.Id == id);
-        if (session is null)
-        {
-            return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
-        }
-
-        session.IsCompleted = true;
-        session.UpdatedAt = DateTime.UtcNow;
-        return Ok(ApiResponse<StudySessionDto>.Ok(session, "Study session marked as completed"));
+        var updated = await _service.MarkCompleteAsync(id);
+        if (updated is null) return NotFound(ApiResponse<StudySessionDto>.Fail("Study session not found"));
+        return Ok(ApiResponse<StudySessionDto>.Ok(updated, "Study session marked as completed"));
     }
 
     private static DateTime GetExclusiveEndDate(DateTime endDate) =>
@@ -148,26 +91,11 @@ public class StudySessionsController : ControllerBase
 
     private static string? ValidateStudySession(StudySessionDto session)
     {
-        if (string.IsNullOrWhiteSpace(session.Title))
-        {
-            return "Study session title is required";
-        }
-
-        if (session.EndDatetime <= session.StartDatetime)
-        {
-            return "Study session end time must be after start time";
-        }
-
-        if (session.SessionType is not "lecture" and not "exam" and not "assignment" and not "study_group" and not "lab" and not "other")
-        {
-            return "Invalid study session type";
-        }
-
-        if (session.Priority is not "low" and not "medium" and not "high" and not "urgent")
-        {
-            return "Invalid study session priority";
-        }
-
+        // kept for compatibility; validation now lives in the service
+        if (string.IsNullOrWhiteSpace(session.Title)) return "Study session title is required";
+        if (session.EndDatetime <= session.StartDatetime) return "Study session end time must be after start time";
+        if (session.SessionType is not "lecture" and not "exam" and not "assignment" and not "study_group" and not "lab" and not "other") return "Invalid study session type";
+        if (session.Priority is not "low" and not "medium" and not "high" and not "urgent") return "Invalid study session priority";
         return null;
     }
 }
