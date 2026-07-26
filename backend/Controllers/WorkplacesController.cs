@@ -7,20 +7,27 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class WorkplacesController : ControllerBase
 {
-    private static readonly List<WorkplaceDto> Workplaces = new();
+    private readonly backend.Services.IWorkplaceService _service;
+
+    public WorkplacesController(backend.Services.IWorkplaceService service)
+    {
+        _service = service;
+    }
 
     [HttpGet]
-    public ActionResult<ApiResponse<PaginatedResponse<WorkplaceDto>>> Get()
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<WorkplaceDto>>>> Get()
     {
+        var items = await _service.GetAllAsync();
+
         var response = new PaginatedResponse<WorkplaceDto>
         {
-            Data = Workplaces,
+            Data = items,
             Pagination = new PaginationMetadata
             {
                 CurrentPage = 1,
                 TotalPages = 1,
-                TotalItems = Workplaces.Count,
-                ItemsPerPage = Workplaces.Count
+                TotalItems = items.Count,
+                ItemsPerPage = items.Count
             }
         };
 
@@ -28,9 +35,9 @@ public class WorkplacesController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<ApiResponse<WorkplaceDto>> GetById(int id)
+    public async Task<ActionResult<ApiResponse<WorkplaceDto>>> GetById(int id)
     {
-        var workplace = Workplaces.FirstOrDefault(x => x.Id == id);
+        var workplace = await _service.GetByIdAsync(id);
         if (workplace is null)
         {
             return NotFound(ApiResponse<WorkplaceDto>.Fail("Workplace not found"));
@@ -40,68 +47,45 @@ public class WorkplacesController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<ApiResponse<WorkplaceDto>> Create(WorkplaceDto workplace)
+    public async Task<ActionResult<ApiResponse<WorkplaceDto>>> Create(WorkplaceDto workplace)
     {
-        var validationError = ValidateWorkplace(workplace);
-        if (validationError is not null)
+        try
         {
-            return BadRequest(ApiResponse<WorkplaceDto>.Fail(validationError));
+            var created = await _service.CreateAsync(workplace);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<WorkplaceDto>.Ok(created, "Workplace created successfully"));
         }
-
-        workplace.Id = Workplaces.Count == 0 ? 1 : Workplaces.Max(x => x.Id) + 1;
-        workplace.CreatedAt = DateTime.UtcNow;
-        workplace.UpdatedAt = DateTime.UtcNow;
-        Workplaces.Add(workplace);
-
-        return CreatedAtAction(nameof(GetById), new { id = workplace.Id }, ApiResponse<WorkplaceDto>.Ok(workplace, "Workplace created successfully"));
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<WorkplaceDto>.Fail(ex.Message));
+        }
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<ApiResponse<WorkplaceDto>> Update(int id, WorkplaceDto workplace)
+    public async Task<ActionResult<ApiResponse<WorkplaceDto>>> Update(int id, WorkplaceDto workplace)
     {
-        var existing = Workplaces.FirstOrDefault(x => x.Id == id);
-        if (existing is null)
+        try
         {
-            return NotFound(ApiResponse<WorkplaceDto>.Fail("Workplace not found"));
+            var updated = await _service.UpdateAsync(id, workplace);
+            if (updated is null) return NotFound(ApiResponse<WorkplaceDto>.Fail("Workplace not found"));
+            return Ok(ApiResponse<WorkplaceDto>.Ok(updated, "Workplace updated successfully"));
         }
-
-        var validationError = ValidateWorkplace(workplace);
-        if (validationError is not null)
+        catch (ArgumentException ex)
         {
-            return BadRequest(ApiResponse<WorkplaceDto>.Fail(validationError));
+            return BadRequest(ApiResponse<WorkplaceDto>.Fail(ex.Message));
         }
-
-        existing.Name = workplace.Name;
-        existing.Color = workplace.Color;
-        existing.PayType = workplace.PayType;
-        existing.HourlyRate = workplace.HourlyRate;
-        existing.MonthlySalary = workplace.MonthlySalary;
-        existing.Address = workplace.Address;
-        existing.ContactInfo = workplace.ContactInfo;
-        existing.Notes = workplace.Notes;
-        existing.IsRecurring = workplace.IsRecurring;
-        existing.RecurrencePattern = workplace.RecurrencePattern;
-        existing.RecurrenceEndDate = workplace.RecurrenceEndDate;
-        existing.UpdatedAt = DateTime.UtcNow;
-
-        return Ok(ApiResponse<WorkplaceDto>.Ok(existing, "Workplace updated successfully"));
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult<ApiResponse<object>> Delete(int id)
+    public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
-        var workplace = Workplaces.FirstOrDefault(x => x.Id == id);
-        if (workplace is null)
-        {
-            return NotFound(ApiResponse<object>.Fail("Workplace not found"));
-        }
-
-        Workplaces.Remove(workplace);
+        var removed = await _service.DeleteAsync(id);
+        if (!removed) return NotFound(ApiResponse<object>.Fail("Workplace not found"));
         return Ok(ApiResponse<object>.Ok(null, "Workplace deleted successfully"));
     }
 
     private static string? ValidateWorkplace(WorkplaceDto workplace)
     {
+        // kept for compatibility; validation is performed in the service
         if (string.IsNullOrWhiteSpace(workplace.Name))
         {
             return "Workplace name is required";

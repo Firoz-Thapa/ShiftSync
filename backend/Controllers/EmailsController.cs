@@ -7,40 +7,25 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class EmailsController : ControllerBase
 {
-    private static readonly List<EmailAccountDto> Accounts = new();
-    private static readonly Dictionary<string, List<EmailMessageDto>> MessagesByAccount = new();
+    private readonly backend.Services.IEmailService _service;
+
+    public EmailsController(backend.Services.IEmailService service)
+    {
+        _service = service;
+    }
 
     [HttpPost("connect")]
-    public ActionResult<ApiResponse<EmailAccountDto>> ConnectAccount(EmailConnectRequest request)
+    public async Task<ActionResult<ApiResponse<EmailAccountDto>>> ConnectAccount(EmailConnectRequest request)
     {
-        var provider = request.Provider.ToLowerInvariant();
-        if (provider is not "gmail" and not "outlook" and not "custom")
+        try
         {
-            return BadRequest(ApiResponse<EmailAccountDto>.Fail("Unsupported provider"));
+            var account = await _service.ConnectAccountAsync(request);
+            return Ok(ApiResponse<EmailAccountDto>.Ok(account, "Email account connected"));
         }
-
-        if (provider == "custom" && string.IsNullOrWhiteSpace(request.Credentials?.Email))
+        catch (ArgumentException ex)
         {
-            return BadRequest(ApiResponse<EmailAccountDto>.Fail("Email is required for custom accounts"));
+            return BadRequest(ApiResponse<EmailAccountDto>.Fail(ex.Message));
         }
-
-        var email = provider == "custom"
-            ? request.Credentials!.Email
-            : $"{provider}-account@example.com";
-
-        var account = new EmailAccountDto
-        {
-            Id = Guid.NewGuid().ToString("N"),
-            Email = email,
-            Provider = provider,
-            IsConnected = true,
-            LastSync = DateTime.UtcNow
-        };
-
-        Accounts.Add(account);
-        MessagesByAccount[account.Id] = CreateSeedMessages(account);
-
-        return Ok(ApiResponse<EmailAccountDto>.Ok(account, "Email account connected"));
     }
 
     [HttpGet("connect/{provider}")]
@@ -83,126 +68,59 @@ public class EmailsController : ControllerBase
     }
 
     [HttpGet("accounts")]
-    public ActionResult<ApiResponse<IEnumerable<EmailAccountDto>>> GetAccounts()
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailAccountDto>>>> GetAccounts()
     {
-        return Ok(ApiResponse<IEnumerable<EmailAccountDto>>.Ok(Accounts));
+        var accounts = await _service.GetAccountsAsync();
+        return Ok(ApiResponse<IEnumerable<EmailAccountDto>>.Ok(accounts));
     }
 
     [HttpDelete("accounts/{accountId}")]
-    public ActionResult<ApiResponse<object>> DisconnectAccount(string accountId)
+    public async Task<ActionResult<ApiResponse<object>>> DisconnectAccount(string accountId)
     {
-        var account = Accounts.FirstOrDefault(x => x.Id == accountId);
-        if (account is null)
-        {
-            return NotFound(ApiResponse<object>.Fail("Email account not found"));
-        }
-
-        Accounts.Remove(account);
-        MessagesByAccount.Remove(accountId);
-
+        var ok = await _service.DisconnectAccountAsync(accountId);
+        if (!ok) return NotFound(ApiResponse<object>.Fail("Email account not found"));
         return Ok(ApiResponse<object>.Ok(null, "Email account disconnected"));
     }
 
     [HttpGet("{accountId}")]
-    public ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>> GetEmails(string accountId, [FromQuery] int limit = 20)
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> GetEmails(string accountId, [FromQuery] int limit = 20)
     {
-        if (!TryGetMessages(accountId, out var messages))
-        {
-            return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
-        }
-
-        var safeLimit = Math.Clamp(limit, 1, 100);
-        return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(messages.Take(safeLimit)));
+        var messages = await _service.GetEmailsAsync(accountId, limit);
+        if (messages is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
+        return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(messages));
     }
 
     [HttpGet("{accountId}/search")]
-    public ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>> SearchEmails(string accountId, [FromQuery] string? q)
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> SearchEmails(string accountId, [FromQuery] string? q)
     {
-        if (!TryGetMessages(accountId, out var messages))
-        {
-            return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
-        }
-
-        if (string.IsNullOrWhiteSpace(q))
-        {
-            return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(messages));
-        }
-
-        var results = messages.Where(x =>
-            x.Subject.Contains(q, StringComparison.OrdinalIgnoreCase) ||
-            x.From.Contains(q, StringComparison.OrdinalIgnoreCase) ||
-            x.Body.Contains(q, StringComparison.OrdinalIgnoreCase));
-
+        var results = await _service.SearchEmailsAsync(accountId, q);
+        if (results is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
         return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(results));
     }
 
     [HttpPost("{accountId}/sync")]
-    public ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>> SyncEmails(string accountId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> SyncEmails(string accountId)
     {
-        var account = Accounts.FirstOrDefault(x => x.Id == accountId);
-        if (account is null || !TryGetMessages(accountId, out var messages))
-        {
-            return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
-        }
-
-        account.LastSync = DateTime.UtcNow;
-        return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(messages, "Emails synced"));
+        var msgs = await _service.SyncEmailsAsync(accountId);
+        if (msgs is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
+        return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(msgs, "Emails synced"));
     }
 
     [HttpGet("{accountId}/{emailId}")]
-    public ActionResult<ApiResponse<EmailMessageDto>> GetEmail(string accountId, string emailId)
+    public async Task<ActionResult<ApiResponse<EmailMessageDto>>> GetEmail(string accountId, string emailId)
     {
-        if (!TryGetMessages(accountId, out var messages))
-        {
-            return NotFound(ApiResponse<EmailMessageDto>.Fail("Email account not found"));
-        }
-
-        var email = messages.FirstOrDefault(x => x.Id == emailId);
-        if (email is null)
-        {
-            return NotFound(ApiResponse<EmailMessageDto>.Fail("Email not found"));
-        }
-
+        var email = await _service.GetEmailAsync(accountId, emailId);
+        if (email is null) return NotFound(ApiResponse<EmailMessageDto>.Fail("Email not found"));
         return Ok(ApiResponse<EmailMessageDto>.Ok(email));
     }
 
     [HttpPatch("{accountId}/{emailId}")]
-    public ActionResult<ApiResponse<EmailMessageDto>> UpdateEmail(string accountId, string emailId, UpdateEmailRequest request)
+    public async Task<ActionResult<ApiResponse<EmailMessageDto>>> UpdateEmail(string accountId, string emailId, UpdateEmailRequest request)
     {
-        if (!TryGetMessages(accountId, out var messages))
-        {
-            return NotFound(ApiResponse<EmailMessageDto>.Fail("Email account not found"));
-        }
-
-        var email = messages.FirstOrDefault(x => x.Id == emailId);
-        if (email is null)
-        {
-            return NotFound(ApiResponse<EmailMessageDto>.Fail("Email not found"));
-        }
-
-        if (request.IsRead.HasValue)
-        {
-            email.IsRead = request.IsRead.Value;
-        }
-
-        return Ok(ApiResponse<EmailMessageDto>.Ok(email, "Email updated"));
+        var updated = await _service.UpdateEmailAsync(accountId, emailId, request);
+        if (updated is null) return NotFound(ApiResponse<EmailMessageDto>.Fail("Email account or email not found"));
+        return Ok(ApiResponse<EmailMessageDto>.Ok(updated, "Email updated"));
     }
 
-    private static bool TryGetMessages(string accountId, out List<EmailMessageDto> messages) =>
-        MessagesByAccount.TryGetValue(accountId, out messages!);
-
-    private static List<EmailMessageDto> CreateSeedMessages(EmailAccountDto account) =>
-        new()
-        {
-            new EmailMessageDto
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                From = "schedule@example.com",
-                Subject = "Welcome to ShiftSync email",
-                Body = $"Connected {account.Email}. Real provider sync is pending OAuth token storage.",
-                Date = DateTime.UtcNow,
-                IsRead = false,
-                HasAttachments = false
-            }
-        };
+    // kept for reference; message seeding is handled by the service/repository
 }
