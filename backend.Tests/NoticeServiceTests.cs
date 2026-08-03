@@ -54,4 +54,28 @@ public class NoticeServiceTests
         Assert.True(updated.IsPinned);
         Assert.True(updated.UpdatedAt >= created.UpdatedAt);
     }
+
+    [Fact]
+    public async Task NoticeService_ReturnsNullForMissingUpdateAndSupportsDeletion()
+    {
+        var service = new NoticeService(new InMemoryNoticeRepository());
+        var created = await service.CreateAsync(1, new CreateNoticeRequest { Title = "Delete", Content = "This will go" });
+
+        Assert.Null(await service.UpdateAsync(404, new UpdateNoticeRequest { Title = "Missing" }));
+        Assert.True(await service.DeleteAsync(created.Id));
+        Assert.Null(await service.GetByIdAsync(created.Id));
+        Assert.False(await service.DeleteAsync(created.Id));
+    }
+
+    [Theory]
+    [InlineData("", "Content", "Notice title is required")]
+    [InlineData("Title", "", "Notice content is required")]
+    public async Task CreateAsync_ValidatesRequiredFields(string title, string content, string message)
+    {
+        var service = new NoticeService(new InMemoryNoticeRepository());
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(1, new CreateNoticeRequest { Title = title, Content = content }));
+
+        Assert.Equal(message, exception.Message);
+    }
 }
