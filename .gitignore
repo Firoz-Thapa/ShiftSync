@@ -9,6 +9,7 @@ bin/
 obj/
 dist/
 build/
+TestResults/
 
 # IDE
 .vscode/

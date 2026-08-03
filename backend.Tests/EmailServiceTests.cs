@@ -60,4 +60,44 @@ public class EmailServiceTests
 
         Assert.Null(emails);
     }
+
+    [Fact]
+    public async Task EmailService_ClampsEmailLimitAndHandlesMissingMessages()
+    {
+        var service = new EmailService(new InMemoryEmailRepository());
+        var account = await service.ConnectAccountAsync(new EmailConnectRequest { Provider = "outlook" });
+
+        Assert.Single((await service.GetEmailsAsync(account.Id, 0))!);
+        Assert.Null(await service.UpdateEmailAsync(account.Id, "missing", new UpdateEmailRequest { IsRead = true }));
+        Assert.Null(await service.SearchEmailsAsync("missing", "anything"));
+        Assert.Null(await service.SyncEmailsAsync("missing"));
+    }
+
+    [Fact]
+    public async Task EmailService_SearchWithoutQuerySyncsAndDisconnectsAccount()
+    {
+        var service = new EmailService(new InMemoryEmailRepository());
+        var account = await service.ConnectAccountAsync(new EmailConnectRequest { Provider = "gmail" });
+        var beforeSync = account.LastSync;
+
+        var allMessages = await service.SearchEmailsAsync(account.Id, " ");
+        var syncedMessages = await service.SyncEmailsAsync(account.Id);
+
+        Assert.Single(allMessages!);
+        Assert.Single(syncedMessages!);
+        Assert.True(account.LastSync >= beforeSync);
+        Assert.True(await service.DisconnectAccountAsync(account.Id));
+        Assert.Empty(await service.GetAccountsAsync());
+        Assert.False(await service.DisconnectAccountAsync(account.Id));
+    }
+
+    [Fact]
+    public async Task ConnectAccountAsync_CustomAccountRequiresEmail()
+    {
+        var service = new EmailService(new InMemoryEmailRepository());
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => service.ConnectAccountAsync(new EmailConnectRequest { Provider = "custom" }));
+
+        Assert.Equal("Email is required for custom accounts", exception.Message);
+    }
 }
