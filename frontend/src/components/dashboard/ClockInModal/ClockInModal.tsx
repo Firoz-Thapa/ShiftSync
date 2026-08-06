@@ -11,7 +11,7 @@ interface ClockInModalProps {
   onSuccess: () => void;
 }
 
-export const ClockInModal: React.FC<ClockInModalProps> = ({ isOpen, onClose, onSuccess }) => {
+export const ClockInModal = ({ isOpen, onClose, onSuccess }: ClockInModalProps) => {
   const [todayShifts, setTodayShifts] = useState<Shift[]>([]);
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
   const [isClockingIn, setIsClockingIn] = useState(false);

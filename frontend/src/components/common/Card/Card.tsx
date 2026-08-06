@@ -9,13 +9,13 @@ interface CardProps {
   onClick?: () => void;
 }
 
-export const Card: React.FC<CardProps> = ({
+export const Card = ({
   children,
   className = '',
   padding = 'medium',
   hoverable = false,
   onClick,
-}) => {
+}: CardProps) => {
   const classes = [
     'card',
     `card--padding-${padding}`,

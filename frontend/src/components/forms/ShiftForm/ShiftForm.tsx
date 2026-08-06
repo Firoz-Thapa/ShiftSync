@@ -14,12 +14,12 @@ interface ShiftFormProps {
   studySessions?: StudySession[];
 }
 
-export const ShiftForm: React.FC<ShiftFormProps> = ({
+export const ShiftForm = ({
   onSuccess,
   onCancel,
   initialData,
   studySessions = [],
-}) => {
+}: ShiftFormProps) => {
   const [formData, setFormData] = useState<ShiftFormData>({
     workplaceId: initialData?.workplaceId || 0,
     title: initialData?.title || '',

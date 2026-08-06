@@ -10,13 +10,13 @@ interface EmailAccountListProps {
   onLoading?: (loading: boolean) => void;
 }
 
-export const EmailAccountList: React.FC<EmailAccountListProps> = ({
+export const EmailAccountList = ({
   accounts,
   selectedAccountId,
   onSelectAccount,
   onDisconnect,
   onLoading,
-}) => {
+}: EmailAccountListProps) => {
   const handleDisconnect = async (accountId: string) => {
     if (window.confirm('Are you sure you want to disconnect this account?')) {
       onLoading?.(true);

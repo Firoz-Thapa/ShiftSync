@@ -3,7 +3,7 @@ import { EmailAccountConnection, EmailAccountList, EmailList, EmailViewer } from
 import { emailService, EmailMessage, EmailAccount } from '../../services/emailService';
 import './Email.css';
 
-export const EmailPage: React.FC = () => {
+export const EmailPage = () => {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [emails, setEmails] = useState<EmailMessage[]>([]);

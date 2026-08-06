@@ -107,7 +107,7 @@ const AppRoutes = () => {
   );
 };
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>

@@ -5,7 +5,7 @@ import { ToastContainer, useToast } from '../../components/common/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 
-export const Profile: React.FC = () => {
+export const Profile = () => {
   const { user, logout } = useAuth();
   const { theme, effectiveTheme } = useTheme();
   const { toasts, success, error, removeToast } = useToast();

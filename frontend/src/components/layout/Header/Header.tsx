@@ -12,7 +12,7 @@ interface HeaderProps {
   isMenuOpen?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMenuOpen }) => {
+export const Header = ({ onMenuClick, isMenuOpen }: HeaderProps) => {
   const { user, logout } = useAuth();
 
   return (

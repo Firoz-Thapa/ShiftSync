@@ -14,12 +14,12 @@ interface StudyFormProps {
   shifts?: Shift[];
 }
 
-export const StudyForm: React.FC<StudyFormProps> = ({
+export const StudyForm = ({
   onSuccess,
   onCancel,
   initialData,
   shifts = [],
-}) => {
+}: StudyFormProps) => {
   const [formData, setFormData] = useState<StudySessionFormData>({
     title: initialData?.title || '',
     subject: initialData?.subject || '',

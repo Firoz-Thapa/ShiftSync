@@ -10,12 +10,12 @@ interface EmailListProps {
   isLoading?: boolean;
 }
 
-export const EmailList: React.FC<EmailListProps> = ({
+export const EmailList = ({
   emails,
   selectedEmailId,
   onSelectEmail,
   isLoading = false,
-}) => {
+}: EmailListProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();

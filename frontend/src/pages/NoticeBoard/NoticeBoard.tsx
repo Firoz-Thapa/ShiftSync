@@ -9,7 +9,7 @@ import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { CreateNoticeData, Notice } from '../../types';
 import './NoticeBoard.css';
 
-export const NoticeBoard: React.FC = () => {
+export const NoticeBoard = () => {
   const { workplaceId } = useParams<{ workplaceId: string }>();
   const navigate = useNavigate();
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);

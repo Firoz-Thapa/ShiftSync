@@ -24,7 +24,7 @@ interface CalendarEvent {
   data: any;
 }
 
-export const Schedule: React.FC = () => {
+export const Schedule = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [modalType, setModalType] = useState<'shift' | 'study' | null>(null);
@@ -291,9 +291,15 @@ export const Schedule: React.FC = () => {
   );
 };
 
-const DayView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventClick: (event: CalendarEvent) => void }> = ({
+type CalendarViewProps = {
+  events: CalendarEvent[];
+  selectedDate: Date;
+  onEventClick: (event: CalendarEvent) => void;
+};
+
+const DayView = ({
   events, selectedDate, onEventClick
-}) => {
+}: CalendarViewProps) => {
   const dayEvents = events.filter(event => {
     const eventDate = new Date(event.startTime).toDateString();
     return eventDate === selectedDate.toDateString();
@@ -331,9 +337,9 @@ const DayView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventCl
   );
 };
 
-const WeekView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventClick: (event: CalendarEvent) => void }> = ({
+const WeekView = ({
   events, selectedDate, onEventClick
-}) => {
+}: CalendarViewProps) => {
   const weekStart = new Date(selectedDate);
   const dayOfWeek = weekStart.getDay();
   weekStart.setDate(weekStart.getDate() - dayOfWeek + 1);
@@ -383,9 +389,9 @@ const WeekView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventC
 };
 
 // Month View Component
-const MonthView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEventClick: (event: CalendarEvent) => void }> = ({
+const MonthView = ({
   events, selectedDate, onEventClick
-}) => {
+}: CalendarViewProps) => {
   const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
   const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
   const startDate = new Date(monthStart);
@@ -455,7 +461,12 @@ const MonthView: React.FC<{ events: CalendarEvent[]; selectedDate: Date; onEvent
 };
 
 // Event Details Component
-const EventDetails: React.FC<{ event: CalendarEvent; onClose: () => void }> = ({ event, onClose }) => {
+type EventDetailsProps = {
+  event: CalendarEvent;
+  onClose: () => void;
+};
+
+const EventDetails = ({ event, onClose }: EventDetailsProps) => {
   const { data, type } = event;
 
   return (

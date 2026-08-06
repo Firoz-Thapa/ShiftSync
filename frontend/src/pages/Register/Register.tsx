@@ -6,7 +6,7 @@ import { ROUTES } from '../../constants/routes';
 import { validateEmail } from '../../utils/validators';
 import './Register.css';
 
-export const Register: React.FC = () => {
+export const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

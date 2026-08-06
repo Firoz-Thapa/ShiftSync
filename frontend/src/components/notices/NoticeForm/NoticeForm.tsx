@@ -14,14 +14,14 @@ interface NoticeFormProps {
 const CATEGORIES = ['general', 'announcement', 'maintenance', 'event', 'urgent'];
 const TAG_SUGGESTIONS = ['important', 'urgent', 'meeting', 'closed', 'holiday', 'update'];
 
-export const NoticeForm: React.FC<NoticeFormProps> = ({
+export const NoticeForm = ({
   workplaceId,
   notice,
   onSuccess,
   onCancel,
   isSubmitting = false,
   onSubmit
-}) => {
+}: NoticeFormProps) => {
   const [formData, setFormData] = useState<CreateNoticeData>({
     title: notice?.title || '',
     content: notice?.content || '',

@@ -23,7 +23,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const location = useLocation();
 
   const handleNavigation = () => {

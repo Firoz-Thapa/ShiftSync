@@ -8,11 +8,11 @@ interface ThemeToggleProps {
   variant?: 'button' | 'dropdown';
 }
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({ 
+export const ThemeToggle = ({ 
   showLabel = false, 
   size = 'medium',
   variant = 'button'
-}) => {
+}: ThemeToggleProps) => {
   const { theme, effectiveTheme, setTheme, toggleTheme } = useTheme();
 
   const getIcon = () => {

@@ -6,7 +6,7 @@ import { StudyForm } from '../../forms/StudyForm';
 import { NotepadModal } from '../../common/Notepad/NotepadModal';
 import './FloatingActionButton.css';
 
-export const FloatingActionButton: React.FC = () => {
+export const FloatingActionButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<'shift' | 'study' | 'break' | 'note' | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; message: string } | null>(null);

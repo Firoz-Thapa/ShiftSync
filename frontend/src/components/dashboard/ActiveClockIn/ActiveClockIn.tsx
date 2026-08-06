@@ -15,7 +15,7 @@ interface ActiveClockInData {
   };
 }
 
-export const ActiveClockIn: React.FC = () => {
+export const ActiveClockIn = () => {
   const [activeClockIn, setActiveClockIn] = useState<ActiveClockInData | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentEarnings, setCurrentEarnings] = useState(0);

@@ -7,10 +7,10 @@ interface EmailViewerProps {
   isLoading?: boolean;
 }
 
-export const EmailViewer: React.FC<EmailViewerProps> = ({
+export const EmailViewer = ({
   email,
   isLoading = false,
-}) => {
+}: EmailViewerProps) => {
   if (isLoading) {
     return (
       <div className="email-viewer loading">

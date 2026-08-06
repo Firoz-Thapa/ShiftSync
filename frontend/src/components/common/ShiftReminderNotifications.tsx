@@ -40,7 +40,7 @@ const getReminderMessage = (shift: Shift) => {
   return `${shift.title} at ${workplaceName} starts at ${formatTime(shift.startDatetime)}.`;
 };
 
-export const ShiftReminderNotifications: React.FC = () => {
+export const ShiftReminderNotifications = () => {
   const { user } = useAuth();
   const { toasts, info, removeToast } = useToast();
   const toastRef = useRef(info);
