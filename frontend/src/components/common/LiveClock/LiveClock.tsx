@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './LiveClock.css';
 
-export const LiveClock: React.FC = () => {
+export const LiveClock = () => {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {

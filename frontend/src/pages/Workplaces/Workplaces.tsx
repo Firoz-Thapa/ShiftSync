@@ -6,7 +6,7 @@ import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { WorkplaceForm } from '../../components/forms/WorkplaceForm';
 import { formatCurrency } from '../../utils/formatters';
 
-export const Workplaces: React.FC = () => {
+export const Workplaces = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name?: string } | null>(null);

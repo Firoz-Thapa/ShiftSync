@@ -6,7 +6,7 @@ import { ROUTES } from '../../constants/routes';
 import { validateEmail } from '../../utils/validators';
 import './Login.css';
 
-export const Login: React.FC = () => {
+export const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',

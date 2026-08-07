@@ -7,11 +7,11 @@ interface LoadingProps {
   fullScreen?: boolean;
 }
 
-export const Loading: React.FC<LoadingProps> = ({
+export const Loading = ({
   size = 'medium',
   text,
   fullScreen = false,
-}) => {
+}: LoadingProps) => {
   const containerClass = fullScreen ? 'loading-container--fullscreen' : 'loading-container';
 
   return (

@@ -46,7 +46,7 @@ interface CustomTooltipProps extends TooltipProps<number, string> {
   label?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, color = 'blue' }) => {
+const StatCard = ({ title, value, change, icon, color = 'blue' }: StatCardProps) => {
   const colorClasses: Record<string, string> = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
@@ -74,7 +74,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, color =
   );
 };
 
-const ChartCard: React.FC<ChartCardProps> = ({ title, children, actions }) => (
+const ChartCard = ({ title, children, actions }: ChartCardProps) => (
   <Card>
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
@@ -86,7 +86,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, children, actions }) => (
   </Card>
 );
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
@@ -102,7 +102,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
   return null;
 };
 
-export const Analytics: React.FC = () => {
+export const Analytics = () => {
   const [timeRange, setTimeRange] = useState('6weeks');
   const [selectedMetric, setSelectedMetric] = useState('earnings');
 

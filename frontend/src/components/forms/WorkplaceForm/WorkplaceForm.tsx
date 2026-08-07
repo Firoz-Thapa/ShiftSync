@@ -6,7 +6,7 @@ interface WorkplaceFormProps {
   onCancel: () => void;
 }
 
-export const WorkplaceForm: React.FC<WorkplaceFormProps> = ({ onSuccess, onCancel }) => {
+export const WorkplaceForm = ({ onSuccess, onCancel }: WorkplaceFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
     payType: 'hourly' as PayType,

@@ -5,7 +5,7 @@ import { StudyForm } from '../../forms/StudyForm';
 import { ClockInModal } from '../ClockInModal/ClockInModal';
 import './QuickActions.css';
 
-export const QuickActions: React.FC = () => {
+export const QuickActions = () => {
   const [activeModal, setActiveModal] = useState<'shift' | 'study' | 'clockin' | null>(null);
 
   const openShiftModal = () => setActiveModal('shift');

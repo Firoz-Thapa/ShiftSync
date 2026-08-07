@@ -8,10 +8,10 @@ interface EmailAccountConnectionProps {
   onLoading?: (loading: boolean) => void;
 }
 
-export const EmailAccountConnection: React.FC<EmailAccountConnectionProps> = ({
+export const EmailAccountConnection = ({
   onAccountConnected,
   onLoading,
-}) => {
+}: EmailAccountConnectionProps) => {
   const [provider, setProvider] = useState<'gmail' | 'outlook' | 'custom'>('gmail');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

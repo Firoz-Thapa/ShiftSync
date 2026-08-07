@@ -13,14 +13,14 @@ export interface ToastProps {
   onClose: (id: string) => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({
+export const Toast = ({
   id,
   type,
   title,
   message,
   duration = 5000,
   onClose,
-}) => {
+}: ToastProps) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ interface ToastContainerProps {
   onClose: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onClose }) => {
+export const ToastContainer = ({ toasts, onClose }: ToastContainerProps) => {
   if (toasts.length === 0) return null;
 
   return createPortal(

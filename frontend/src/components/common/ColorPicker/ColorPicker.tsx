@@ -10,14 +10,14 @@ interface ColorPickerProps {
   columns?: number;
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({
+export const ColorPicker = ({
   colors,
   selectedColor,
   onColorSelect,
   allowCustom = false,
   label,
   columns = 5
-}) => {
+}: ColorPickerProps) => {
   const [customColor, setCustomColor] = useState(selectedColor);
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [showColorName, setShowColorName] = useState<string | null>(null);

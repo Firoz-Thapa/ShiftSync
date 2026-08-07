@@ -9,12 +9,12 @@ interface PageHeaderProps {
   children?: React.ReactNode;
 }
 
-export const PageHeader: React.FC<PageHeaderProps> = ({
+export const PageHeader = ({
   title,
   subtitle,
   actions,
   children,
-}) => {
+}: PageHeaderProps) => {
   return (
     <div className="page-header">
       <div className="page-header__main">

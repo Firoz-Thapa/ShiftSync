@@ -54,7 +54,7 @@ const getThisWeekRange = () => {
 const formatWeekRange = (startDate: Date, endDate: Date) =>
   `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
-export const ShiftsByRoleChart: React.FC = () => {
+export const ShiftsByRoleChart = () => {
   const { startDate, endDate, apiRange } = useMemo(getThisWeekRange, []);
   const { shifts, isLoading } = useShifts(apiRange);
 

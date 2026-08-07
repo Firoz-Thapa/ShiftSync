@@ -5,7 +5,7 @@ import { useStudySessions } from '../../../hooks/useStudySessions';
 import { formatTime, getRelativeDateLabel } from '../../../utils/dateUtils';
 import './TodaySchedule.css';
 
-export const TodaySchedule: React.FC = () => {
+export const TodaySchedule = () => {
   const today = new Date().toISOString().split('T')[0];
   const { shifts, isLoading: shiftsLoading } = useShifts({ startDate: today, endDate: today });
   const { studySessions, isLoading: studyLoading } = useStudySessions({ startDate: today, endDate: today });

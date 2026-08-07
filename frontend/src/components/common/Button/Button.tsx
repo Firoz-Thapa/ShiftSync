@@ -13,7 +13,7 @@ interface ButtonProps {
   className?: string;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export const Button = ({
   children,
   variant = 'primary',
   size = 'medium',
@@ -23,7 +23,7 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
   type = 'button',
   className = '',
-}) => {
+}: ButtonProps) => {
   const classes = [
     'btn',
     `btn--${variant}`,

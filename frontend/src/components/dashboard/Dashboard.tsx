@@ -7,7 +7,7 @@ import { StatsOverview } from '../../components/dashboard/StatsOverview';
 import { ActiveClockIn } from '../../components/dashboard/ActiveClockIn/ActiveClockIn';
 import './Dashboard.css';
 
-export const Dashboard: React.FC = () => {
+export const Dashboard = () => {
   const { user } = useAuth();
 
   return (

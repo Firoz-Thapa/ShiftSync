@@ -7,11 +7,11 @@ interface BreakTimerProps {
   shiftTitle?: string;
 }
 
-export const BreakTimer: React.FC<BreakTimerProps> = ({ 
+export const BreakTimer = ({ 
   breakDuration, 
   onBreakEnd,
   shiftTitle = 'Break'
-}) => {
+}: BreakTimerProps) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);

@@ -14,7 +14,7 @@ interface ModalProps {
   actions?: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({
+export const Modal = ({
   isOpen,
   onClose,
   title,
@@ -23,7 +23,7 @@ export const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   closeOnOverlayClick = true,
   actions,
-}) => {
+}: ModalProps) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

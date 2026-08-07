@@ -6,7 +6,7 @@ import { StatsOverview } from '../../components/dashboard/StatsOverview';
 import { ShiftsByRoleChart } from '../../components/dashboard/ShiftsByRoleChart';
 import './Dashboard.css';
 
-export const Dashboard: React.FC = () => {
+export const Dashboard = () => {
   const { user } = useAuth();
   const firstName = user?.firstName || 'there';
 

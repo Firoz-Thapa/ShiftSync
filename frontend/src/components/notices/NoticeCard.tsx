@@ -10,12 +10,12 @@ interface NoticeCardProps {
   onPin?: (id: number, isPinned: boolean) => void;
 }
 
-export const NoticeCard: React.FC<NoticeCardProps> = ({
+export const NoticeCard = ({
   notice,
   onEdit,
   onDelete,
   onPin
-}) => {
+}: NoticeCardProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();

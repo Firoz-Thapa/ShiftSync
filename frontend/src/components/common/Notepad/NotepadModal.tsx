@@ -36,7 +36,7 @@ const QUILL_FORMATS = [
   'blockquote', 'code-block',
 ];
 
-export const NotepadModal: React.FC<NotepadModalProps> = ({ isOpen, onClose }) => {
+export const NotepadModal = ({ isOpen, onClose }: NotepadModalProps) => {
   const [view, setView] = useState<'write' | 'list'>('write');
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');

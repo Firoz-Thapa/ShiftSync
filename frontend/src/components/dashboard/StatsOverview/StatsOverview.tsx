@@ -6,7 +6,7 @@ import { formatHours, formatCurrency } from '../../../utils/formatters';
 import { calculateDuration } from '../../../utils/dateUtils';
 import './StatsOverview.css';
 
-export const StatsOverview: React.FC = () => {
+export const StatsOverview = () => {
   const startOfWeek = new Date();
   const dayOfWeek = startOfWeek.getDay();
   const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;

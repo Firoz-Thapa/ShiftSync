@@ -6,7 +6,7 @@ const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const DEFAULT_LAT = 60.1699; // Helsinki fallback
 const DEFAULT_LON = 24.9384;
 
-export const WeatherInfo: React.FC = () => {
+export const WeatherInfo = () => {
   const [weather, setWeather] = useState<{ temperature: number; description: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
