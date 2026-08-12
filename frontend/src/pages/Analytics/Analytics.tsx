@@ -21,6 +21,7 @@ import { useShifts } from '../../hooks/useShifts';
 import { useStudySessions } from '../../hooks/useStudySessions';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { calculateDuration } from '../../utils/dateUtils';
+import './Analytics.css';
 
 interface StatCardProps {
   title: string;
@@ -61,8 +62,8 @@ const StatCard = ({ title, value, change, icon, color = 'blue' }: StatCardProps)
           {icon}
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium analytics-stat-card__title">{title}</p>
+          <p className="text-2xl font-bold analytics-stat-card__value">{value}</p>
           {change && (
             <p className={`text-sm ${change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
               {change} from last period
@@ -528,35 +529,35 @@ export const Analytics = () => {
         </div>
       )}
 
-      <Card>
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">🎯 Productivity Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-2">
+      <Card className="productivity-insights">
+        <h3 className="productivity-insights__title">🎯 Productivity Insights</h3>
+        <div className="productivity-insights__grid">
+          <div className="productivity-insights__balance">
+            <div className="productivity-insights__score">
               {totals.productivityScore}%
             </div>
-            <p className="font-medium text-gray-800">Study-Work Balance</p>
-            <p className="text-sm text-gray-600">Study time percentage</p>
+            <p className="productivity-insights__label">Study-Work Balance</p>
+            <p className="productivity-insights__description">Study time percentage</p>
           </div>
           
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-800">📈 Current Stats</h4>
-            <div className="text-sm text-gray-600">
-              <p>• Total work sessions: {shifts.length}</p>
-              <p>• Total study sessions: {studySessions.length}</p>
-              <p>• Active workplaces: {workplaces.length}</p>
-              <p>• Average session length: {totals.totalWorkHours > 0 ? (totals.totalWorkHours / shifts.length).toFixed(1) : 0}h</p>
+          <div className="productivity-insights__section">
+            <h4 className="productivity-insights__heading">📈 Current Stats</h4>
+            <div className="productivity-insights__list">
+              <p>Total work sessions <strong>{shifts.length}</strong></p>
+              <p>Total study sessions <strong>{studySessions.length}</strong></p>
+              <p>Active workplaces <strong>{workplaces.length}</strong></p>
+              <p>Average session length <strong>{totals.totalWorkHours > 0 ? (totals.totalWorkHours / shifts.length).toFixed(1) : 0}h</strong></p>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-800">💡 Recommendations</h4>
-            <div className="text-sm text-gray-600">
-              {totals.productivityScore < 30 && <p>• Consider scheduling more study sessions</p>}
-              {totals.productivityScore > 70 && <p>• Great study focus! Consider more work hours for income</p>}
-              {totals.totalEarnings === 0 && <p>• Add your first workplace and shifts</p>}
-              {processedData.studyData.length === 0 && <p>• Start tracking your study sessions</p>}
-              <p>• {totals.productivityScore >= 30 && totals.productivityScore <= 70 ? 'Excellent work-study balance!' : 'Keep up the great work!'}</p>
+          <div className="productivity-insights__section">
+            <h4 className="productivity-insights__heading">💡 Recommendations</h4>
+            <div className="productivity-insights__list productivity-insights__list--recommendations">
+              {totals.productivityScore < 30 && <p>Consider scheduling more study sessions</p>}
+              {totals.productivityScore > 70 && <p>Great study focus! Consider more work hours for income</p>}
+              {totals.totalEarnings === 0 && <p>Add your first workplace and shifts</p>}
+              {processedData.studyData.length === 0 && <p>Start tracking your study sessions</p>}
+              <p>{totals.productivityScore >= 30 && totals.productivityScore <= 70 ? 'Excellent work-study balance!' : 'Keep up the great work!'}</p>
             </div>
           </div>
         </div>
