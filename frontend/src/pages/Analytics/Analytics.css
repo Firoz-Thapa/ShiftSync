@@ -1,0 +1,111 @@
+.analytics-stat-card__title,
+.analytics-stat-card__value {
+  color: var(--text-primary);
+}
+
+.analytics-stat-card__title {
+  margin: 0;
+}
+
+.analytics-stat-card__value {
+  margin: 0.25rem 0 0;
+}
+
+.productivity-insights__title,
+.productivity-insights__heading,
+.productivity-insights__label {
+  color: var(--text-primary);
+}
+
+.productivity-insights__title {
+  margin: 0 0 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.productivity-insights__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.productivity-insights__balance {
+  text-align: center;
+}
+
+.productivity-insights__score {
+  display: flex;
+  width: 5rem;
+  height: 5rem;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.28);
+}
+
+.productivity-insights__label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.productivity-insights__description {
+  margin: 0.25rem 0 0;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.productivity-insights__section {
+  min-width: 0;
+}
+
+.productivity-insights__heading {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+
+.productivity-insights__list {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.productivity-insights__list p {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.productivity-insights__list strong {
+  flex: 0 0 auto;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.productivity-insights__list--recommendations p {
+  justify-content: flex-start;
+}
+
+.productivity-insights__list--recommendations p::before {
+  content: '';
+  flex: 0 0 0.4rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--color-primary-light);
+}
+
+@media (max-width: 767px) {
+  .productivity-insights__grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
