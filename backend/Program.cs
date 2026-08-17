@@ -1,8 +1,30 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+// JWT authentication setup (reads key from configuration or environment variable JWT_KEY)
+var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("JWT_KEY");
+if (!string.IsNullOrEmpty(jwtKey))
+{
+    var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = signingKey
+            };
+        });
+}
 // Register in-memory repository and service for workplaces
 builder.Services.AddSingleton<backend.Repositories.IWorkplaceRepository, backend.Repositories.InMemoryWorkplaceRepository>();
 builder.Services.AddScoped<backend.Services.IWorkplaceService, backend.Services.WorkplaceService>();
