@@ -14,6 +14,7 @@ interface ClockInModalProps {
 export const ClockInModal = ({ isOpen, onClose, onSuccess }: ClockInModalProps) => {
   const [todayShifts, setTodayShifts] = useState<Shift[]>([]);
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
+  const [note, setNote] = useState('');
   const [isClockingIn, setIsClockingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -48,7 +49,7 @@ export const ClockInModal = ({ isOpen, onClose, onSuccess }: ClockInModalProps) 
         await Notification.requestPermission();
       }
 
-      await clockIn(selectedShiftId);
+      await clockIn(selectedShiftId, note);
       
       // Show success notification
       if ('Notification' in window && Notification.permission === 'granted') {
@@ -70,6 +71,7 @@ export const ClockInModal = ({ isOpen, onClose, onSuccess }: ClockInModalProps) 
 
   const handleCancel = () => {
     setSelectedShiftId(null);
+    setNote('');
     setError(null);
     onClose();
   };
@@ -133,6 +135,18 @@ export const ClockInModal = ({ isOpen, onClose, onSuccess }: ClockInModalProps) 
                 </button>
               ))}
             </div>
+
+            <label className="clockin-modal__note" htmlFor="clockin-note">
+              <span>Quick note <em>(optional)</em></span>
+              <textarea
+                id="clockin-note"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="What are you working on?"
+                maxLength={500}
+                rows={3}
+              />
+            </label>
 
             <div className="clockin-modal__actions">
               <Button

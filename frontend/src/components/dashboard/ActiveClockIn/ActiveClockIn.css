@@ -227,3 +227,28 @@
     animation: none;
   }
 }
+
+.active-clockin--ready {
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+  border-color: #818cf8;
+}
+
+.active-clockin--ready .active-clockin__indicator {
+  background: #818cf8;
+}
+
+.active-clockin__intro {
+  margin: 0 0 1rem;
+  color: #4a5568;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .active-clockin--ready {
+  background: linear-gradient(135deg, #1e2a4a 0%, #312e5e 100%);
+  border-color: #818cf8;
+}
+
+[data-theme="dark"] .active-clockin__intro {
+  color: #cbd5e0;
+}
