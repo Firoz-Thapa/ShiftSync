@@ -154,6 +154,38 @@
   border-top: 1px solid #e2e8f0;
 }
 
+.clockin-modal__note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #4a5568;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.clockin-modal__note em {
+  color: #718096;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.clockin-modal__note textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #2d3748;
+  font: inherit;
+}
+
+.clockin-modal__note textarea:focus {
+  border-color: #667eea;
+  outline: 2px solid rgba(102, 126, 234, 0.2);
+}
+
 /* Dark Theme Support */
 [data-theme="dark"] .clockin-modal__instruction {
   color: #cbd5e0;
@@ -206,6 +238,16 @@
 
 [data-theme="dark"] .clockin-modal__actions {
   border-top-color: #4a5568;
+}
+
+[data-theme="dark"] .clockin-modal__note {
+  color: #cbd5e0;
+}
+
+[data-theme="dark"] .clockin-modal__note textarea {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #f7fafc;
 }
 
 /* Scrollbar */

@@ -136,9 +136,12 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
     await updateShift(id, { isConfirmed: true });
   };
 
-  const clockIn = async (id: number): Promise<Shift> => {
+  const clockIn = async (id: number, note?: string): Promise<Shift> => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
+      if (localStorage.getItem('shiftsync_active_clockin')) {
+        throw new Error('You are already clocked in. Clock out before starting another shift.');
+      }
       
       const storedShifts = localStorage.getItem('shiftsync_shifts');
       const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
@@ -151,6 +154,9 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       const updatedShift: Shift = {
         ...existingShifts[index],
         actualStartTime: new Date().toISOString(),
+        notes: note?.trim()
+          ? [existingShifts[index].notes, `Clock-in note: ${note.trim()}`].filter(Boolean).join('\n')
+          : existingShifts[index].notes,
         updatedAt: new Date().toISOString()
       };
       
@@ -165,6 +171,7 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       }));
       
       setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      window.dispatchEvent(new Event('shiftsync:clock-status-changed'));
       
       return updatedShift;
     } catch (err: any) {
@@ -202,6 +209,7 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       localStorage.removeItem('shiftsync_active_clockin');
       
       setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
+      window.dispatchEvent(new Event('shiftsync:clock-status-changed'));
       
       return updatedShift;
     } catch (err: any) {

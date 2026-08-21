@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button } from '../../common';
 import { useShifts } from '../../../hooks/useShifts';
+import { ClockInModal } from '../ClockInModal/ClockInModal';
 import './ActiveClockIn.css';
 
 interface ActiveClockInData {
@@ -19,22 +20,25 @@ export const ActiveClockIn = () => {
   const [activeClockIn, setActiveClockIn] = useState<ActiveClockInData | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentEarnings, setCurrentEarnings] = useState(0);
+  const [isClockInOpen, setIsClockInOpen] = useState(false);
   const { clockOut } = useShifts();
 
   useEffect(() => {
     // Check for active clock-in on mount
     const checkActiveClockIn = () => {
       const stored = localStorage.getItem('shiftsync_active_clockin');
-      if (stored) {
-        setActiveClockIn(JSON.parse(stored));
-      }
+      setActiveClockIn(stored ? JSON.parse(stored) : null);
     };
 
     checkActiveClockIn();
 
     // Listen for storage changes (for cross-tab sync)
     window.addEventListener('storage', checkActiveClockIn);
-    return () => window.removeEventListener('storage', checkActiveClockIn);
+    window.addEventListener('shiftsync:clock-status-changed', checkActiveClockIn);
+    return () => {
+      window.removeEventListener('storage', checkActiveClockIn);
+      window.removeEventListener('shiftsync:clock-status-changed', checkActiveClockIn);
+    };
   }, []);
 
   useEffect(() => {
@@ -91,7 +95,25 @@ export const ActiveClockIn = () => {
   };
 
   if (!activeClockIn) {
-    return null; // Don't show anything if not clocked in
+    return (
+      <>
+        <Card className="active-clockin active-clockin--ready">
+          <div className="active-clockin__header">
+            <div className="active-clockin__indicator" />
+            <h3 className="active-clockin__title">Ready to start work?</h3>
+          </div>
+          <p className="active-clockin__intro">Start a scheduled shift and keep its actual time in one place.</p>
+          <Button variant="success" size="large" fullWidth onClick={() => setIsClockInOpen(true)}>
+            Clock in
+          </Button>
+        </Card>
+        <ClockInModal
+          isOpen={isClockInOpen}
+          onClose={() => setIsClockInOpen(false)}
+          onSuccess={() => setIsClockInOpen(false)}
+        />
+      </>
+    );
   }
 
   return (

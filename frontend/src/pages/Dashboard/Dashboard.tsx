@@ -4,6 +4,7 @@ import { TodaySchedule } from '../../components/dashboard/TodaySchedule';
 import { QuickActions } from '../../components/dashboard/QuickActions';
 import { StatsOverview } from '../../components/dashboard/StatsOverview';
 import { ShiftsByRoleChart } from '../../components/dashboard/ShiftsByRoleChart';
+import { ActiveClockIn } from '../../components/dashboard/ActiveClockIn/ActiveClockIn';
 import './Dashboard.css';
 
 export const Dashboard = () => {
@@ -27,6 +28,8 @@ export const Dashboard = () => {
           <strong>On track</strong>
         </div>
       </section>
+
+      <ActiveClockIn />
 
       <div className="dashboard-grid">
         <div className="dashboard-main">
