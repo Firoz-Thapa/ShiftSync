@@ -5,6 +5,7 @@ import { Card, Button, Modal } from '../../components/common';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { WorkplaceForm } from '../../components/forms/WorkplaceForm';
 import { formatCurrency } from '../../utils/formatters';
+import './Workplaces.css';
 
 export const Workplaces = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ export const Workplaces = () => {
           <Card>
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">No workplaces yet</h3>
-              <p className="text-gray-600 mb-4">Add your first workplace to get started!</p>
+              <p className="workplaces__empty-description mb-4">Add your first workplace to get started!</p>
               <Button variant="primary" onClick={() => setIsModalOpen(true)}>
                 Add Workplace
               </Button>
