@@ -20,7 +20,7 @@ import { Card, Button } from '../../components/common';
 import { useShifts } from '../../hooks/useShifts';
 import { useStudySessions } from '../../hooks/useStudySessions';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
-import { calculateDuration } from '../../utils/dateUtils';
+import { calculateExpectedPay, calculatePaidHours, calculateDuration } from '../../utils/dateUtils';
 import './Analytics.css';
 
 interface StatCardProps {
@@ -178,15 +178,11 @@ export const Analytics = () => {
       });
       
       const weekEarnings = weekShifts.reduce((total, shift) => {
-        const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
-        if (shift.workplace?.payType === 'monthly') {
-          return total;
-        }
-        return total + (hours * (shift.workplace?.hourlyRate || 0));
+        return total + calculateExpectedPay(shift.startDatetime, shift.endDatetime, shift.breakDuration, shift.workplace?.hourlyRate || 0, shift.workplace?.payType);
       }, 0);
       
       const weekHours = weekShifts.reduce((total, shift) => {
-        return total + calculateDuration(shift.startDatetime, shift.endDatetime);
+        return total + calculatePaidHours(shift.startDatetime, shift.endDatetime, shift.breakDuration);
       }, 0);
       
       const weekStudyHours = weekStudy.reduce((total, session) => {
@@ -205,8 +201,8 @@ export const Analytics = () => {
     const workplaceMap = new Map<string, { name: string; earnings: number; hours: number; color: string }>();
     shifts.forEach(shift => {
       if (!shift.workplace) return;
-      const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
-      const earnings = shift.workplace.payType === 'monthly' ? 0 : hours * shift.workplace.hourlyRate;
+      const hours = calculatePaidHours(shift.startDatetime, shift.endDatetime, shift.breakDuration);
+      const earnings = calculateExpectedPay(shift.startDatetime, shift.endDatetime, shift.breakDuration, shift.workplace.hourlyRate, shift.workplace.payType);
       
       if (workplaceMap.has(shift.workplace.name)) {
         const existing = workplaceMap.get(shift.workplace.name)!;
