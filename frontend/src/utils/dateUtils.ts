@@ -48,6 +48,21 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
   return diffMs / (1000 * 60 * 60); // Convert to hours
 };
 
+export const calculatePaidHours = (startTime: string, endTime: string, breakDurationMinutes = 0): number => {
+  return Math.max(0, calculateDuration(startTime, endTime) - (breakDurationMinutes / 60));
+};
+
+export const calculateExpectedPay = (
+  startTime: string,
+  endTime: string,
+  breakDurationMinutes: number,
+  hourlyRate: number,
+  payType: 'hourly' | 'monthly' = 'hourly'
+): number => {
+  if (payType === 'monthly') return 0;
+  return calculatePaidHours(startTime, endTime, breakDurationMinutes) * hourlyRate;
+};
+
 export interface TimeRange {
   startDatetime: string;
   endDatetime: string;

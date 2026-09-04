@@ -6,7 +6,7 @@ import { StudyForm } from '../../components/forms/StudyForm';
 import { useShifts } from '../../hooks/useShifts';
 import { useStudySessions } from '../../hooks/useStudySessions';
 import { downloadCalendarFile, generateShiftCalendar } from '../../utils/calendarUtils';
-import { formatTime, formatDate, calculateDuration } from '../../utils/dateUtils';
+import { formatTime, formatDate, calculateDuration, calculateExpectedPay, calculatePaidHours } from '../../utils/dateUtils';
 import { formatCurrency } from '../../utils/formatters';
 import './Schedule.css';
 
@@ -238,18 +238,14 @@ export const Schedule = () => {
             </div>
             <div className="stat-item">
               <span className="stat-value">
-                {shifts.reduce((total, shift) => total + calculateDuration(shift.startDatetime, shift.endDatetime), 0).toFixed(1)}h
+                {shifts.reduce((total, shift) => total + calculatePaidHours(shift.startDatetime, shift.endDatetime, shift.breakDuration), 0).toFixed(1)}h
               </span>
               <span className="stat-label">Work Hours</span>
             </div>
             <div className="stat-item">
               <span className="stat-value">
                 {formatCurrency(shifts.reduce((total, shift) => {
-                  const hours = calculateDuration(shift.startDatetime, shift.endDatetime);
-                  if (shift.workplace?.payType === 'monthly') {
-                    return total;
-                  }
-                  return total + (hours * (shift.workplace?.hourlyRate || 0));
+                  return total + calculateExpectedPay(shift.startDatetime, shift.endDatetime, shift.breakDuration, shift.workplace?.hourlyRate || 0, shift.workplace?.payType);
                 }, 0))}
               </span>
               <span className="stat-label">Hourly Earnings</span>
@@ -511,8 +507,14 @@ const EventDetails = ({ event, onClose }: EventDetailsProps) => {
               </div>
               {data.workplace?.payType !== 'monthly' && (
                 <div className="detail-item">
-                  <strong>Estimated Earnings:</strong>
-                  <span>{formatCurrency(calculateDuration(event.startTime, event.endTime) * (data.workplace?.hourlyRate || 0))}</span>
+                  <strong>Break:</strong>
+                  <span>{data.breakDuration || 0} minutes</span>
+                </div>
+              )}
+              {data.workplace?.payType !== 'monthly' && (
+                <div className="detail-item">
+                  <strong>Expected Pay:</strong>
+                  <span>{formatCurrency(calculateExpectedPay(event.startTime, event.endTime, data.breakDuration || 0, data.workplace?.hourlyRate || 0, data.workplace?.payType))}</span>
                 </div>
               )}
               <div className="detail-item">
