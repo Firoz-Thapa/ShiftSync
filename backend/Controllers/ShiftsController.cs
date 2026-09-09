@@ -42,11 +42,11 @@ public class ShiftsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ShiftDto>>> Create(ShiftDto shift)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> Create(CreateShiftRequest request)
     {
         try
         {
-            var created = await _service.CreateAsync(shift);
+            var created = await _service.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<ShiftDto>.Ok(created, "Shift created successfully"));
         }
         catch (ArgumentException ex)
@@ -56,11 +56,11 @@ public class ShiftsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<ApiResponse<ShiftDto>>> Update(int id, ShiftDto shift)
+    public async Task<ActionResult<ApiResponse<ShiftDto>>> Update(int id, UpdateShiftRequest request)
     {
         try
         {
-            var updated = await _service.UpdateAsync(id, shift);
+            var updated = await _service.UpdateAsync(id, request);
             if (updated is null) return NotFound(ApiResponse<ShiftDto>.Fail("Shift not found"));
             return Ok(ApiResponse<ShiftDto>.Ok(updated, "Shift updated successfully"));
         }

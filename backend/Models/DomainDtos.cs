@@ -38,6 +38,30 @@ public sealed class ShiftDto
     public DateTime UpdatedAt { get; set; }
 }
 
+public sealed class CreateShiftRequest
+{
+    public int WorkplaceId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public DateTime StartDatetime { get; set; }
+    public DateTime EndDatetime { get; set; }
+    public int BreakDuration { get; set; }
+    public string? Notes { get; set; }
+    public bool ReminderEnabled { get; set; }
+    public int? ReminderMinutesBefore { get; set; }
+}
+
+public sealed class UpdateShiftRequest
+{
+    public int WorkplaceId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public DateTime StartDatetime { get; set; }
+    public DateTime EndDatetime { get; set; }
+    public int BreakDuration { get; set; }
+    public string? Notes { get; set; }
+    public bool ReminderEnabled { get; set; }
+    public int? ReminderMinutesBefore { get; set; }
+}
+
 public sealed class StudySessionDto
 {
     public int Id { get; set; }

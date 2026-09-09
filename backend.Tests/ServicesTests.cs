@@ -80,10 +80,9 @@ public class ServicesTests
     [Fact]
     public async Task ShiftService_CreateAsync_RejectsInvalidShift()
     {
-        var repo = new InMemoryShiftRepository();
-        var service = new ShiftService(repo);
+        var service = await CreateShiftServiceAsync();
 
-        var invalidShift = new ShiftDto
+        var invalidShift = new CreateShiftRequest
         {
             WorkplaceId = 1,
             Title = "Test",
@@ -100,10 +99,9 @@ public class ServicesTests
     [Fact]
     public async Task ShiftService_CreateAsync_AddsAndReturnsShift()
     {
-        var repo = new InMemoryShiftRepository();
-        var service = new ShiftService(repo);
+        var service = await CreateShiftServiceAsync();
 
-        var result = await service.CreateAsync(new ShiftDto
+        var result = await service.CreateAsync(new CreateShiftRequest
         {
             WorkplaceId = 1,
             Title = "Opening Shift",
@@ -121,7 +119,7 @@ public class ServicesTests
     [Fact]
     public async Task ShiftService_FiltersByInclusiveEndDateAndOrdersNewestFirst()
     {
-        var service = new ShiftService(new InMemoryShiftRepository());
+        var service = await CreateShiftServiceAsync(2);
         await service.CreateAsync(Shift("Early", 1, new DateTime(2026, 7, 1, 9, 0, 0), new DateTime(2026, 7, 1, 17, 0, 0)));
         await service.CreateAsync(Shift("Later", 1, new DateTime(2026, 7, 2, 9, 0, 0), new DateTime(2026, 7, 2, 17, 0, 0)));
         await service.CreateAsync(Shift("Other", 2, new DateTime(2026, 7, 2, 10, 0, 0), new DateTime(2026, 7, 2, 18, 0, 0)));
@@ -134,7 +132,7 @@ public class ServicesTests
     [Fact]
     public async Task ShiftService_ConfirmClockInAndClockOutAsync_UpdatesLifecycle()
     {
-        var service = new ShiftService(new InMemoryShiftRepository());
+        var service = await CreateShiftServiceAsync();
         var created = await service.CreateAsync(Shift("Work", 1, DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(9)));
 
         Assert.True((await service.ConfirmAsync(created.Id))!.IsConfirmed);
@@ -150,10 +148,10 @@ public class ServicesTests
     [Fact]
     public async Task ShiftService_UpdateAsync_DisablesReminderAndReturnsNullForMissingShift()
     {
-        var service = new ShiftService(new InMemoryShiftRepository());
+        var service = await CreateShiftServiceAsync(2);
         var created = await service.CreateAsync(Shift("Work", 1, new DateTime(2026, 7, 1, 9, 0, 0), new DateTime(2026, 7, 1, 17, 0, 0), reminderEnabled: true));
 
-        var updated = await service.UpdateAsync(created.Id, Shift("Changed", 2, new DateTime(2026, 7, 2, 9, 0, 0), new DateTime(2026, 7, 2, 17, 0, 0)));
+        var updated = await service.UpdateAsync(created.Id, UpdateShift("Changed", 2, new DateTime(2026, 7, 2, 9, 0, 0), new DateTime(2026, 7, 2, 17, 0, 0)));
 
         Assert.NotNull(updated);
         Assert.Equal(2, updated.WorkplaceId);
@@ -161,12 +159,65 @@ public class ServicesTests
         Assert.Equal("Changed", (await service.GetByIdAsync(created.Id))!.Title);
         Assert.True(await service.DeleteAsync(created.Id));
         Assert.False(await service.DeleteAsync(created.Id));
-        Assert.Null(await service.UpdateAsync(404, Shift("Missing", 1, DateTime.UtcNow, DateTime.UtcNow.AddHours(1))));
+        Assert.Null(await service.UpdateAsync(404, UpdateShift("Missing", 1, DateTime.UtcNow, DateTime.UtcNow.AddHours(1))));
     }
 
-    private static ShiftDto Shift(string title, int workplaceId, DateTime start, DateTime end, bool reminderEnabled = false) => new()
+    [Fact]
+    public async Task ShiftService_CreateAsync_RejectsMissingWorkplace()
+    {
+        var service = await CreateShiftServiceAsync();
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => service.CreateAsync(Shift("Work", 404, DateTime.UtcNow, DateTime.UtcNow.AddHours(1))));
+
+        Assert.Equal("Workplace not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task ShiftService_UpdateAsync_PreservesServerManagedFields()
+    {
+        var service = await CreateShiftServiceAsync();
+        var created = await service.CreateAsync(Shift("Original", 1, DateTime.UtcNow, DateTime.UtcNow.AddHours(1)));
+        var originalCreatedAt = created.CreatedAt;
+        await service.ConfirmAsync(created.Id);
+
+        var updated = await service.UpdateAsync(created.Id, new UpdateShiftRequest
+        {
+            WorkplaceId = 1,
+            Title = "Updated",
+            StartDatetime = created.StartDatetime,
+            EndDatetime = created.EndDatetime,
+            BreakDuration = 0
+        });
+
+        Assert.NotNull(updated);
+        Assert.Equal(originalCreatedAt, updated.CreatedAt);
+        Assert.True(updated.IsConfirmed);
+    }
+
+    private static async Task<ShiftService> CreateShiftServiceAsync(int workplaceCount = 1)
+    {
+        var workplaceRepository = new InMemoryWorkplaceRepository();
+        for (var index = 0; index < workplaceCount; index++)
+        {
+            await workplaceRepository.CreateAsync(new WorkplaceDto
+            {
+                Name = $"Workplace {index + 1}",
+                PayType = "hourly",
+                HourlyRate = 1m
+            });
+        }
+
+        return new ShiftService(new InMemoryShiftRepository(), workplaceRepository);
+    }
+
+    private static CreateShiftRequest Shift(string title, int workplaceId, DateTime start, DateTime end, bool reminderEnabled = false) => new()
     {
         Title = title, WorkplaceId = workplaceId, StartDatetime = start, EndDatetime = end, BreakDuration = 0,
         ReminderEnabled = reminderEnabled, ReminderMinutesBefore = reminderEnabled ? 30 : null
+    };
+
+    private static UpdateShiftRequest UpdateShift(string title, int workplaceId, DateTime start, DateTime end) => new()
+    {
+        Title = title, WorkplaceId = workplaceId, StartDatetime = start, EndDatetime = end, BreakDuration = 0
     };
 }

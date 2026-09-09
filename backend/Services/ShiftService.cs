@@ -6,10 +6,12 @@ namespace backend.Services;
 public class ShiftService : IShiftService
 {
     private readonly IShiftRepository _repository;
+    private readonly IWorkplaceRepository _workplaceRepository;
 
-    public ShiftService(IShiftRepository repository)
+    public ShiftService(IShiftRepository repository, IWorkplaceRepository workplaceRepository)
     {
         _repository = repository;
+        _workplaceRepository = workplaceRepository;
     }
 
     public async Task<List<ShiftDto>> GetAllAsync(DateTime? startDate, DateTime? endDate, int? workplaceId)
@@ -26,39 +28,49 @@ public class ShiftService : IShiftService
 
     public Task<ShiftDto?> GetByIdAsync(int id) => _repository.GetByIdAsync(id);
 
-    public async Task<ShiftDto> CreateAsync(ShiftDto shift)
+    public async Task<ShiftDto> CreateAsync(CreateShiftRequest request)
     {
-        var validation = ValidateShift(shift);
+        var validation = ValidateShift(request);
         if (validation is not null) throw new ArgumentException(validation);
+        var workplace = await GetWorkplaceAsync(request.WorkplaceId);
 
-        shift.CreatedAt = DateTime.UtcNow;
-        shift.UpdatedAt = DateTime.UtcNow;
-        shift.ReminderMinutesBefore = shift.ReminderEnabled ? shift.ReminderMinutesBefore : null;
-        shift.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var now = DateTime.UtcNow;
+        var shift = new ShiftDto
+        {
+            WorkplaceId = request.WorkplaceId,
+            Title = request.Title,
+            StartDatetime = request.StartDatetime,
+            EndDatetime = request.EndDatetime,
+            BreakDuration = request.BreakDuration,
+            Notes = request.Notes,
+            ReminderEnabled = request.ReminderEnabled,
+            ReminderMinutesBefore = request.ReminderEnabled ? request.ReminderMinutesBefore : null,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Workplace = workplace
+        };
         return await _repository.CreateAsync(shift);
     }
 
-    public async Task<ShiftDto?> UpdateAsync(int id, ShiftDto shift)
+    public async Task<ShiftDto?> UpdateAsync(int id, UpdateShiftRequest request)
     {
         var existing = await _repository.GetByIdAsync(id);
         if (existing is null) return null;
 
-        var validation = ValidateShift(shift);
+        var validation = ValidateShift(request);
         if (validation is not null) throw new ArgumentException(validation);
+        var workplace = await GetWorkplaceAsync(request.WorkplaceId);
 
-        existing.WorkplaceId = shift.WorkplaceId;
-        existing.Title = shift.Title;
-        existing.StartDatetime = shift.StartDatetime;
-        existing.EndDatetime = shift.EndDatetime;
-        existing.BreakDuration = shift.BreakDuration;
-        existing.Notes = shift.Notes;
-        existing.IsConfirmed = shift.IsConfirmed;
-        existing.ReminderEnabled = shift.ReminderEnabled;
-        existing.ReminderMinutesBefore = shift.ReminderEnabled ? shift.ReminderMinutesBefore : null;
-        existing.ActualStartTime = shift.ActualStartTime;
-        existing.ActualEndTime = shift.ActualEndTime;
+        existing.WorkplaceId = request.WorkplaceId;
+        existing.Title = request.Title;
+        existing.StartDatetime = request.StartDatetime;
+        existing.EndDatetime = request.EndDatetime;
+        existing.BreakDuration = request.BreakDuration;
+        existing.Notes = request.Notes;
+        existing.ReminderEnabled = request.ReminderEnabled;
+        existing.ReminderMinutesBefore = request.ReminderEnabled ? request.ReminderMinutesBefore : null;
         existing.UpdatedAt = DateTime.UtcNow;
-        existing.Workplace = new WorkplaceDto { Id = shift.WorkplaceId, Name = "Placeholder workplace", Color = "#0044AA", PayType = "hourly", HourlyRate = 0m, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        existing.Workplace = workplace;
 
         return await _repository.UpdateAsync(existing);
     }
@@ -99,7 +111,23 @@ public class ShiftService : IShiftService
     private static DateTime GetExclusiveEndDate(DateTime endDate) =>
         endDate.TimeOfDay == TimeSpan.Zero ? endDate.Date.AddDays(1) : endDate;
 
-    private static string? ValidateShift(ShiftDto shift)
+    private async Task<WorkplaceDto> GetWorkplaceAsync(int workplaceId)
+    {
+        var workplace = await _workplaceRepository.GetByIdAsync(workplaceId);
+        return workplace ?? throw new ArgumentException("Workplace not found");
+    }
+
+    private static string? ValidateShift(CreateShiftRequest shift)
+    {
+        if (shift.WorkplaceId <= 0) return "Workplace is required";
+        if (string.IsNullOrWhiteSpace(shift.Title)) return "Shift title is required";
+        if (shift.EndDatetime <= shift.StartDatetime) return "Shift end time must be after start time";
+        if (shift.BreakDuration < 0) return "Break duration cannot be negative";
+        if (shift.ReminderEnabled && shift.ReminderMinutesBefore is not (15 or 30 or 60)) return "Reminder must be 15, 30, or 60 minutes before the shift";
+        return null;
+    }
+
+    private static string? ValidateShift(UpdateShiftRequest shift)
     {
         if (shift.WorkplaceId <= 0) return "Workplace is required";
         if (string.IsNullOrWhiteSpace(shift.Title)) return "Shift title is required";
