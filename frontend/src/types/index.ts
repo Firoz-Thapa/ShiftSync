@@ -6,7 +6,13 @@ export interface User {
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
+  role: UserRole;
+  status: UserStatus;
+  assignedWorkplaceIds?: number[];
 }
+
+export type UserRole = 'admin' | 'agent';
+export type UserStatus = 'active' | 'invited' | 'deactivated';
 
 export interface Workplace {
   id: number;

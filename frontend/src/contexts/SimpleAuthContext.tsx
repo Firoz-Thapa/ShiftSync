@@ -28,7 +28,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         if (token && savedUser) {
           // If we have a token and user data, set the user
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser) as User;
+          const normalizedUser: User = {
+            ...parsedUser,
+            role: parsedUser.role ?? 'agent',
+            status: parsedUser.status ?? 'active',
+            assignedWorkplaceIds: parsedUser.assignedWorkplaceIds ?? [],
+          };
+          localStorage.setItem('shiftsync_user', JSON.stringify(normalizedUser));
+          setUser(normalizedUser);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -54,6 +62,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         lastName: 'Doe',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        // The local demo makes an admin account easy to access while real
+        // role assignment will be supplied by the API.
+        role: credentials.email.toLowerCase().startsWith('admin') ? 'admin' : 'agent',
+        status: 'active',
       };
 
       // Save to localStorage (mock token and user)
@@ -76,6 +88,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         lastName: data.lastName,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        role: 'agent',
+        status: 'active',
       };
 
       localStorage.setItem('shiftsync_token', 'mock-jwt-token');
