@@ -1,23 +1,37 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using backend.Models;
 
 namespace backend.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class WorkplacesController : ControllerBase
 {
     private readonly backend.Services.IWorkplaceService _service;
+    private readonly backend.Services.IUserService _users;
 
-    public WorkplacesController(backend.Services.IWorkplaceService service)
+    public WorkplacesController(backend.Services.IWorkplaceService service, backend.Services.IUserService users)
     {
         _service = service;
+        _users = users;
     }
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PaginatedResponse<WorkplaceDto>>>> Get()
     {
         var items = await _service.GetAllAsync();
+        if (!IsAdmin)
+        {
+            var accessible = new List<WorkplaceDto>();
+            foreach (var workplace in items)
+            {
+                if (await _users.CanAccessWorkplaceAsync(CurrentUserId, workplace.Id)) accessible.Add(workplace);
+            }
+            items = accessible;
+        }
 
         var response = new PaginatedResponse<WorkplaceDto>
         {
@@ -42,6 +56,7 @@ public class WorkplacesController : ControllerBase
         {
             return NotFound(ApiResponse<WorkplaceDto>.Fail("Workplace not found"));
         }
+        if (!IsAdmin && !await _users.CanAccessWorkplaceAsync(CurrentUserId, id)) return Forbid();
 
         return Ok(ApiResponse<WorkplaceDto>.Ok(workplace));
     }
@@ -51,6 +66,7 @@ public class WorkplacesController : ControllerBase
     {
         try
         {
+            if (!IsAdmin) return Forbid();
             var created = await _service.CreateAsync(workplace);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<WorkplaceDto>.Ok(created, "Workplace created successfully"));
         }
@@ -65,6 +81,7 @@ public class WorkplacesController : ControllerBase
     {
         try
         {
+            if (!IsAdmin) return Forbid();
             var updated = await _service.UpdateAsync(id, workplace);
             if (updated is null) return NotFound(ApiResponse<WorkplaceDto>.Fail("Workplace not found"));
             return Ok(ApiResponse<WorkplaceDto>.Ok(updated, "Workplace updated successfully"));
@@ -78,6 +95,7 @@ public class WorkplacesController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
+        if (!IsAdmin) return Forbid();
         var removed = await _service.DeleteAsync(id);
         if (!removed) return NotFound(ApiResponse<object>.Fail("Workplace not found"));
         return Ok(ApiResponse<object>.Ok(null, "Workplace deleted successfully"));
@@ -108,4 +126,7 @@ public class WorkplacesController : ControllerBase
 
         return null;
     }
+
+    private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private bool IsAdmin => User.IsInRole(UserRoles.Admin);
 }

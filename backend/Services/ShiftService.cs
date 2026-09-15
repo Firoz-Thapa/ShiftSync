@@ -37,6 +37,9 @@ public class ShiftService : IShiftService
         var now = DateTime.UtcNow;
         var shift = new ShiftDto
         {
+            // Controllers always supply the authenticated assignee. Keep the
+            // legacy default for direct service callers and existing imports.
+            UserId = request.UserId ?? 1,
             WorkplaceId = request.WorkplaceId,
             Title = request.Title,
             StartDatetime = request.StartDatetime,

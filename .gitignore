@@ -11,6 +11,10 @@ dist/
 build/
 TestResults/
 
+# .NET generated build artifacts
+**/bin/
+**/obj/
+
 # IDE
 .vscode/
 .vs/
