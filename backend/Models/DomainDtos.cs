@@ -1,5 +1,78 @@
 namespace backend.Models;
 
+public static class UserRoles
+{
+    public const string Admin = "admin";
+    public const string Agent = "agent";
+}
+
+public static class UserStatuses
+{
+    public const string Active = "active";
+    public const string Invited = "invited";
+    public const string Deactivated = "deactivated";
+}
+
+public class UserDto
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Role { get; set; } = UserRoles.Agent;
+    public string Status { get; set; } = UserStatuses.Active;
+    public List<int> AssignedWorkplaceIds { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public sealed class UserRecord : UserDto
+{
+    public string PasswordHash { get; set; } = string.Empty;
+}
+
+public sealed class RegisterRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+}
+
+public sealed class LoginRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public sealed class AcceptInvitationRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public sealed class AuthResultDto
+{
+    public UserDto User { get; set; } = new();
+    public string Token { get; set; } = string.Empty;
+}
+
+public sealed class InviteUserRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Role { get; set; } = UserRoles.Agent;
+    public List<int> AssignedWorkplaceIds { get; set; } = new();
+}
+
+public sealed class UpdateUserRequest
+{
+    public string? Role { get; set; }
+    public string? Status { get; set; }
+    public List<int>? AssignedWorkplaceIds { get; set; }
+}
+
 public sealed class WorkplaceDto
 {
     public int Id { get; set; }
@@ -40,6 +113,7 @@ public sealed class ShiftDto
 
 public sealed class CreateShiftRequest
 {
+    public int? UserId { get; set; }
     public int WorkplaceId { get; set; }
     public string Title { get; set; } = string.Empty;
     public DateTime StartDatetime { get; set; }
