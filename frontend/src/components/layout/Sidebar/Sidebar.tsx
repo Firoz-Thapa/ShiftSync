@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes';
+import { useAuth } from '../../../hooks/useAuth';
 import './Sidebar.css';
 
 interface NavItem {
@@ -9,12 +10,20 @@ interface NavItem {
   icon: string;
 }
 
-const navItems: NavItem[] = [
+const agentNavItems: NavItem[] = [
   { path: ROUTES.DASHBOARD, label: 'Dashboard', icon: '🏠' },
+  { path: ROUTES.SCHEDULE, label: 'Schedule', icon: '📅' },
+  { path: ROUTES.ANALYTICS, label: 'Analytics', icon: '📊' },
+  { path: ROUTES.EMAIL, label: 'Email', icon: '📧' },
+  { path: ROUTES.PROFILE, label: 'Profile', icon: '👤' },
+];
+
+const adminNavItems: NavItem[] = [
+  { path: ROUTES.ADMIN_DASHBOARD, label: 'Overview', icon: '📋' },
+  { path: ROUTES.USER_MANAGEMENT, label: 'Team members', icon: '👥' },
   { path: ROUTES.SCHEDULE, label: 'Schedule', icon: '📅' },
   { path: ROUTES.WORKPLACES, label: 'Workplaces', icon: '🏢' },
   { path: ROUTES.ANALYTICS, label: 'Analytics', icon: '📊' },
-  { path: ROUTES.EMAIL, label: 'Email', icon: '📧' },
   { path: ROUTES.PROFILE, label: 'Profile', icon: '👤' },
 ];
 
@@ -25,6 +34,8 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const location = useLocation();
+  const { user } = useAuth();
+  const navItems = user?.role === 'admin' ? adminNavItems : agentNavItems;
 
   const handleNavigation = () => {
     // On smaller screens this is an off-canvas drawer. On desktop it is a

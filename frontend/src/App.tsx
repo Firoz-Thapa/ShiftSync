@@ -6,6 +6,8 @@ import { Loading } from './components/common';
 import { Layout } from './components/layout';
 import { ROUTES } from './constants/routes';
 import { Dashboard } from './pages/Dashboard/Dashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { UserManagement } from './pages/UserManagement';
 import { Schedule } from './pages/Schedule/Schedule';
 import { Workplaces } from './pages/Workplaces/Workplaces';
 import { NoticeBoard } from './pages/NoticeBoard/NoticeBoard';
@@ -46,9 +48,25 @@ const AppRoutes = () => {
         path={ROUTES.DASHBOARD} 
         element={user ? (
           <Layout>
-            <Dashboard />
+            {user.role === 'admin' ? <Navigate to={ROUTES.ADMIN_DASHBOARD} replace /> : <Dashboard />}
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
+      />
+      <Route
+        path={ROUTES.ADMIN_DASHBOARD}
+        element={user ? (
+          <Layout>
+            {user.role === 'admin' ? <AdminDashboard /> : <Navigate to={ROUTES.DASHBOARD} replace />}
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />}
+      />
+      <Route
+        path={ROUTES.USER_MANAGEMENT}
+        element={user ? (
+          <Layout>
+            <UserManagement />
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />}
       />
       <Route 
         path={ROUTES.SCHEDULE} 
@@ -62,7 +80,7 @@ const AppRoutes = () => {
         path={ROUTES.WORKPLACES} 
         element={user ? (
           <Layout>
-            <Workplaces />
+            {user.role === 'admin' ? <Workplaces /> : <Navigate to={ROUTES.DASHBOARD} replace />}
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
       />
