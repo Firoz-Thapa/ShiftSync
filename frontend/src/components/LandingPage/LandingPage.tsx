@@ -118,17 +118,17 @@ export default function LandingPage() {
           </div>
           <div className="workflow-steps">
             <article>
-              <span>01</span>
+              <span>1</span>
               <h3>Map commitments</h3>
               <p>Bring shifts, study sessions, and workplace details into one planning view.</p>
             </article>
             <article>
-              <span>02</span>
+              <span>2</span>
               <h3>Coordinate people</h3>
               <p>Assign responsibilities and keep everyone aligned with timely reminders.</p>
             </article>
             <article>
-              <span>03</span>
+              <span>3</span>
               <h3>Track progress</h3>
               <p>Use the dashboard to see today's schedule, active work, and upcoming priorities.</p>
             </article>
