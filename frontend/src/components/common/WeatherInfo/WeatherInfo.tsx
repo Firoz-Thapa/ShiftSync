@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiService } from '../../../services/api';
 import './WeatherInfo.css';
 
-const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const DEFAULT_LAT = 60.1699; // Helsinki fallback
 const DEFAULT_LON = 24.9384;
 
@@ -13,26 +12,15 @@ export const WeatherInfo = () => {
   const [isDefaultLocation, setIsDefaultLocation] = useState(false);
 
   const fetchWeatherData = async (lat: number, lon: number) => {
-    if (!API_KEY) {
-      throw new Error('Weather API key not configured');
-    }
-
-    const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-    );
-
-    const { temp } = response.data.main;
-    const { description } = response.data.weather[0];
-    return { temperature: temp, description };
+    return apiService.get<{ temperature: number; description: string }>('/weather', {
+      latitude: lat,
+      longitude: lon,
+    });
   };
 
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        if (!API_KEY) {
-          throw new Error('Weather API key not configured');
-        }
-
         try {
           // Try to get user's location
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {

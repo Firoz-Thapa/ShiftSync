@@ -52,6 +52,29 @@ A comprehensive app to manage work shifts, study sessions, and email for student
 
 4. **Open http://localhost:3000**
 
+### Gmail and Outlook OAuth
+
+To enable real inbox connections, register OAuth applications with Google and Microsoft Entra ID. Configure their client IDs and secrets as backend environment variables (do not commit secrets):
+
+```text
+Email__gmail__ClientId
+Email__gmail__ClientSecret
+Email__outlook__ClientId
+Email__outlook__ClientSecret
+Email__CallbackBaseUrl=http://localhost:3001
+```
+
+Register these local callback URLs with the providers:
+
+```text
+http://localhost:3001/api/emails/callback/gmail
+http://localhost:3001/api/emails/callback/outlook
+```
+
+The app requests read-only email access. Connected accounts, OAuth tokens, and synced messages currently live in memory and are lost when the backend restarts; this integration is for development until persistent, protected token storage is added.
+
+Weather API access is made by the backend. Configure `Weather__ApiKey` as a backend environment variable; do not use a `REACT_APP_` variable for this key because frontend environment variables are bundled into public browser code.
+
 ## Docker Setup
 
 ### Requirements
@@ -141,4 +164,3 @@ ShiftSync/
 ## License
 
 MIT License - feel free to use this project
-

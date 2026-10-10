@@ -42,6 +42,8 @@ builder.Services.AddScoped<backend.Services.INoticeService, backend.Services.Not
 builder.Services.AddSingleton<backend.Repositories.IStudySessionRepository, backend.Repositories.InMemoryStudySessionRepository>();
 builder.Services.AddScoped<backend.Services.IStudySessionService, backend.Services.StudySessionService>();
 builder.Services.AddSingleton<backend.Repositories.IEmailRepository, backend.Repositories.InMemoryEmailRepository>();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<backend.Services.EmailOAuthStateStore>();
 builder.Services.AddScoped<backend.Services.IEmailService, backend.Services.EmailService>();
 builder.Services.AddCors(options =>
 {

@@ -7,7 +7,6 @@ interface EmailAccountListProps {
   selectedAccountId?: string;
   onSelectAccount: (accountId: string) => void;
   onDisconnect: (accountId: string) => void;
-  onLoading?: (loading: boolean) => void;
 }
 
 export const EmailAccountList = ({
@@ -15,16 +14,10 @@ export const EmailAccountList = ({
   selectedAccountId,
   onSelectAccount,
   onDisconnect,
-  onLoading,
 }: EmailAccountListProps) => {
   const handleDisconnect = async (accountId: string) => {
     if (window.confirm('Are you sure you want to disconnect this account?')) {
-      onLoading?.(true);
-      try {
-        onDisconnect(accountId);
-      } finally {
-        onLoading?.(false);
-      }
+      await onDisconnect(accountId);
     }
   };
 
