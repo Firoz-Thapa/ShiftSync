@@ -1,99 +1,121 @@
-using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class EmailsController : ControllerBase
+[Authorize]
+[Route("api/emails")]
+public sealed class EmailsController : ControllerBase
 {
     private readonly backend.Services.IEmailService _service;
+    private readonly IConfiguration _configuration;
 
-    public EmailsController(backend.Services.IEmailService service)
+    public EmailsController(backend.Services.IEmailService service, IConfiguration configuration)
     {
         _service = service;
+        _configuration = configuration;
     }
 
-    [HttpPost("connect")]
-    public async Task<ActionResult<ApiResponse<EmailAccountDto>>> ConnectAccount(EmailConnectRequest request)
+    [HttpPost("connect/{provider}")]
+    public ActionResult<ApiResponse<EmailOAuthStartResponse>> ConnectAccount(string provider)
     {
         try
         {
-            var account = await _service.ConnectAccountAsync(request);
-            return Ok(ApiResponse<EmailAccountDto>.Ok(account, "Email account connected"));
+            var callbackBaseUrl = _configuration["Email:CallbackBaseUrl"];
+            if (!Uri.TryCreate(callbackBaseUrl, UriKind.Absolute, out var callbackBaseUri) ||
+                (callbackBaseUri.Scheme != Uri.UriSchemeHttp && callbackBaseUri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new InvalidOperationException("Set Email__CallbackBaseUrl to the public base URL used for provider callbacks.");
+            }
+
+            var callbackUri = new Uri(callbackBaseUri,
+                $"api/emails/callback/{Uri.EscapeDataString(provider)}").AbsoluteUri;
+            var authorizationUrl = _service.CreateAuthorizationUrl(provider, CurrentUserId, callbackUri);
+            return Ok(ApiResponse<EmailOAuthStartResponse>.Ok(
+                new EmailOAuthStartResponse { AuthorizationUrl = authorizationUrl }));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ApiResponse<EmailAccountDto>.Fail(ex.Message));
+            return BadRequest(ApiResponse<EmailOAuthStartResponse>.Fail(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                ApiResponse<EmailOAuthStartResponse>.Fail(ex.Message));
         }
     }
 
-    [HttpGet("connect/{provider}")]
-    public ActionResult<ApiResponse<EmailProviderResponse>> Connect(string provider)
-    {
-        provider = provider.ToLowerInvariant();
-        if (provider is not "gmail" and not "outlook")
-        {
-            return BadRequest(ApiResponse<EmailProviderResponse>.Fail("Unsupported provider"));
-        }
-
-        var redirectUrl = provider switch
-        {
-            "gmail" => "https://accounts.google.com/o/oauth2/v2/auth?...",
-            "outlook" => "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?...",
-            _ => string.Empty
-        };
-
-        return Ok(ApiResponse<EmailProviderResponse>.Ok(new EmailProviderResponse
-        {
-            Provider = provider,
-            RedirectUrl = redirectUrl
-        }));
-    }
-
+    [AllowAnonymous]
     [HttpGet("callback/{provider}")]
-    public ActionResult<ApiResponse<object>> Callback(string provider, [FromQuery] string? code, [FromQuery] string? error)
+    public async Task<IActionResult> Callback(
+        string provider,
+        [FromQuery] string? code,
+        [FromQuery] string? state,
+        [FromQuery] string? error)
     {
-        if (!string.IsNullOrEmpty(error))
+        if (!string.IsNullOrWhiteSpace(error))
         {
-            return BadRequest(ApiResponse<object>.Fail($"OAuth error: {error}"));
+            return RedirectToFrontend($"Email provider authorization failed: {error}");
         }
 
-        if (string.IsNullOrEmpty(code))
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
         {
-            return BadRequest(ApiResponse<object>.Fail("Missing authorization code"));
+            return RedirectToFrontend("The email provider did not return a valid authorization response.");
         }
 
-        return Ok(ApiResponse<object>.Ok(new { provider, code }, "OAuth callback received"));
+        try
+        {
+            await _service.CompleteAuthorizationAsync(provider, code, state);
+            return RedirectToFrontend(null);
+        }
+        catch (ArgumentException ex)
+        {
+            return RedirectToFrontend(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return RedirectToFrontend(ex.Message);
+        }
+        catch (HttpRequestException)
+        {
+            return RedirectToFrontend("Could not contact the email provider. Please try again.");
+        }
     }
 
     [HttpGet("accounts")]
     public async Task<ActionResult<ApiResponse<IEnumerable<EmailAccountDto>>>> GetAccounts()
     {
-        var accounts = await _service.GetAccountsAsync();
+        var accounts = await _service.GetAccountsAsync(CurrentUserId);
         return Ok(ApiResponse<IEnumerable<EmailAccountDto>>.Ok(accounts));
     }
 
     [HttpDelete("accounts/{accountId}")]
     public async Task<ActionResult<ApiResponse<object>>> DisconnectAccount(string accountId)
     {
-        var ok = await _service.DisconnectAccountAsync(accountId);
+        var ok = await _service.DisconnectAccountAsync(accountId, CurrentUserId);
         if (!ok) return NotFound(ApiResponse<object>.Fail("Email account not found"));
         return Ok(ApiResponse<object>.Ok(null, "Email account disconnected"));
     }
 
     [HttpGet("{accountId}")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> GetEmails(string accountId, [FromQuery] int limit = 20)
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> GetEmails(
+        string accountId,
+        [FromQuery] int limit = 20)
     {
-        var messages = await _service.GetEmailsAsync(accountId, limit);
+        var messages = await _service.GetEmailsAsync(accountId, CurrentUserId, limit);
         if (messages is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
         return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(messages));
     }
 
     [HttpGet("{accountId}/search")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> SearchEmails(string accountId, [FromQuery] string? q)
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> SearchEmails(
+        string accountId,
+        [FromQuery] string? q)
     {
-        var results = await _service.SearchEmailsAsync(accountId, q);
+        var results = await _service.SearchEmailsAsync(accountId, CurrentUserId, q);
         if (results is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
         return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(results));
     }
@@ -101,26 +123,52 @@ public class EmailsController : ControllerBase
     [HttpPost("{accountId}/sync")]
     public async Task<ActionResult<ApiResponse<IEnumerable<EmailMessageDto>>>> SyncEmails(string accountId)
     {
-        var msgs = await _service.SyncEmailsAsync(accountId);
-        if (msgs is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
-        return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(msgs, "Emails synced"));
+        try
+        {
+            var messages = await _service.SyncEmailsAsync(accountId, CurrentUserId);
+            if (messages is null) return NotFound(ApiResponse<IEnumerable<EmailMessageDto>>.Fail("Email account not found"));
+            return Ok(ApiResponse<IEnumerable<EmailMessageDto>>.Ok(messages, "Emails synced"));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway,
+                ApiResponse<IEnumerable<EmailMessageDto>>.Fail(ex.Message));
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway,
+                ApiResponse<IEnumerable<EmailMessageDto>>.Fail("The email provider could not complete the sync."));
+        }
     }
 
     [HttpGet("{accountId}/{emailId}")]
     public async Task<ActionResult<ApiResponse<EmailMessageDto>>> GetEmail(string accountId, string emailId)
     {
-        var email = await _service.GetEmailAsync(accountId, emailId);
+        var email = await _service.GetEmailAsync(accountId, emailId, CurrentUserId);
         if (email is null) return NotFound(ApiResponse<EmailMessageDto>.Fail("Email not found"));
         return Ok(ApiResponse<EmailMessageDto>.Ok(email));
     }
 
     [HttpPatch("{accountId}/{emailId}")]
-    public async Task<ActionResult<ApiResponse<EmailMessageDto>>> UpdateEmail(string accountId, string emailId, UpdateEmailRequest request)
+    public async Task<ActionResult<ApiResponse<EmailMessageDto>>> UpdateEmail(
+        string accountId,
+        string emailId,
+        UpdateEmailRequest request)
     {
-        var updated = await _service.UpdateEmailAsync(accountId, emailId, request);
+        var updated = await _service.UpdateEmailAsync(accountId, emailId, CurrentUserId, request);
         if (updated is null) return NotFound(ApiResponse<EmailMessageDto>.Fail("Email account or email not found"));
         return Ok(ApiResponse<EmailMessageDto>.Ok(updated, "Email updated"));
     }
 
-    // kept for reference; message seeding is handled by the service/repository
+    private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private IActionResult RedirectToFrontend(string? error)
+    {
+        var frontendUrl = _configuration["Email:FrontendReturnUrl"] ?? "http://localhost:3000/email";
+        var separator = frontendUrl.Contains('?') ? '&' : '?';
+        var target = string.IsNullOrWhiteSpace(error)
+            ? frontendUrl
+            : $"{frontendUrl}{separator}emailError={Uri.EscapeDataString(error)}";
+        return Redirect(target);
+    }
 }

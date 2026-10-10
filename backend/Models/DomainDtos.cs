@@ -156,22 +156,9 @@ public sealed class StudySessionDto
     public DateTime UpdatedAt { get; set; }
 }
 
-public sealed class EmailProviderResponse
+public sealed class EmailOAuthStartResponse
 {
-    public string Provider { get; set; } = string.Empty;
-    public string RedirectUrl { get; set; } = string.Empty;
-}
-
-public sealed class EmailConnectRequest
-{
-    public string Provider { get; set; } = string.Empty;
-    public EmailCredentials? Credentials { get; set; }
-}
-
-public sealed class EmailCredentials
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    public string AuthorizationUrl { get; set; } = string.Empty;
 }
 
 public sealed class EmailAccountDto
@@ -181,6 +168,18 @@ public sealed class EmailAccountDto
     public string Provider { get; set; } = string.Empty;
     public bool IsConnected { get; set; }
     public DateTime? LastSync { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int OwnerUserId { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? AccessToken { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? RefreshToken { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DateTime? AccessTokenExpiresAt { get; set; }
 }
 
 public sealed class EmailMessageDto

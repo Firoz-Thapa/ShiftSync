@@ -13,26 +13,33 @@ export interface EmailMessage {
 export interface EmailAccount {
   id: string;
   email: string;
-  provider: 'gmail' | 'outlook' | 'custom';
+  provider: 'gmail' | 'outlook';
   isConnected: boolean;
   lastSync?: string;
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error &&
+      typeof error.message === 'string') {
+    return error.message;
+  }
+  return fallback;
+}
+
 class EmailService {
   /**
-   * Connect email account (Google, Outlook, or custom)
+   * Begin the provider OAuth flow. The browser navigates only after the API
+   * returns a validated authorization URL.
    */
-  async connectEmailAccount(
-    provider: 'gmail' | 'outlook' | 'custom',
-    credentials?: { email: string; password: string }
-  ): Promise<EmailAccount> {
+  async getAuthorizationUrl(provider: 'gmail' | 'outlook'): Promise<string> {
     try {
-      return await apiService.post<EmailAccount>('/emails/connect', {
-        provider,
-        credentials,
-      });
+      const response = await apiService.post<{ authorizationUrl: string }>(
+        `/emails/connect/${provider}`
+      );
+      return response.authorizationUrl;
     } catch (error) {
-      throw new Error(`Failed to connect ${provider} account`);
+      throw new Error(getErrorMessage(error, `Failed to connect ${provider} account`));
     }
   }
 
@@ -43,7 +50,7 @@ class EmailService {
     try {
       return await apiService.get<EmailAccount[]>('/emails/accounts');
     } catch (error) {
-      throw new Error('Failed to fetch email accounts');
+      throw new Error(getErrorMessage(error, 'Failed to fetch email accounts'));
     }
   }
 
@@ -54,7 +61,7 @@ class EmailService {
     try {
       await apiService.delete(`/emails/accounts/${accountId}`);
     } catch (error) {
-      throw new Error('Failed to disconnect email account');
+      throw new Error(getErrorMessage(error, 'Failed to disconnect email account'));
     }
   }
 
@@ -67,7 +74,7 @@ class EmailService {
         params: { limit },
       });
     } catch (error) {
-      throw new Error('Failed to fetch emails');
+      throw new Error(getErrorMessage(error, 'Failed to fetch emails'));
     }
   }
 
@@ -78,7 +85,7 @@ class EmailService {
     try {
       return await apiService.get<EmailMessage>(`/emails/${accountId}/${emailId}`);
     } catch (error) {
-      throw new Error('Failed to fetch email');
+      throw new Error(getErrorMessage(error, 'Failed to fetch email'));
     }
   }
 
@@ -91,7 +98,7 @@ class EmailService {
         isRead: true,
       });
     } catch (error) {
-      throw new Error('Failed to mark email as read');
+      throw new Error(getErrorMessage(error, 'Failed to mark email as read'));
     }
   }
 
@@ -102,7 +109,7 @@ class EmailService {
     try {
       return await apiService.post<EmailMessage[]>(`/emails/${accountId}/sync`);
     } catch (error) {
-      throw new Error('Failed to sync emails');
+      throw new Error(getErrorMessage(error, 'Failed to sync emails'));
     }
   }
 
@@ -118,7 +125,7 @@ class EmailService {
         params: { q: query },
       });
     } catch (error) {
-      throw new Error('Failed to search emails');
+      throw new Error(getErrorMessage(error, 'Failed to search emails'));
     }
   }
 }

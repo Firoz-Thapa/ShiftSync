@@ -9,12 +9,25 @@ export const EmailPage = () => {
   const [emails, setEmails] = useState<EmailMessage[]>([]);
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
-  const [loading, setLoading] = useState(false);
   const [emailsLoading, setEmailsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAccountConnection, setShowAccountConnection] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   // Load connected accounts on component mount
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const error = query.get('emailError');
+    if (error) {
+      setEmailError(error);
+      query.delete('emailError');
+      const remainingQuery = query.toString();
+      window.history.replaceState(
+        {},
+        '',
+        `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ''}`
+      );
+    }
     loadAccounts();
   }, []);
 
@@ -43,7 +56,7 @@ export const EmailPage = () => {
         setSelectedAccountId(data[0].id);
       }
     } catch (error) {
-      console.error('Failed to load accounts:', error);
+      setEmailError(error instanceof Error ? error.message : 'Failed to load email accounts.');
     } finally {
       setLoading(false);
     }
@@ -55,7 +68,7 @@ export const EmailPage = () => {
       const data = await emailService.getEmails(accountId);
       setEmails(data);
     } catch (error) {
-      console.error('Failed to load emails:', error);
+      setEmailError(error instanceof Error ? error.message : 'Failed to load emails.');
     } finally {
       setEmailsLoading(false);
     }
@@ -73,14 +86,8 @@ export const EmailPage = () => {
         );
       }
     } catch (error) {
-      console.error('Failed to load email:', error);
+      setEmailError(error instanceof Error ? error.message : 'Failed to load email.');
     }
-  };
-
-  const handleAccountConnected = async (account: EmailAccount) => {
-    setAccounts([...accounts, account]);
-    setSelectedAccountId(account.id);
-    await loadEmails(account.id);
   };
 
   const handleDisconnect = async (accountId: string) => {
@@ -93,7 +100,7 @@ export const EmailPage = () => {
         setSelectedEmail(null);
       }
     } catch (error) {
-      console.error('Failed to disconnect account:', error);
+      setEmailError(error instanceof Error ? error.message : 'Failed to disconnect email account.');
     }
   };
 
@@ -104,7 +111,7 @@ export const EmailPage = () => {
       const data = await emailService.syncEmails(selectedAccountId);
       setEmails(data);
     } catch (error) {
-      console.error('Failed to sync emails:', error);
+      setEmailError(error instanceof Error ? error.message : 'Failed to sync emails.');
     } finally {
       setEmailsLoading(false);
     }
@@ -119,7 +126,7 @@ export const EmailPage = () => {
       const data = await emailService.searchEmails(selectedAccountId, searchQuery);
       setEmails(data);
     } catch (error) {
-      console.error('Failed to search emails:', error);
+      setEmailError(error instanceof Error ? error.message : 'Failed to search emails.');
     } finally {
       setEmailsLoading(false);
     }
@@ -134,15 +141,18 @@ export const EmailPage = () => {
 
   return (
     <div className="email-page">
+      {emailError && (
+        <div className="error-message" role="alert">
+          {emailError}
+          <button type="button" onClick={() => setEmailError(null)} aria-label="Dismiss error">×</button>
+        </div>
+      )}
       <div className="email-container">
         {/* Left Panel: Email Connection & Accounts */}
         <div className="email-sidebar">
           <div className="sidebar-content">
             {accounts.length === 0 ? (
-              <EmailAccountConnection
-                onAccountConnected={handleAccountConnected}
-                onLoading={setLoading}
-              />
+              <EmailAccountConnection />
             ) : (
               <>
                 <EmailAccountList
@@ -150,11 +160,19 @@ export const EmailPage = () => {
                   selectedAccountId={selectedAccountId || undefined}
                   onSelectAccount={setSelectedAccountId}
                   onDisconnect={handleDisconnect}
-                  onLoading={setLoading}
                 />
-                <button className="btn-add-account" onClick={() => {}}>
-                  + Add Another Account
-                </button>
+                {showAccountConnection ? (
+                  <>
+                    <EmailAccountConnection />
+                    <button className="btn-add-account" onClick={() => setShowAccountConnection(false)}>
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button className="btn-add-account" onClick={() => setShowAccountConnection(true)}>
+                    + Add Another Account
+                  </button>
+                )}
               </>
             )}
           </div>

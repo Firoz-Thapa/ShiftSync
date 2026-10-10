@@ -18,27 +18,27 @@ public class InMemoryEmailRepository : IEmailRepository
         }
     }
 
-    public Task<List<EmailAccountDto>> GetAccountsAsync()
+    public Task<List<EmailAccountDto>> GetAccountsAsync(int userId)
     {
         lock (_lock)
         {
-            return Task.FromResult(_accounts.ToList());
+            return Task.FromResult(_accounts.Where(account => account.OwnerUserId == userId).ToList());
         }
     }
 
-    public Task<EmailAccountDto?> GetAccountByIdAsync(string accountId)
+    public Task<EmailAccountDto?> GetAccountByIdAsync(string accountId, int userId)
     {
         lock (_lock)
         {
-            return Task.FromResult(_accounts.FirstOrDefault(a => a.Id == accountId));
+            return Task.FromResult(_accounts.FirstOrDefault(a => a.Id == accountId && a.OwnerUserId == userId));
         }
     }
 
-    public Task<bool> DeleteAccountAsync(string accountId)
+    public Task<bool> DeleteAccountAsync(string accountId, int userId)
     {
         lock (_lock)
         {
-            var a = _accounts.FirstOrDefault(x => x.Id == accountId);
+            var a = _accounts.FirstOrDefault(x => x.Id == accountId && x.OwnerUserId == userId);
             if (a is null) return Task.FromResult(false);
             _accounts.Remove(a);
             _messagesByAccount.Remove(accountId);
@@ -46,11 +46,12 @@ public class InMemoryEmailRepository : IEmailRepository
         }
     }
 
-    public Task<List<EmailMessageDto>?> GetMessagesAsync(string accountId)
+    public Task<List<EmailMessageDto>?> GetMessagesAsync(string accountId, int userId)
     {
         lock (_lock)
         {
-            if (_messagesByAccount.TryGetValue(accountId, out var msgs))
+            if (_accounts.Any(account => account.Id == accountId && account.OwnerUserId == userId) &&
+                _messagesByAccount.TryGetValue(accountId, out var msgs))
             {
                 return Task.FromResult<List<EmailMessageDto>?>(msgs.ToList());
             }
@@ -68,20 +69,22 @@ public class InMemoryEmailRepository : IEmailRepository
         }
     }
 
-    public Task<EmailMessageDto?> GetMessageAsync(string accountId, string messageId)
+    public Task<EmailMessageDto?> GetMessageAsync(string accountId, string messageId, int userId)
     {
         lock (_lock)
         {
-            if (!_messagesByAccount.TryGetValue(accountId, out var msgs)) return Task.FromResult<EmailMessageDto?>(null);
+            if (!_accounts.Any(account => account.Id == accountId && account.OwnerUserId == userId) ||
+                !_messagesByAccount.TryGetValue(accountId, out var msgs)) return Task.FromResult<EmailMessageDto?>(null);
             return Task.FromResult(msgs.FirstOrDefault(m => m.Id == messageId));
         }
     }
 
-    public Task<EmailMessageDto?> UpdateMessageAsync(string accountId, EmailMessageDto message)
+    public Task<EmailMessageDto?> UpdateMessageAsync(string accountId, EmailMessageDto message, int userId)
     {
         lock (_lock)
         {
-            if (!_messagesByAccount.TryGetValue(accountId, out var msgs)) return Task.FromResult<EmailMessageDto?>(null);
+            if (!_accounts.Any(account => account.Id == accountId && account.OwnerUserId == userId) ||
+                !_messagesByAccount.TryGetValue(accountId, out var msgs)) return Task.FromResult<EmailMessageDto?>(null);
             var idx = msgs.FindIndex(m => m.Id == message.Id);
             if (idx == -1) return Task.FromResult<EmailMessageDto?>(null);
             msgs[idx] = message;

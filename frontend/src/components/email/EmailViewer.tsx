@@ -59,10 +59,7 @@ export const EmailViewer = ({
       </div>
 
       <div className="email-body">
-        <div
-          className="body-content"
-          dangerouslySetInnerHTML={{ __html: email.body }}
-        />
+        <div className="body-content">{email.body}</div>
       </div>
 
       {email.hasAttachments && (
