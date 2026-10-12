@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
-import { LoginCredentials, RegisterData, AuthResponse, User } from '../types';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { LoginCredentials, RegisterData, AuthResponse, User, ApiResponse } from '../types';
 import { APP_CONFIG } from '../constants';
 
 class AuthService {
@@ -48,15 +48,8 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await this.api.post<AuthResponse>('/auth/login', credentials);
-      
-      if (response.data.success && response.data.data.token) {
-        this.setToken(response.data.data.token);
-        // Also store user data for quick access
-        localStorage.setItem('shiftsync_user', JSON.stringify(response.data.data.user));
-      }
-      
-      return response.data;
+      const response = await this.api.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
+      return this.saveAuthResponse(response);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Login failed');
     }
@@ -64,14 +57,8 @@ class AuthService {
 
   async register(data: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await this.api.post<AuthResponse>('/auth/register', data);
-      
-      if (response.data.success && response.data.data.token) {
-        this.setToken(response.data.data.token);
-        localStorage.setItem('shiftsync_user', JSON.stringify(response.data.data.user));
-      }
-      
-      return response.data;
+      const response = await this.api.post<ApiResponse<AuthResponse>>('/auth/register', data);
+      return this.saveAuthResponse(response);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Registration failed');
     }
@@ -79,14 +66,26 @@ class AuthService {
 
   async getProfile(): Promise<User> {
     try {
-      const savedUser = localStorage.getItem('shiftsync_user');
-      if (savedUser) {
-        return JSON.parse(savedUser);
+      const response = await this.api.get<ApiResponse<User>>('/auth/me');
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch profile');
       }
-      throw new Error('No user data found');
+      localStorage.setItem('shiftsync_user', JSON.stringify(response.data.data));
+      return response.data.data;
     } catch (error: any) {
-      throw new Error('Failed to get profile');
+      throw new Error(error.response?.data?.message || error.message || 'Failed to get profile');
     }
+  }
+
+  private saveAuthResponse(response: AxiosResponse<ApiResponse<AuthResponse>>): AuthResponse {
+    const result = response.data.data;
+    if (!response.data.success || !result?.token || !result.user) {
+      throw new Error(response.data.message || 'Authentication response was invalid');
+    }
+
+    this.setToken(result.token);
+    localStorage.setItem('shiftsync_user', JSON.stringify(result.user));
+    return result;
   }
 
   logout(): void {
