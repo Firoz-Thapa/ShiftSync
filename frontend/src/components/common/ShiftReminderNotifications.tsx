@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/SimpleAuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Shift } from '../../types';
 import { formatTime } from '../../utils/dateUtils';
 import { ToastContainer, useToast } from './Toast';
