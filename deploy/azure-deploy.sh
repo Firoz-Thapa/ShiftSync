@@ -17,6 +17,7 @@ fi
 : "${AZURE_APP_SERVICE_PLAN:?AZURE_APP_SERVICE_PLAN is required}"
 : "${AZURE_WEBAPP_BACKEND:?AZURE_WEBAPP_BACKEND is required}"
 : "${AZURE_WEBAPP_FRONTEND:?AZURE_WEBAPP_FRONTEND is required}"
+: "${JWT_KEY:?JWT_KEY is required}"
 
 ACR_LOGIN_SERVER="${AZURE_ACR_NAME}.azurecr.io"
 BACKEND_IMAGE="${ACR_LOGIN_SERVER}/shiftsync-backend:latest"
@@ -38,7 +39,9 @@ echo "==> Building backend Docker image"
 docker build -t "$BACKEND_IMAGE" ./backend
 
 echo "==> Building frontend Docker image"
-docker build -t "$FRONTEND_IMAGE" ./frontend
+docker build \
+  --build-arg "REACT_APP_API_URL=https://${AZURE_WEBAPP_BACKEND}.azurewebsites.net/api" \
+  -t "$FRONTEND_IMAGE" ./frontend
 
 echo "==> Pushing backend image to ACR"
 docker push "$BACKEND_IMAGE"
@@ -51,6 +54,13 @@ az webapp create --resource-group "$AZURE_RESOURCE_GROUP" --plan "$AZURE_APP_SER
 
 echo "==> Creating or updating frontend Web App: ${AZURE_WEBAPP_FRONTEND}"
 az webapp create --resource-group "$AZURE_RESOURCE_GROUP" --plan "$AZURE_APP_SERVICE_PLAN" --name "$AZURE_WEBAPP_FRONTEND" --deployment-container-image-name "$FRONTEND_IMAGE" || true
+
+echo "==> Configuring backend authentication and frontend CORS"
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "$AZURE_WEBAPP_BACKEND" \
+  --settings "JWT_KEY=${JWT_KEY}" "Cors__AllowedOrigins=https://${AZURE_WEBAPP_FRONTEND}.azurewebsites.net" \
+  --output none
 
 ACR_USERNAME=$(az acr credential show --name "$AZURE_ACR_NAME" --query "username" -o tsv)
 ACR_PASSWORD=$(az acr credential show --name "$AZURE_ACR_NAME" --query "passwords[0].value" -o tsv)

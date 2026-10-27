@@ -47,10 +47,18 @@ builder.Services.AddSingleton<backend.Services.EmailOAuthStateStore>();
 builder.Services.AddScoped<backend.Services.IEmailService, backend.Services.EmailService>();
 builder.Services.AddCors(options =>
 {
+    var configuredOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
+        .GetChildren()
+        .Select(origin => origin.Value)
+        .OfType<string>();
+    var allowedOrigins = new[] { "http://localhost:3000", "https://localhost:3000" }
+        .Concat(configuredOrigins)
+        .ToArray();
+
     options.AddPolicy("FrontendDev", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000", "https://localhost:3000")
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
