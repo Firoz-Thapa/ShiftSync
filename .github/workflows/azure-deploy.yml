@@ -31,3 +31,4 @@ jobs:
           AZURE_APP_SERVICE_PLAN: ${{ secrets.AZURE_APP_SERVICE_PLAN }}
           AZURE_WEBAPP_BACKEND: ${{ secrets.AZURE_WEBAPP_BACKEND }}
           AZURE_WEBAPP_FRONTEND: ${{ secrets.AZURE_WEBAPP_FRONTEND }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
