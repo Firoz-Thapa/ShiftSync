@@ -16,6 +16,7 @@ import { Profile } from './pages/Profile/Profile';
 import { Login } from './pages/Login/Login';
 import { Register } from './pages/Register/Register';
 import { Email } from './pages/Email';
+import { ActivityLog } from './pages/ActivityLog';
 import LandingPage from './components/LandingPage/LandingPage';
 import { ShiftReminderNotifications } from './components/common/ShiftReminderNotifications';
 
@@ -115,6 +116,14 @@ const AppRoutes = () => {
             <Email />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
+      />
+      <Route
+        path={ROUTES.ACTIVITY_LOG}
+        element={user ? (
+          <Layout>
+            <ActivityLog />
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />}
       />
       
       <Route 
