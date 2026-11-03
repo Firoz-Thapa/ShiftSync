@@ -70,8 +70,10 @@ class AuthService {
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.message || 'Failed to fetch profile');
       }
-      localStorage.setItem('shiftsync_user', JSON.stringify(response.data.data));
-      return response.data.data;
+
+      const normalizedUser = this.normalizeUser(response.data.data);
+      localStorage.setItem('shiftsync_user', JSON.stringify(normalizedUser));
+      return normalizedUser;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Failed to get profile');
     }
@@ -83,9 +85,34 @@ class AuthService {
       throw new Error(response.data.message || 'Authentication response was invalid');
     }
 
-    this.setToken(result.token);
-    localStorage.setItem('shiftsync_user', JSON.stringify(result.user));
-    return result;
+    const normalizedUser = this.normalizeUser(result.user);
+    const normalizedResult: AuthResponse = {
+      ...result,
+      user: normalizedUser,
+    };
+
+    this.setToken(normalizedResult.token);
+    localStorage.setItem('shiftsync_user', JSON.stringify(normalizedResult.user));
+    return normalizedResult;
+  }
+
+  private normalizeUser(user: any): User {
+    if (!user) {
+      return user;
+    }
+
+    return {
+      ...user,
+      id: user.id ?? user.Id ?? 0,
+      email: user.email ?? user.Email ?? '',
+      firstName: user.firstName ?? user.FirstName ?? '',
+      lastName: user.lastName ?? user.LastName ?? '',
+      role: user.role ?? user.Role ?? 'agent',
+      status: user.status ?? user.Status ?? 'active',
+      assignedWorkplaceIds: user.assignedWorkplaceIds ?? user.AssignedWorkplaceIds ?? [],
+      createdAt: user.createdAt ?? user.CreatedAt ?? new Date().toISOString(),
+      updatedAt: user.updatedAt ?? user.UpdatedAt ?? new Date().toISOString(),
+    };
   }
 
   logout(): void {
@@ -107,14 +134,38 @@ class AuthService {
 
     try {
       if (token.includes('.')) {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = this.decodeJwtPayload(token);
+        if (!payload || typeof payload.exp !== 'number') {
+          return !!token;
+        }
+
         const currentTime = Date.now() / 1000;
         return payload.exp > currentTime;
       }
 
       return true;
     } catch (error) {
-      return !!token; // Simple fallback
+      return !!token;
+    }
+  }
+
+  private decodeJwtPayload(token: string): Record<string, any> | null {
+    try {
+      const payloadSegment = token.split('.')[1];
+      if (!payloadSegment) {
+        return null;
+      }
+
+      const base64 = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+      const normalized = atob(padded)
+        .split('')
+        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
+        .join('');
+
+      return JSON.parse(decodeURIComponent(normalized));
+    } catch (error) {
+      return null;
     }
   }
 }
