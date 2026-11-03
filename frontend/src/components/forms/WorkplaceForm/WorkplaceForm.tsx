@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PayType, RecurrencePattern } from '../../../types';
+import { activityService } from '../../../services/activityService';
 
 interface WorkplaceFormProps {
   onSuccess: () => void;
@@ -98,6 +99,7 @@ export const WorkplaceForm = ({ onSuccess, onCancel }: WorkplaceFormProps) => {
       
       workplaces.push(newWorkplace);
       localStorage.setItem('shiftsync_workplaces', JSON.stringify(workplaces));
+      activityService.recordActivity('created', 'workplace', newWorkplace.name);
       
       // Call success callback
       onSuccess();

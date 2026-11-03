@@ -4,6 +4,7 @@ import { Card, Button, ThemeToggle, Modal } from '../../components/common';
 import { ToastContainer, useToast } from '../../components/common/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
+import { activityService } from '../../services/activityService';
 
 export const Profile = () => {
   const { user, logout } = useAuth();
@@ -124,6 +125,7 @@ export const Profile = () => {
       };
 
       localStorage.setItem('shiftsync_user', JSON.stringify(updatedUser));
+      activityService.recordActivity('updated', 'account', 'Profile information');
 
       setIsEditModalOpen(false);
 
@@ -178,6 +180,7 @@ export const Profile = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 600));
       localStorage.setItem('shiftsync_password_updated_at', new Date().toISOString());
+      activityService.recordActivity('password_changed', 'account', '');
       setIsPasswordModalOpen(false);
       success(
         'Password Updated',

@@ -1,4 +1,5 @@
 import { apiService } from './api';
+import { activityService } from './activityService';
 
 export interface EmailMessage {
   id: string;
@@ -60,6 +61,7 @@ class EmailService {
   async disconnectAccount(accountId: string): Promise<void> {
     try {
       await apiService.delete(`/emails/accounts/${accountId}`);
+      activityService.recordActivity('disconnected', 'email', 'Email account');
     } catch (error) {
       throw new Error(getErrorMessage(error, 'Failed to disconnect email account'));
     }
@@ -107,7 +109,9 @@ class EmailService {
    */
   async syncEmails(accountId: string): Promise<EmailMessage[]> {
     try {
-      return await apiService.post<EmailMessage[]>(`/emails/${accountId}/sync`);
+      const emails = await apiService.post<EmailMessage[]>(`/emails/${accountId}/sync`);
+      activityService.recordActivity('synced', 'email', 'Email inbox');
+      return emails;
     } catch (error) {
       throw new Error(getErrorMessage(error, 'Failed to sync emails'));
     }

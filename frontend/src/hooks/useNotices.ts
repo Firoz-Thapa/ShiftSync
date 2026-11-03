@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Notice, CreateNoticeData } from '../types';
+import { activityService } from '../services/activityService';
 
 const STORAGE_KEY = 'shiftsync_notices';
 
@@ -23,6 +24,7 @@ const saveNoticesToStorage = (notices: Notice[]) => {
     console.log('💾 Saved notices to localStorage:', notices);
   } catch (error) {
     console.error('❌ Error saving notices to localStorage:', error);
+    throw error;
   }
 };
 
@@ -93,6 +95,7 @@ export const useNotices = (workplaceId: number) => {
 
       // Save to localStorage
       saveNoticesToStorage(updatedNotices);
+      activityService.recordActivity('created', 'notice', newNotice.title);
 
       // Update local state
       setNotices(prev => {
@@ -139,6 +142,7 @@ export const useNotices = (workplaceId: number) => {
 
       currentNotices[noticeIndex] = updatedNotice;
       saveNoticesToStorage(currentNotices);
+      activityService.recordActivity('updated', 'notice', updatedNotice.title);
 
       // Update local state
       setNotices(prev => {
@@ -168,10 +172,15 @@ export const useNotices = (workplaceId: number) => {
 
       // Load current notices from storage
       const currentNotices = loadNoticesFromStorage();
+      const deletedNotice = currentNotices.find(notice => notice.id === id);
+      if (!deletedNotice) {
+        throw new Error('Notice not found');
+      }
       const filteredNotices = currentNotices.filter(n => n.id !== id);
 
       // Save to localStorage
       saveNoticesToStorage(filteredNotices);
+      activityService.recordActivity('deleted', 'notice', deletedNotice.title);
 
       // Update local state
       setNotices(prev => prev.filter(n => n.id !== id));
