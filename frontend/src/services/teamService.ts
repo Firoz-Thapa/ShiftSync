@@ -1,4 +1,5 @@
 import { User, UserRole, UserStatus } from '../types';
+import { activityService } from './activityService';
 
 export interface TeamMember extends User {
   assignedWorkplaceIds: number[];
@@ -71,6 +72,11 @@ class TeamService {
       invitedAt: timestamp,
     };
     saveMembers([...members, member]);
+    activityService.recordActivity(
+      'invited',
+      'team_member',
+      `${member.firstName} ${member.lastName}`.trim()
+    );
     return member;
   }
 
@@ -80,6 +86,11 @@ class TeamService {
     if (index === -1) throw new Error('User not found.');
     members[index] = { ...members[index], ...updates, updatedAt: new Date().toISOString() };
     saveMembers(members);
+    activityService.recordActivity(
+      'updated',
+      'team_member',
+      `${members[index].firstName} ${members[index].lastName}`.trim()
+    );
     return members[index];
   }
 }

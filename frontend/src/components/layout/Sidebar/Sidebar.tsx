@@ -15,6 +15,7 @@ const agentNavItems: NavItem[] = [
   { path: ROUTES.SCHEDULE, label: 'Schedule', icon: '📅' },
   { path: ROUTES.ANALYTICS, label: 'Analytics', icon: '📊' },
   { path: ROUTES.EMAIL, label: 'Email', icon: '📧' },
+  { path: ROUTES.ACTIVITY_LOG, label: 'Activity Log', icon: '🕘' },
   { path: ROUTES.PROFILE, label: 'Profile', icon: '👤' },
 ];
 

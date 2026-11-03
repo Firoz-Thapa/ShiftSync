@@ -8,6 +8,7 @@ export const ROUTES = {
   NOTICE_BOARD: '/notice-board/:workplaceId',
   ANALYTICS: '/analytics',
   EMAIL: '/email',
+  ACTIVITY_LOG: '/activity-log',
   PROFILE: '/profile',
   LOGIN: '/login',
   REGISTER: '/register',

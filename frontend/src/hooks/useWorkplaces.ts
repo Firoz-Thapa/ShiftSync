@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Workplace, WorkplaceFormData } from '../types';
+import { activityService } from '../services/activityService';
 
 // LocalStorage key for persisting workplaces
 const STORAGE_KEY = 'shiftsync_workplaces';
@@ -32,6 +33,7 @@ const saveWorkplacesToStorage = (workplaces: Workplace[]) => {
     console.log('💾 Saved workplaces to localStorage:', workplaces);
   } catch (error) {
     console.error('❌ Error saving workplaces to localStorage:', error);
+    throw error;
   }
 };
 
@@ -96,6 +98,7 @@ export const useWorkplaces = () => {
       
       // Save to localStorage
       saveWorkplacesToStorage(updatedWorkplaces);
+      activityService.recordActivity('created', 'workplace', newWorkplace.name);
       
       console.log('New workplace created:', newWorkplace);
       console.log('All workplaces now:', updatedWorkplaces);
@@ -135,6 +138,7 @@ export const useWorkplaces = () => {
       
       // Save to localStorage
       saveWorkplacesToStorage(currentWorkplaces);
+      activityService.recordActivity('updated', 'workplace', updatedWorkplace.name);
       
       // Update state
       setWorkplaces([...currentWorkplaces]);
@@ -157,10 +161,12 @@ export const useWorkplaces = () => {
         throw new Error('Workplace not found');
       }
       
+      const deletedWorkplace = currentWorkplaces[index];
       currentWorkplaces.splice(index, 1);
       
       // Save to localStorage
       saveWorkplacesToStorage(currentWorkplaces);
+      activityService.recordActivity('deleted', 'workplace', deletedWorkplace.name);
       
       // Update state
       setWorkplaces([...currentWorkplaces]);

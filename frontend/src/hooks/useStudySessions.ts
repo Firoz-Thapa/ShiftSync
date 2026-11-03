@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StudySession, StudySessionFormData } from '../types';
+import { activityService } from '../services/activityService';
 
 export const useStudySessions = (dateRange?: { startDate: string; endDate: string }) => {
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
@@ -71,6 +72,7 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
       
       // Save to localStorage
       localStorage.setItem('shiftsync_study_sessions', JSON.stringify(updatedSessions));
+      activityService.recordActivity('created', 'study_session', newSession.title);
       
       // Update state
       setStudySessions(prev => [...prev, newSession]);
@@ -82,7 +84,10 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
     }
   };
 
-  const updateStudySession = async (id: number, data: Partial<StudySessionFormData>): Promise<StudySession> => {
+  const updateStudySession = async (
+    id: number,
+    data: Partial<StudySessionFormData> & { isCompleted?: boolean }
+  ): Promise<StudySession> => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -99,9 +104,13 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
         ...data,
         updatedAt: new Date().toISOString()
       };
+      const action = !existingSessions[index].isCompleted && updatedSession.isCompleted
+        ? 'completed'
+        : 'updated';
       
       existingSessions[index] = updatedSession;
       localStorage.setItem('shiftsync_study_sessions', JSON.stringify(existingSessions));
+      activityService.recordActivity(action, 'study_session', updatedSession.title);
       
       setStudySessions(prev => prev.map(s => s.id === id ? updatedSession : s));
       
@@ -118,9 +127,14 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
       
       const storedSessions = localStorage.getItem('shiftsync_study_sessions');
       const existingSessions = storedSessions ? JSON.parse(storedSessions) : [];
+      const deletedSession = existingSessions.find((session: StudySession) => session.id === id);
+      if (!deletedSession) {
+        throw new Error('Study session not found');
+      }
       
       const filteredSessions = existingSessions.filter((s: StudySession) => s.id !== id);
       localStorage.setItem('shiftsync_study_sessions', JSON.stringify(filteredSessions));
+      activityService.recordActivity('deleted', 'study_session', deletedSession.title);
       
       setStudySessions(prev => prev.filter(s => s.id !== id));
     } catch (err: any) {
@@ -130,7 +144,7 @@ export const useStudySessions = (dateRange?: { startDate: string; endDate: strin
   };
 
   const markAsCompleted = async (id: number): Promise<void> => {
-    await updateStudySession(id, { isCompleted: true } as any);
+    await updateStudySession(id, { isCompleted: true });
   };
 
   useEffect(() => {

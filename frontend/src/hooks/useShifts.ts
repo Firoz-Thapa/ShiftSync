@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shift, ShiftFormData } from '../types';
+import { activityService } from '../services/activityService';
 
 export const useShifts = (dateRange?: { startDate: string; endDate: string }) => {
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -74,6 +75,7 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       
       // Save to localStorage
       localStorage.setItem('shiftsync_shifts', JSON.stringify(updatedShifts));
+      activityService.recordActivity('created', 'shift', newShift.title);
       
       // Update state
       setShifts(prev => [...prev, newShift]);
@@ -102,9 +104,13 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
         ...data,
         updatedAt: new Date().toISOString()
       };
+      const action = !existingShifts[index].isConfirmed && updatedShift.isConfirmed
+        ? 'confirmed'
+        : 'updated';
       
       existingShifts[index] = updatedShift;
       localStorage.setItem('shiftsync_shifts', JSON.stringify(existingShifts));
+      activityService.recordActivity(action, 'shift', updatedShift.title);
       
       setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
       
@@ -121,9 +127,14 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       
       const storedShifts = localStorage.getItem('shiftsync_shifts');
       const existingShifts = storedShifts ? JSON.parse(storedShifts) : [];
+      const deletedShift = existingShifts.find((shift: Shift) => shift.id === id);
+      if (!deletedShift) {
+        throw new Error('Shift not found');
+      }
       
       const filteredShifts = existingShifts.filter((s: Shift) => s.id !== id);
       localStorage.setItem('shiftsync_shifts', JSON.stringify(filteredShifts));
+      activityService.recordActivity('deleted', 'shift', deletedShift.title);
       
       setShifts(prev => prev.filter(s => s.id !== id));
     } catch (err: any) {
@@ -169,6 +180,7 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
         startTime: updatedShift.actualStartTime,
         workplace: updatedShift.workplace
       }));
+      activityService.recordActivity('clocked_in', 'shift', updatedShift.title);
       
       setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
       window.dispatchEvent(new Event('shiftsync:clock-status-changed'));
@@ -207,6 +219,7 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
       
       // Remove active clock-in
       localStorage.removeItem('shiftsync_active_clockin');
+      activityService.recordActivity('clocked_out', 'shift', updatedShift.title);
       
       setShifts(prev => prev.map(s => s.id === id ? updatedShift : s));
       window.dispatchEvent(new Event('shiftsync:clock-status-changed'));
