@@ -12,4 +12,5 @@ export const ROUTES = {
   PROFILE: '/profile',
   LOGIN: '/login',
   REGISTER: '/register',
+  ACCEPT_INVITATION: '/accept-invitation',
 } as const;

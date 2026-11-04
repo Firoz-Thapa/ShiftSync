@@ -10,6 +10,7 @@ public interface IUserService
     Task<UserDto?> GetProfileAsync(int id);
     Task<List<UserDto>> GetAllAsync();
     Task<UserDto> InviteAsync(InviteUserRequest request);
+    Task<UserDto?> ResendInvitationAsync(int id);
     Task<UserDto?> UpdateAsync(int id, UpdateUserRequest request);
     Task<bool> CanAccessWorkplaceAsync(int userId, int workplaceId);
 }

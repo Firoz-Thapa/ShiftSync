@@ -5,6 +5,13 @@ services:
       - "3001:80"
     environment:
       ConnectionStrings__Users: "Data Source=/app/data/shiftsync-users.db"
+      InvitationEmail__FrontendBaseUrl: "${INVITATION_FRONTEND_BASE_URL:-http://localhost:3000}"
+      InvitationEmail__Smtp__Host: "${INVITATION_SMTP_HOST:-}"
+      InvitationEmail__Smtp__Port: "${INVITATION_SMTP_PORT:-587}"
+      InvitationEmail__Smtp__UserName: "${INVITATION_SMTP_USERNAME:-}"
+      InvitationEmail__Smtp__Password: "${INVITATION_SMTP_PASSWORD:-}"
+      InvitationEmail__Smtp__FromAddress: "${INVITATION_SMTP_FROM_ADDRESS:-}"
+      InvitationEmail__Smtp__FromName: "${INVITATION_SMTP_FROM_NAME:-ShiftSync}"
     volumes:
       - shiftsync-data:/app/data
     networks:

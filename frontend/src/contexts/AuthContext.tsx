@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, LoginCredentials, RegisterData, AuthContextType } from '../types';
+import { User, LoginCredentials, RegisterData, AcceptInvitationData, AuthContextType } from '../types';
 import { authService } from '../services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,6 +56,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const acceptInvitation = async (data: AcceptInvitationData): Promise<void> => {
+    const response = await authService.acceptInvitation(data);
+    setUser(response.user);
+  };
+
   const logout = (): void => {
     authService.logout();
     setUser(null);
@@ -66,6 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isLoading,
     login,
     register,
+    acceptInvitation,
     logout,
   };
 

@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { LoginCredentials, RegisterData, AuthResponse, User, ApiResponse } from '../types';
+import { AcceptInvitationData, LoginCredentials, RegisterData, AuthResponse, User, ApiResponse } from '../types';
 import { APP_CONFIG } from '../constants';
 
 class AuthService {
@@ -68,6 +68,17 @@ class AuthService {
       throw new Error(error.response?.data?.message || (error.request
         ? 'Unable to reach the server. Make sure the backend is running.'
         : error.message) || 'Registration failed');
+    }
+  }
+
+  async acceptInvitation(data: AcceptInvitationData): Promise<AuthResponse> {
+    try {
+      const response = await this.api.post<ApiResponse<AuthResponse>>('/auth/accept-invitation', data);
+      return this.saveAuthResponse(response);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || (error.request
+        ? 'Unable to reach the server. Make sure the backend is running.'
+        : error.message) || 'Invitation could not be accepted');
     }
   }
 

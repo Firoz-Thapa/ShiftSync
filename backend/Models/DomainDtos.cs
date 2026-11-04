@@ -29,6 +29,8 @@ public class UserDto
 public sealed class UserRecord : UserDto
 {
     public string PasswordHash { get; set; } = string.Empty;
+    public string? InvitationTokenHash { get; set; }
+    public DateTime? InvitationExpiresAt { get; set; }
 }
 
 public sealed class RegisterRequest
@@ -47,7 +49,7 @@ public sealed class LoginRequest
 
 public sealed class AcceptInvitationRequest
 {
-    public string Email { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 
