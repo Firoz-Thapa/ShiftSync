@@ -5,6 +5,7 @@ namespace backend.Services;
 public interface IUserService
 {
     Task<AuthResultDto> RegisterAsync(RegisterRequest request);
+    Task<AuthResultDto?> BootstrapAdminAsync(RegisterRequest request);
     Task<AuthResultDto> LoginAsync(LoginRequest request);
     Task<AuthResultDto> AcceptInvitationAsync(AcceptInvitationRequest request);
     Task<UserDto?> GetProfileAsync(int id);

@@ -8,6 +8,7 @@ public interface IUserRepository
     Task<UserRecord?> GetByIdAsync(int id);
     Task<UserRecord?> GetByEmailAsync(string email);
     Task<UserRecord> CreateSelfRegisteredAsync(UserRecord user);
+    Task<UserRecord?> CreateBootstrapAdminAsync(UserRecord user);
     Task<UserRecord> CreateAsync(UserRecord user);
     Task<UserRecord?> UpdateAsync(UserRecord user);
     Task<UserRecord?> CompleteInvitationAsync(string tokenHash, string passwordHash, DateTime now);

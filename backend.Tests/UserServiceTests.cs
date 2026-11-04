@@ -1,9 +1,15 @@
 using backend.Models;
+using backend.Controllers;
 using backend.Repositories;
 using backend.Services;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 
 namespace backend.Tests;
 
@@ -32,6 +38,16 @@ public class UserServiceTests
         public override DateTimeOffset GetUtcNow() => CurrentTime;
     }
 
+    private sealed class TestWebHostEnvironment : IWebHostEnvironment
+    {
+        public string ApplicationName { get; set; } = "backend.Tests";
+        public IFileProvider WebRootFileProvider { get; set; } = new NullFileProvider();
+        public string WebRootPath { get; set; } = string.Empty;
+        public string EnvironmentName { get; set; } = Environments.Production;
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
+
     private static UserService CreateService(
         IUserRepository? repository = null,
         IInvitationEmailSender? invitationEmailSender = null,
@@ -53,13 +69,13 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task RegisterAsync_FirstAccountBecomesActiveAdmin_AndSubsequentAccountIsAgent()
+    public async Task RegisterAsync_PublicRegistrationCreatesAgentsOnly()
     {
         var service = CreateService();
         var first = await service.RegisterAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
         var second = await service.RegisterAsync(new RegisterRequest { Email = "agent@example.test", Password = "password123", FirstName = "Alex", LastName = "Agent" });
 
-        Assert.Equal(UserRoles.Admin, first.User.Role);
+        Assert.Equal(UserRoles.Agent, first.User.Role);
         Assert.Equal(UserStatuses.Active, first.User.Status);
         Assert.Equal(UserRoles.Agent, second.User.Role);
         Assert.NotEmpty(first.Token);
@@ -89,7 +105,7 @@ public class UserServiceTests
             });
 
             Assert.Equal("persisted@example.test", result.User.Email);
-            Assert.Equal(UserRoles.Admin, result.User.Role);
+            Assert.Equal(UserRoles.Agent, result.User.Role);
         }
         finally
         {
@@ -102,7 +118,7 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task RegisterAsync_ConcurrentFirstRegistrationsCreateOnlyOneAdmin()
+    public async Task RegisterAsync_ConcurrentRegistrationsNeverCreateAdmins()
     {
         var databasePath = Path.Combine(Path.GetTempPath(), $"shiftsync-bootstrap-{Guid.NewGuid():N}.db");
         try
@@ -117,8 +133,7 @@ public class UserServiceTests
                     LastName = "User"
                 })));
 
-            Assert.Single(registrations, result => result.User.Role == UserRoles.Admin);
-            Assert.Equal(7, registrations.Count(result => result.User.Role == UserRoles.Agent));
+            Assert.All(registrations, result => Assert.Equal(UserRoles.Agent, result.User.Role));
         }
         finally
         {
@@ -131,10 +146,108 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task BootstrapAdminAsync_OnlyOneConcurrentRequestCanCreateInitialAdmin()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"shiftsync-admin-bootstrap-{Guid.NewGuid():N}.db");
+        try
+        {
+            var connectionString = $"Data Source={databasePath};Pooling=False";
+            var services = Enumerable.Range(0, 2)
+                .Select(_ => CreateService(new SqliteUserRepository(connectionString)))
+                .ToArray();
+
+            var results = await Task.WhenAll(services.Select(service => service.BootstrapAdminAsync(new RegisterRequest
+            {
+                Email = $"bootstrap-{Guid.NewGuid():N}@example.test",
+                Password = "password123",
+                FirstName = "Bootstrap",
+                LastName = "Admin"
+            })));
+
+            Assert.Single(results, result => result is not null);
+            var storedUsers = await new SqliteUserRepository(connectionString).GetAllAsync();
+            Assert.Single(storedUsers);
+            Assert.Equal(UserRoles.Admin, storedUsers[0].Role);
+        }
+        finally
+        {
+            foreach (var suffix in new[] { "", "-shm", "-wal" })
+            {
+                var file = databasePath + suffix;
+                if (File.Exists(file)) File.Delete(file);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ProductionAuth_DisablesRegistrationAndRequiresOneTimeBootstrapToken()
+    {
+        const string bootstrapToken = "test-bootstrap-token-with-at-least-32-bytes";
+        var repository = new InMemoryUserRepository();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Key"] = "test-key-that-is-long-enough-for-hmac-signing",
+                ["Bootstrap:AdminToken"] = bootstrapToken
+            })
+            .Build();
+        var service = new UserService(
+            repository,
+            new PasswordHasher<UserRecord>(),
+            configuration,
+            new CapturingInvitationEmailSender(),
+            TimeProvider.System);
+        var controller = new AuthController(service, configuration, new TestWebHostEnvironment());
+
+        var registration = await controller.Register(new RegisterRequest
+        {
+            Email = "public@example.test",
+            Password = "password123",
+            FirstName = "Public",
+            LastName = "User"
+        });
+        Assert.Equal(StatusCodes.Status403Forbidden, Assert.IsType<ObjectResult>(registration.Result).StatusCode);
+        Assert.Empty(await repository.GetAllAsync());
+
+        var rejectedBootstrap = await controller.BootstrapAdmin(new BootstrapAdminRequest
+        {
+            SetupToken = "incorrect",
+            Email = "admin@example.test",
+            Password = "password123",
+            FirstName = "Ada",
+            LastName = "Admin"
+        });
+        Assert.Equal(StatusCodes.Status401Unauthorized, Assert.IsType<UnauthorizedObjectResult>(rejectedBootstrap.Result).StatusCode);
+
+        var bootstrap = await controller.BootstrapAdmin(new BootstrapAdminRequest
+        {
+            SetupToken = bootstrapToken,
+            Email = "admin@example.test",
+            Password = "password123",
+            FirstName = "Ada",
+            LastName = "Admin"
+        });
+        Assert.Equal(StatusCodes.Status200OK, Assert.IsType<OkObjectResult>(bootstrap.Result).StatusCode);
+
+        var repeatedBootstrap = await controller.BootstrapAdmin(new BootstrapAdminRequest
+        {
+            SetupToken = bootstrapToken,
+            Email = "second-admin@example.test",
+            Password = "password123",
+            FirstName = "Second",
+            LastName = "Admin"
+        });
+        Assert.Equal(StatusCodes.Status409Conflict, Assert.IsType<ConflictObjectResult>(repeatedBootstrap.Result).StatusCode);
+        Assert.Single(await repository.GetAllAsync());
+        Assert.Equal(UserRoles.Admin, (await repository.GetAllAsync())[0].Role);
+    }
+
+    [Fact]
     public async Task UpdateAsync_RejectsDeactivatingFinalActiveAdmin()
     {
         var service = CreateService();
-        var admin = await service.RegisterAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
+        var admin = await service.BootstrapAdminAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" })
+            ?? throw new InvalidOperationException("Test bootstrap admin was not created.");
 
         var exception = await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateAsync(admin.User.Id, new UpdateUserRequest { Status = UserStatuses.Deactivated }));
 
@@ -147,7 +260,7 @@ public class UserServiceTests
         var repository = new InMemoryUserRepository();
         var emailSender = new CapturingInvitationEmailSender();
         var service = CreateService(repository, emailSender);
-        await service.RegisterAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
+        await service.BootstrapAdminAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
         var invited = await service.InviteAsync(new InviteUserRequest { Email = "agent@example.test", FirstName = "Alex", LastName = "Agent", AssignedWorkplaceIds = [2, 2, 5] });
         var storedUser = await repository.GetByEmailAsync(invited.Email);
         var token = new Uri(emailSender.InvitationUrl!).Fragment["#token=".Length..];
@@ -168,7 +281,7 @@ public class UserServiceTests
         var repository = new InMemoryUserRepository();
         var emailSender = new CapturingInvitationEmailSender();
         var service = CreateService(repository, emailSender);
-        await service.RegisterAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
+        await service.BootstrapAdminAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
         var invited = await service.InviteAsync(new InviteUserRequest { Email = "agent@example.test", FirstName = "Alex", LastName = "Agent" });
         var previousToken = new Uri(emailSender.InvitationUrl!).Fragment["#token=".Length..];
 
@@ -191,7 +304,7 @@ public class UserServiceTests
             var connectionString = $"Data Source={databasePath};Pooling=False";
             var emailSender = new CapturingInvitationEmailSender();
             var inviteService = CreateService(new SqliteUserRepository(connectionString), emailSender);
-            await inviteService.RegisterAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
+            await inviteService.BootstrapAdminAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
             await inviteService.InviteAsync(new InviteUserRequest { Email = "agent@example.test", FirstName = "Alex", LastName = "Agent" });
             var token = new Uri(emailSender.InvitationUrl!).Fragment["#token=".Length..];
 
@@ -291,7 +404,7 @@ public class UserServiceTests
         var emailSender = new CapturingInvitationEmailSender();
         var timeProvider = new TestTimeProvider(DateTimeOffset.UtcNow);
         var service = CreateService(repository, emailSender, timeProvider);
-        await service.RegisterAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
+        await service.BootstrapAdminAsync(new RegisterRequest { Email = "admin@example.test", Password = "password123", FirstName = "Ada", LastName = "Admin" });
         await service.InviteAsync(new InviteUserRequest { Email = "agent@example.test", FirstName = "Alex", LastName = "Agent" });
         var token = new Uri(emailSender.InvitationUrl!).Fragment["#token=".Length..];
         timeProvider.CurrentTime = timeProvider.CurrentTime.AddHours(49);

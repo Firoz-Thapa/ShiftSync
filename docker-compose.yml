@@ -5,6 +5,8 @@ services:
       - "3001:80"
     environment:
       ConnectionStrings__Users: "Data Source=/app/data/shiftsync-users.db"
+      SelfRegistration__Enabled: "${SHIFTSYNC_SELF_REGISTRATION_ENABLED:-false}"
+      Bootstrap__AdminToken: "${SHIFTSYNC_BOOTSTRAP_ADMIN_TOKEN:-}"
       InvitationEmail__FrontendBaseUrl: "${INVITATION_FRONTEND_BASE_URL:-http://localhost:3000}"
       InvitationEmail__Smtp__Host: "${INVITATION_SMTP_HOST:-}"
       InvitationEmail__Smtp__Port: "${INVITATION_SMTP_PORT:-587}"

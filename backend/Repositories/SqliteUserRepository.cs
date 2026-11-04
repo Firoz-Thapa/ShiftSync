@@ -80,17 +80,35 @@ public sealed class SqliteUserRepository : IUserRepository
     public async Task<UserRecord> CreateSelfRegisteredAsync(UserRecord user)
     {
         await using var connection = await OpenConnectionAsync();
-        using var transaction = connection.BeginTransaction();
+        using var transaction = connection.BeginTransaction(deferred: false);
 
+        user.Role = UserRoles.Agent;
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO users (email, first_name, last_name, role, status, assigned_workplace_ids, created_at, updated_at, password_hash, invitation_token_hash, invitation_expires_at)
+            VALUES ($email, $firstName, $lastName, $role, $status, $workplaceIds, $createdAt, $updatedAt, $passwordHash, $invitationTokenHash, $invitationExpiresAt);
+            SELECT last_insert_rowid();
+            """;
+        AddUserParameters(command, user);
+        user.Id = Convert.ToInt32(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture);
+        await transaction.CommitAsync();
+        return Clone(user);
+    }
+
+    public async Task<UserRecord?> CreateBootstrapAdminAsync(UserRecord user)
+    {
+        await using var connection = await OpenConnectionAsync();
+        using var transaction = connection.BeginTransaction(deferred: false);
         await using (var countCommand = connection.CreateCommand())
         {
             countCommand.Transaction = transaction;
             countCommand.CommandText = "SELECT COUNT(*) FROM users;";
-            user.Role = Convert.ToInt32(await countCommand.ExecuteScalarAsync(), CultureInfo.InvariantCulture) == 0
-                ? UserRoles.Admin
-                : UserRoles.Agent;
+            if (Convert.ToInt32(await countCommand.ExecuteScalarAsync(), CultureInfo.InvariantCulture) != 0)
+                return null;
         }
 
+        user.Role = UserRoles.Admin;
         await using var command = connection.CreateCommand();
         command.Transaction = transaction;
         command.CommandText = """

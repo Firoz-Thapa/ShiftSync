@@ -28,10 +28,24 @@ public sealed class InMemoryUserRepository : IUserRepository
         {
             if (_users.Any(x => x.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase)))
                 throw new ArgumentException("An account with this email already exists.");
-            user.Role = _users.Count == 0 ? UserRoles.Admin : UserRoles.Agent;
+            user.Role = UserRoles.Agent;
             user.Id = _nextId++;
             _users.Add(Clone(user));
             return Task.FromResult(Clone(user));
+        }
+    }
+
+    public Task<UserRecord?> CreateBootstrapAdminAsync(UserRecord user)
+    {
+        lock (_lock)
+        {
+            if (_users.Count != 0 || _users.Any(x => x.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase)))
+                return Task.FromResult<UserRecord?>(null);
+
+            user.Role = UserRoles.Admin;
+            user.Id = _nextId++;
+            _users.Add(Clone(user));
+            return Task.FromResult<UserRecord?>(Clone(user));
         }
     }
 

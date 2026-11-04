@@ -42,6 +42,25 @@ public sealed class UserService : IUserService
         return BuildAuthResult(await _repository.CreateSelfRegisteredAsync(user));
     }
 
+    public async Task<AuthResultDto?> BootstrapAdminAsync(RegisterRequest request)
+    {
+        ValidateRegistration(request.Email, request.Password, request.FirstName, request.LastName);
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var user = new UserRecord
+        {
+            Email = request.Email.Trim(),
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            Role = UserRoles.Admin,
+            Status = UserStatuses.Active,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+        var created = await _repository.CreateBootstrapAdminAsync(user);
+        return created is null ? null : BuildAuthResult(created);
+    }
+
     public async Task<AuthResultDto> LoginAsync(LoginRequest request)
     {
         var user = await _repository.GetByEmailAsync(request.Email.Trim()) ?? throw new UnauthorizedAccessException("Invalid email or password.");

@@ -73,6 +73,8 @@ http://localhost:3001/api/emails/callback/outlook
 
 The app requests read-only email access. Connected accounts, OAuth tokens, and synced messages currently live in memory and are lost when the backend restarts; this integration is for development until persistent, protected token storage is added. User accounts are stored in SQLite and persist across backend restarts. See [backend/PERSISTENCE.md](./backend/PERSISTENCE.md) for storage details.
 
+Public registration is enabled by default only in the Development environment, and public registrations always receive the agent role. In production, create the initial administrator through the one-time bootstrap endpoint instead. Configure `Bootstrap__AdminToken` with a randomly generated secret of at least 32 bytes, then POST to `/api/auth/bootstrap-admin` with `setupToken`, `email`, `password`, `firstName`, and `lastName`. Bootstrap succeeds only while the user database is empty; remove the bootstrap secret from the environment after it succeeds. For Docker Compose, use `SHIFTSYNC_BOOTSTRAP_ADMIN_TOKEN`. Public registration can be explicitly enabled with `SelfRegistration__Enabled=true` (or `SHIFTSYNC_SELF_REGISTRATION_ENABLED=true` in Compose), but registrations still cannot create admins.
+
 To send team invitations, configure SMTP and the frontend URL on the backend using environment variables:
 
 ```text
