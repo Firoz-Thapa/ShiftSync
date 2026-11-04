@@ -6,6 +6,6 @@ Docker Compose stores the user database in the `shiftsync-data` named volume. It
 
 Other application data and email OAuth data are still held in memory and will be lost when the backend restarts. Use a managed persistent database and protected token storage for production deployments.
 
-Team invitations require backend SMTP settings and `InvitationEmail__FrontendBaseUrl`; see the README for the required environment variables. Invitation tokens are random, single-use, expire after 48 hours, and are stored only as SHA-256 hashes. The public acceptance endpoint accepts a token and password, never an email address as proof of identity.
+Team invitations require backend SMTP settings and `InvitationEmail__FrontendBaseUrl`; see the README for the required environment variables. Use an HTTPS frontend URL outside Development. HTTP is accepted only for loopback URLs while the backend runs in Development. Invitation tokens are random, single-use, expire after 48 hours, and are stored only as SHA-256 hashes. The public acceptance endpoint accepts a token and password, never an email address as proof of identity.
 
 Public registration defaults to disabled outside Development and cannot create administrators. Use the one-time `/api/auth/bootstrap-admin` endpoint with a strong `Bootstrap__AdminToken` to create the first administrator in an empty database. Remove the bootstrap secret after setup.

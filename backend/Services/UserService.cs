@@ -5,6 +5,7 @@ using System.Text;
 using backend.Models;
 using backend.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Services;
@@ -16,19 +17,22 @@ public sealed class UserService : IUserService
     private readonly IConfiguration _configuration;
     private readonly IInvitationEmailSender _invitationEmailSender;
     private readonly TimeProvider _timeProvider;
+    private readonly IHostEnvironment _environment;
 
     public UserService(
         IUserRepository repository,
         IPasswordHasher<UserRecord> passwordHasher,
         IConfiguration configuration,
         IInvitationEmailSender invitationEmailSender,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IHostEnvironment environment)
     {
         _repository = repository;
         _passwordHasher = passwordHasher;
         _configuration = configuration;
         _invitationEmailSender = invitationEmailSender;
         _timeProvider = timeProvider;
+        _environment = environment;
     }
 
     public async Task<AuthResultDto> RegisterAsync(RegisterRequest request)
@@ -89,9 +93,7 @@ public sealed class UserService : IUserService
         ValidateUserFields(request.Email, request.FirstName, request.LastName);
         if (request.Role is not (UserRoles.Admin or UserRoles.Agent)) throw new ArgumentException("Role must be admin or agent.");
         if (await _repository.GetByEmailAsync(request.Email.Trim()) is not null) throw new ArgumentException("An account with this email already exists.");
-        var frontendUrl = _configuration["InvitationEmail:FrontendBaseUrl"];
-        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var baseUri) || baseUri.Scheme is not ("http" or "https"))
-            throw new InvalidOperationException("Invitation frontend base URL must be configured.");
+        var baseUri = GetInvitationFrontendBaseUri();
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var (token, tokenHash) = CreateInvitationToken();
@@ -129,9 +131,7 @@ public sealed class UserService : IUserService
         if (user is null) return null;
         if (user.Status != UserStatuses.Invited) throw new ArgumentException("Only pending invitations can be resent.");
 
-        var frontendUrl = _configuration["InvitationEmail:FrontendBaseUrl"];
-        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var baseUri) || baseUri.Scheme is not ("http" or "https"))
-            throw new InvalidOperationException("Invitation frontend base URL must be configured.");
+        var baseUri = GetInvitationFrontendBaseUri();
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var (token, tokenHash) = CreateInvitationToken();
@@ -178,6 +178,20 @@ public sealed class UserService : IUserService
         var invitationUrl = new Uri(baseUri, $"accept-invitation#token={Uri.EscapeDataString(token)}").ToString();
         return _invitationEmailSender.SendInvitationAsync(user.Email, $"{user.FirstName} {user.LastName}".Trim(), invitationUrl);
     }
+
+    private Uri GetInvitationFrontendBaseUri()
+    {
+        var frontendUrl = _configuration["InvitationEmail:FrontendBaseUrl"];
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var baseUri) ||
+            (baseUri.Scheme != Uri.UriSchemeHttps &&
+             !(baseUri.Scheme == Uri.UriSchemeHttp && _environment.IsDevelopment() && baseUri.IsLoopback)))
+        {
+            throw new InvalidOperationException("Invitation frontend base URL must use HTTPS. HTTP is allowed only for localhost in Development.");
+        }
+
+        return baseUri;
+    }
+
     private string CreateToken(UserRecord user)
     {
         var key = _configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new InvalidOperationException("JWT_KEY must be configured.");

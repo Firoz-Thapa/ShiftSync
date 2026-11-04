@@ -51,13 +51,15 @@ public class UserServiceTests
     private static UserService CreateService(
         IUserRepository? repository = null,
         IInvitationEmailSender? invitationEmailSender = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        string frontendBaseUrl = "https://shiftsync.example",
+        string environmentName = "Production")
     {
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Jwt:Key"] = "test-key-that-is-long-enough-for-hmac-signing",
-                ["InvitationEmail:FrontendBaseUrl"] = "https://shiftsync.example"
+                ["InvitationEmail:FrontendBaseUrl"] = frontendBaseUrl
             })
             .Build();
         return new UserService(
@@ -65,7 +67,8 @@ public class UserServiceTests
             new PasswordHasher<UserRecord>(),
             config,
             invitationEmailSender ?? new CapturingInvitationEmailSender(),
-            timeProvider ?? TimeProvider.System);
+            timeProvider ?? TimeProvider.System,
+            new TestWebHostEnvironment { EnvironmentName = environmentName });
     }
 
     [Fact]
@@ -196,7 +199,8 @@ public class UserServiceTests
             new PasswordHasher<UserRecord>(),
             configuration,
             new CapturingInvitationEmailSender(),
-            TimeProvider.System);
+            TimeProvider.System,
+            new TestWebHostEnvironment());
         var controller = new AuthController(service, configuration, new TestWebHostEnvironment());
 
         var registration = await controller.Register(new RegisterRequest
@@ -273,6 +277,37 @@ public class UserServiceTests
         Assert.NotEqual(token, storedUser?.InvitationTokenHash);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             service.AcceptInvitationAsync(new AcceptInvitationRequest { Token = token, Password = "password123" }));
+    }
+
+    [Fact]
+    public async Task InviteAsync_RejectsHttpFrontendUrlOutsideDevelopment()
+    {
+        var service = CreateService(frontendBaseUrl: "http://shiftsync.example");
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.InviteAsync(new InviteUserRequest
+            {
+                Email = "agent@example.test",
+                FirstName = "Alex",
+                LastName = "Agent"
+            }));
+
+        Assert.Contains("must use HTTPS", exception.Message);
+    }
+
+    [Fact]
+    public async Task InviteAsync_AllowsLoopbackHttpFrontendUrlInDevelopment()
+    {
+        var service = CreateService(frontendBaseUrl: "http://localhost:3000", environmentName: Environments.Development);
+
+        var invitation = await service.InviteAsync(new InviteUserRequest
+        {
+            Email = "agent@example.test",
+            FirstName = "Alex",
+            LastName = "Agent"
+        });
+
+        Assert.Equal(UserStatuses.Invited, invitation.Status);
     }
 
     [Fact]

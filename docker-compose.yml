@@ -4,6 +4,7 @@ services:
     ports:
       - "3001:80"
     environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
       ConnectionStrings__Users: "Data Source=/app/data/shiftsync-users.db"
       SelfRegistration__Enabled: "${SHIFTSYNC_SELF_REGISTRATION_ENABLED:-false}"
       Bootstrap__AdminToken: "${SHIFTSYNC_BOOTSTRAP_ADMIN_TOKEN:-}"

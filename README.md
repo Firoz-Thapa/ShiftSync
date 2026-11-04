@@ -84,10 +84,11 @@ InvitationEmail__Smtp__UserName
 InvitationEmail__Smtp__Password
 InvitationEmail__Smtp__FromAddress
 InvitationEmail__Smtp__FromName=ShiftSync
-InvitationEmail__FrontendBaseUrl=http://localhost:3000
+InvitationEmail__FrontendBaseUrl=https://your-frontend.example.com
 ```
 
 Port 587 uses STARTTLS; port 465 uses implicit TLS. Invitation links contain a single-use token that expires after 48 hours; only its SHA-256 hash is stored.
+Use an HTTPS frontend URL outside Development. HTTP is accepted only for loopback URLs such as `http://localhost:3000` while the backend runs in Development. Docker Compose defaults to Development for local use; set `ASPNETCORE_ENVIRONMENT=Production` when deploying and configure an HTTPS invitation frontend URL.
 For Docker Compose, set the corresponding `INVITATION_SMTP_HOST`, `INVITATION_SMTP_PORT`, `INVITATION_SMTP_USERNAME`, `INVITATION_SMTP_PASSWORD`, `INVITATION_SMTP_FROM_ADDRESS`, `INVITATION_SMTP_FROM_NAME`, and `INVITATION_FRONTEND_BASE_URL` variables in the environment or an uncommitted `.env` file.
 
 Weather API access is made by the backend. Configure `Weather__ApiKey` as a backend environment variable; do not use a `REACT_APP_` variable for this key because frontend environment variables are bundled into public browser code.
