@@ -20,6 +20,7 @@ backend/data/
 # .NET generated build artifacts
 **/bin/
 **/obj/
+*.lscache
 
 # IDE
 .vscode/
