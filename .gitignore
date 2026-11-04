@@ -15,6 +15,7 @@ obj/
 dist/
 build/
 TestResults/
+backend/data/
 
 # .NET generated build artifacts
 **/bin/

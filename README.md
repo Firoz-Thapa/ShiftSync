@@ -71,7 +71,7 @@ http://localhost:3001/api/emails/callback/gmail
 http://localhost:3001/api/emails/callback/outlook
 ```
 
-The app requests read-only email access. Connected accounts, OAuth tokens, and synced messages currently live in memory and are lost when the backend restarts; this integration is for development until persistent, protected token storage is added.
+The app requests read-only email access. Connected accounts, OAuth tokens, and synced messages currently live in memory and are lost when the backend restarts; this integration is for development until persistent, protected token storage is added. User accounts are stored in SQLite and persist across backend restarts. See [backend/PERSISTENCE.md](./backend/PERSISTENCE.md) for storage details.
 
 Weather API access is made by the backend. Configure `Weather__ApiKey` as a backend environment variable; do not use a `REACT_APP_` variable for this key because frontend environment variables are bundled into public browser code.
 
@@ -110,7 +110,7 @@ The Azure deployment workflow requires a `JWT_KEY` repository secret containing 
 
 - **Frontend**: React, TypeScript, CSS-in-JS
 - **Backend**: ASP.NET Core, C#
-- **Database**: TBD (.NET data layer pending)
+- **Database**: SQLite for user accounts; other application data is currently in memory
 - **Charts**: Recharts
 - **Authentication**: JWT
 - **Containerization**: Docker, Docker Compose

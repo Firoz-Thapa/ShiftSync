@@ -8,12 +8,12 @@ namespace backend.Tests;
 
 public class UserServiceTests
 {
-    private static UserService CreateService()
+    private static UserService CreateService(IUserRepository? repository = null)
     {
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { ["Jwt:Key"] = "test-key-that-is-long-enough-for-hmac-signing" })
             .Build();
-        return new UserService(new InMemoryUserRepository(), new PasswordHasher<UserRecord>(), config);
+        return new UserService(repository ?? new InMemoryUserRepository(), new PasswordHasher<UserRecord>(), config);
     }
 
     [Fact]
@@ -27,6 +27,42 @@ public class UserServiceTests
         Assert.Equal(UserStatuses.Active, first.User.Status);
         Assert.Equal(UserRoles.Agent, second.User.Role);
         Assert.NotEmpty(first.Token);
+    }
+
+    [Fact]
+    public async Task LoginAsync_UserCanLogInAfterRepositoryIsRecreated()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"shiftsync-users-{Guid.NewGuid():N}.db");
+        try
+        {
+            var connectionString = $"Data Source={databasePath};Pooling=False";
+            var registrationService = CreateService(new SqliteUserRepository(connectionString));
+            await registrationService.RegisterAsync(new RegisterRequest
+            {
+                Email = "persisted@example.test",
+                Password = "password123",
+                FirstName = "Persisted",
+                LastName = "User"
+            });
+
+            var loginService = CreateService(new SqliteUserRepository(connectionString));
+            var result = await loginService.LoginAsync(new LoginRequest
+            {
+                Email = "persisted@example.test",
+                Password = "password123"
+            });
+
+            Assert.Equal("persisted@example.test", result.User.Email);
+            Assert.Equal(UserRoles.Admin, result.User.Role);
+        }
+        finally
+        {
+            foreach (var suffix in new[] { "", "-shm", "-wal" })
+            {
+                var file = databasePath + suffix;
+                if (File.Exists(file)) File.Delete(file);
+            }
+        }
     }
 
     [Fact]

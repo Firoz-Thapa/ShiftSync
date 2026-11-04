@@ -3,6 +3,10 @@ services:
     build: ./backend
     ports:
       - "3001:80"
+    environment:
+      ConnectionStrings__Users: "Data Source=/app/data/shiftsync-users.db"
+    volumes:
+      - shiftsync-data:/app/data
     networks:
       - shiftsync-network
 
@@ -18,3 +22,6 @@ services:
 networks:
   shiftsync-network:
     driver: bridge
+
+volumes:
+  shiftsync-data:

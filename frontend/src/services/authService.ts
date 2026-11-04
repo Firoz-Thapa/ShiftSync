@@ -22,7 +22,9 @@ class AuthService {
     this.api.interceptors.request.use(
       (config) => {
         const token = this.getToken();
-        if (token) {
+        const isPublicAuthRequest = ['/auth/login', '/auth/register', '/auth/accept-invitation']
+          .some((path) => config.url?.endsWith(path));
+        if (token && !isPublicAuthRequest) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -34,9 +36,10 @@ class AuthService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        const isPublicAuthRequest = ['/auth/login', '/auth/register', '/auth/accept-invitation']
+          .some((path) => error.config?.url?.endsWith(path));
+        if (error.response?.status === 401 && !isPublicAuthRequest) {
           this.logout();
-          // Redirect to login if not already there
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }
@@ -51,7 +54,9 @@ class AuthService {
       const response = await this.api.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
       return this.saveAuthResponse(response);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(error.response?.data?.message || (error.request
+        ? 'Unable to reach the server. Make sure the backend is running.'
+        : error.message) || 'Login failed');
     }
   }
 
@@ -60,7 +65,9 @@ class AuthService {
       const response = await this.api.post<ApiResponse<AuthResponse>>('/auth/register', data);
       return this.saveAuthResponse(response);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      throw new Error(error.response?.data?.message || (error.request
+        ? 'Unable to reach the server. Make sure the backend is running.'
+        : error.message) || 'Registration failed');
     }
   }
 
