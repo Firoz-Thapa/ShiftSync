@@ -1,13 +1,11 @@
-# Persistence Plan
+# Persistence
 
-The current backend keeps development data in static in-memory collections. This is acceptable for local API contract work, but it should not be used for production or multi-user testing.
+User accounts are stored in SQLite at `backend/data/shiftsync-users.db` when running the backend directly. The database is created automatically. Set `ConnectionStrings__Users` or `ConnectionStrings:Users` to change the database location.
 
-Recommended next step:
+Docker Compose stores the user database in the `shiftsync-data` named volume. It survives container rebuilds and `docker compose down`; `docker compose down -v` removes the volume and its account data.
 
-1. Add Entity Framework Core with a relational database provider.
-2. Create entities for users, workplaces, shifts, study sessions, email accounts, and email messages.
-3. Replace controller static lists with scoped repository or DbContext access.
-4. Add migrations and seed data for local development.
-5. Store OAuth tokens encrypted or in a managed secret store, not in plain database columns.
+Other application data and email OAuth data are still held in memory and will be lost when the backend restarts. Use a managed persistent database and protected token storage for production deployments.
 
-Until that work lands, data will reset whenever the backend process restarts.
+Team invitations require backend SMTP settings and `InvitationEmail__FrontendBaseUrl`; see the README for the required environment variables. Use an HTTPS frontend URL outside Development. HTTP is accepted only for loopback URLs while the backend runs in Development. Invitation tokens are random, single-use, expire after 48 hours, and are stored only as SHA-256 hashes. The public acceptance endpoint accepts a token and password, never an email address as proof of identity.
+
+Public registration defaults to disabled outside Development and cannot create administrators. Use the one-time `/api/auth/bootstrap-admin` endpoint with a strong `Bootstrap__AdminToken` to create the first administrator in an empty database. Remove the bootstrap secret after setup.

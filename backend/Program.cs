@@ -30,8 +30,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.IPasswordHasher<backend.Models.UserRecord>, Microsoft.AspNetCore.Identity.PasswordHasher<backend.Models.UserRecord>>();
-builder.Services.AddSingleton<backend.Repositories.IUserRepository, backend.Repositories.InMemoryUserRepository>();
+builder.Services.AddSingleton(TimeProvider.System);
+var userConnectionString = builder.Configuration.GetConnectionString("Users")
+    ?? $"Data Source={Path.Combine(builder.Environment.ContentRootPath, "data", "shiftsync-users.db")}";
+builder.Services.AddSingleton<backend.Repositories.IUserRepository>(_ => new backend.Repositories.SqliteUserRepository(userConnectionString));
 builder.Services.AddScoped<backend.Services.IUserService, backend.Services.UserService>();
+builder.Services.AddScoped<backend.Services.IInvitationEmailSender, backend.Services.SmtpInvitationEmailSender>();
 // Register in-memory repository and service for workplaces
 builder.Services.AddSingleton<backend.Repositories.IWorkplaceRepository, backend.Repositories.InMemoryWorkplaceRepository>();
 builder.Services.AddScoped<backend.Services.IWorkplaceService, backend.Services.WorkplaceService>();

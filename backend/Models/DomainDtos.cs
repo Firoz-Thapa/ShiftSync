@@ -29,10 +29,21 @@ public class UserDto
 public sealed class UserRecord : UserDto
 {
     public string PasswordHash { get; set; } = string.Empty;
+    public string? InvitationTokenHash { get; set; }
+    public DateTime? InvitationExpiresAt { get; set; }
 }
 
 public sealed class RegisterRequest
 {
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+}
+
+public sealed class BootstrapAdminRequest
+{
+    public string SetupToken { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
@@ -47,7 +58,7 @@ public sealed class LoginRequest
 
 public sealed class AcceptInvitationRequest
 {
-    public string Email { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 

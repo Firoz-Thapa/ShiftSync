@@ -15,6 +15,7 @@ import { Analytics } from './pages/Analytics/Analytics';
 import { Profile } from './pages/Profile/Profile';
 import { Login } from './pages/Login/Login';
 import { Register } from './pages/Register/Register';
+import { AcceptInvitation } from './pages/AcceptInvitation/AcceptInvitation';
 import { Email } from './pages/Email';
 import { ActivityLog } from './pages/ActivityLog';
 import LandingPage from './components/LandingPage/LandingPage';
@@ -43,6 +44,10 @@ const AppRoutes = () => {
       <Route 
         path={ROUTES.REGISTER} 
         element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Register />} 
+      />
+      <Route
+        path={ROUTES.ACCEPT_INVITATION}
+        element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <AcceptInvitation />}
       />
 
       <Route 
