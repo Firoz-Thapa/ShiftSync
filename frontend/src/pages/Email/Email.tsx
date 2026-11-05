@@ -49,7 +49,6 @@ export const EmailPage = () => {
 
   const loadAccounts = async () => {
     try {
-      setLoading(true);
       const data = await emailService.getConnectedAccounts();
       setAccounts(data);
       if (data.length > 0 && !selectedAccountId) {
@@ -57,8 +56,6 @@ export const EmailPage = () => {
       }
     } catch (error) {
       setEmailError(error instanceof Error ? error.message : 'Failed to load email accounts.');
-    } finally {
-      setLoading(false);
     }
   };
 

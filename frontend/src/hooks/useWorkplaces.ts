@@ -14,7 +14,6 @@ const loadWorkplacesFromStorage = (): Workplace[] => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      console.log('📂 Loaded workplaces from localStorage:', parsed);
       return parsed;
     }
   } catch (error) {
@@ -22,7 +21,6 @@ const loadWorkplacesFromStorage = (): Workplace[] => {
   }
   
   // If nothing in storage, return empty array
-  console.log('💾 No stored workplaces found, starting fresh with empty array');
   return DEFAULT_WORKPLACES;
 };
 
@@ -30,7 +28,6 @@ const loadWorkplacesFromStorage = (): Workplace[] => {
 const saveWorkplacesToStorage = (workplaces: Workplace[]) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(workplaces));
-    console.log('💾 Saved workplaces to localStorage:', workplaces);
   } catch (error) {
     console.error('❌ Error saving workplaces to localStorage:', error);
     throw error;
@@ -44,7 +41,6 @@ export const useWorkplaces = () => {
 
   const fetchWorkplaces = async () => {
     try {
-      console.log('🔄 fetchWorkplaces called');
       setIsLoading(true);
       setError(null);
       
@@ -53,10 +49,7 @@ export const useWorkplaces = () => {
       
       // Load from localStorage
       const loadedWorkplaces = loadWorkplacesFromStorage();
-      console.log('📦 Setting workplaces state to:', loadedWorkplaces);
       setWorkplaces(loadedWorkplaces);
-      
-      console.log('✅ Fetched workplaces:', loadedWorkplaces);
     } catch (err: any) {
       console.error('❌ Error fetching workplaces:', err);
       setError(err.message || 'Failed to fetch workplaces');
@@ -67,8 +60,6 @@ export const useWorkplaces = () => {
 
   const createWorkplace = async (data: WorkplaceFormData): Promise<Workplace> => {
     try {
-      console.log('🏗️ Creating workplace with data:', data);
-      
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -100,14 +91,8 @@ export const useWorkplaces = () => {
       saveWorkplacesToStorage(updatedWorkplaces);
       activityService.recordActivity('created', 'workplace', newWorkplace.name);
       
-      console.log('New workplace created:', newWorkplace);
-      console.log('All workplaces now:', updatedWorkplaces);
-      console.log('Length:', updatedWorkplaces.length);
-      
       // Update state
       setWorkplaces(updatedWorkplaces);
-      
-      console.log('Create workplace complete');
       
       return newWorkplace;
     } catch (err: any) {
@@ -177,15 +162,8 @@ export const useWorkplaces = () => {
   };
 
   useEffect(() => {
-    console.log('useWorkplaces mounted, calling fetchWorkplaces');
     fetchWorkplaces();
   }, []);
-
-  // Debug log whenever workplaces state changes
-  useEffect(() => {
-    console.log('Workplaces state changed:', workplaces);
-    console.log('Workplaces count:', workplaces.length);
-  }, [workplaces]);
 
   return {
     workplaces,
