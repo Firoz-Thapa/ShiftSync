@@ -18,6 +18,7 @@ interface NotepadModalProps {
 }
 
 const STORAGE_KEY = 'shiftsync_quick_notes';
+const MAX_NOTE_CHARACTERS = 5000;
 
 const QUILL_MODULES = {
   toolbar: [
@@ -83,6 +84,16 @@ export const NotepadModal = ({ isOpen, onClose }: NotepadModalProps) => {
     const div = document.createElement('div');
     div.innerHTML = html;
     return (div.textContent ?? '').trim().length === 0;
+  };
+
+  const handleTextChange = (html: string, _delta: unknown, _source: string, editor: { getLength: () => number; deleteText: (index: number, length: number, source: string) => void; getHTML: () => string }) => {
+    const length = editor.getLength() - 1; // Quill includes a trailing newline.
+    if (length > MAX_NOTE_CHARACTERS) {
+      editor.deleteText(MAX_NOTE_CHARACTERS, length - MAX_NOTE_CHARACTERS, 'silent');
+      setText(editor.getHTML());
+      return;
+    }
+    setText(html);
   };
 
   const handleSave = () => {
@@ -181,14 +192,14 @@ export const NotepadModal = ({ isOpen, onClose }: NotepadModalProps) => {
             <ReactQuill
               theme="snow"
               value={text}
-              onChange={setText}
+              onChange={handleTextChange}
               modules={QUILL_MODULES}
               formats={QUILL_FORMATS}
               placeholder="Write your note here..."
             />
           </div>
-          <div className={`notepad-char-count ${charCount > 900 ? 'notepad-char-count--warning' : ''}`}>
-            {charCount} / 1000
+          <div className={`notepad-char-count ${charCount > MAX_NOTE_CHARACTERS * 0.9 ? 'notepad-char-count--warning' : ''}`}>
+            {charCount} / {MAX_NOTE_CHARACTERS}
           </div>
         </div>
       ) : (
