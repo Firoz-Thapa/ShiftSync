@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout';
-import { Card, Button, Modal, Loading } from '../../components/common';
+import { Card, Button, Modal, Loading, ToastContainer, useToast } from '../../components/common';
+import { ROUTES } from '../../constants/routes';
 import { ShiftForm } from '../../components/forms/ShiftForm';
 import { StudyForm } from '../../components/forms/StudyForm';
 import { useShifts } from '../../hooks/useShifts';
@@ -24,9 +26,30 @@ interface CalendarEvent {
   data: any;
 }
 
+interface ScheduleLocationState {
+  importedCount?: number;
+  focusDate?: string;
+}
+
 export const Schedule = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const importState = location.state as ScheduleLocationState | null;
+  const { toasts, success, removeToast } = useToast();
   const [viewMode, setViewMode] = useState<ViewMode>('week');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() =>
+    importState?.focusDate ? new Date(importState.focusDate) : new Date()
+  );
+
+  useEffect(() => {
+    if (importState?.importedCount) {
+      const count = importState.importedCount;
+      success('Shifts imported', `${count} shift${count === 1 ? '' : 's'} added to your schedule.`);
+      // Clear the state so a refresh doesn't show the toast again.
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [modalType, setModalType] = useState<'shift' | 'study' | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
@@ -167,6 +190,13 @@ export const Schedule = () => {
         subtitle="View and manage your shifts and study sessions"
         actions={
           <div className="schedule-header-actions">
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => navigate(ROUTES.SHIFT_IMPORT)}
+            >
+              📥 Import Shifts
+            </Button>
             <Button 
               variant="secondary" 
               size="small" 
@@ -283,6 +313,8 @@ export const Schedule = () => {
       >
         {selectedEvent && <EventDetails event={selectedEvent} onClose={closeModals} />}
       </Modal>
+
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );
 };

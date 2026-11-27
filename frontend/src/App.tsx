@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard/Dashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { UserManagement } from './pages/UserManagement';
 import { Schedule } from './pages/Schedule/Schedule';
+import { ShiftImport } from './pages/ShiftImport/ShiftImport';
 import { Workplaces } from './pages/Workplaces/Workplaces';
 import { NoticeBoard } from './pages/NoticeBoard/NoticeBoard';
 import { Analytics } from './pages/Analytics/Analytics';
@@ -83,6 +84,14 @@ const AppRoutes = () => {
             <Schedule />
           </Layout>
         ) : <Navigate to={ROUTES.LOGIN} replace />} 
+      />
+      <Route
+        path={ROUTES.SHIFT_IMPORT}
+        element={user ? (
+          <Layout>
+            <ShiftImport />
+          </Layout>
+        ) : <Navigate to={ROUTES.LOGIN} replace />}
       />
       <Route 
         path={ROUTES.WORKPLACES} 

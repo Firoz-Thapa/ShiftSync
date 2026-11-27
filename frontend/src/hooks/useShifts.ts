@@ -87,6 +87,47 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
     }
   };
 
+  const createShifts = async (items: ShiftFormData[]): Promise<Shift[]> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const storedWorkplaces = localStorage.getItem('shiftsync_workplaces');
+      const workplaces = storedWorkplaces ? JSON.parse(storedWorkplaces) : [];
+      const storedShifts = localStorage.getItem('shiftsync_shifts');
+      const existingShifts: Shift[] = storedShifts ? JSON.parse(storedShifts) : [];
+
+      const now = new Date().toISOString();
+      const baseId = Math.max(Date.now(), ...existingShifts.map(s => s.id + 1));
+
+      const newShifts: Shift[] = items.map((data, index) => ({
+        id: baseId + index,
+        userId: 1,
+        workplaceId: data.workplaceId,
+        workplace: workplaces.find((w: any) => w.id === data.workplaceId),
+        title: data.title,
+        startDatetime: data.startDatetime,
+        endDatetime: data.endDatetime,
+        breakDuration: data.breakDuration || 0,
+        notes: data.notes,
+        isConfirmed: data.isConfirmed || false,
+        reminderEnabled: data.reminderEnabled || false,
+        reminderMinutesBefore: data.reminderEnabled ? data.reminderMinutesBefore ?? 15 : null,
+        createdAt: now,
+        updatedAt: now,
+      }));
+
+      localStorage.setItem('shiftsync_shifts', JSON.stringify([...existingShifts, ...newShifts]));
+      activityService.recordActivity('created', 'shift', `${newShifts.length} imported shift(s)`);
+
+      setShifts(prev => [...prev, ...newShifts]);
+
+      return newShifts;
+    } catch (err: any) {
+      setError(err.message || 'Failed to import shifts');
+      throw err;
+    }
+  };
+
   const updateShift = async (id: number, data: Partial<ShiftFormData>): Promise<Shift> => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -247,6 +288,7 @@ export const useShifts = (dateRange?: { startDate: string; endDate: string }) =>
     error,
     fetchShifts,
     createShift,
+    createShifts,
     updateShift,
     deleteShift,
     confirmShift,
