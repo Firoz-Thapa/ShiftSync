@@ -19,6 +19,7 @@ import { AcceptInvitation } from './pages/AcceptInvitation/AcceptInvitation';
 import { Email } from './pages/Email';
 import { ActivityLog } from './pages/ActivityLog';
 import LandingPage from './components/LandingPage/LandingPage';
+import { Contact } from './pages/Contact/Contact';
 import { ShiftReminderNotifications } from './components/common/ShiftReminderNotifications';
 
 import './styles/globals.css';
@@ -37,6 +38,7 @@ const AppRoutes = () => {
         path={ROUTES.HOME} 
         element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <LandingPage />} 
       />
+      <Route path={ROUTES.CONTACT} element={<Contact />} />
       <Route 
         path={ROUTES.LOGIN} 
         element={user ? <Navigate to={ROUTES.DASHBOARD} replace /> : <Login />} 

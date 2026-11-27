@@ -13,6 +13,7 @@ export const LandingPageNavbar = () => {
         <a href="#features">Features</a>
         <a href="#workflow">Workflow</a>
         <a href="#about">About</a>
+        <Link to={ROUTES.CONTACT}>Contact</Link>
       </nav>
 
       <div className="landing-actions">

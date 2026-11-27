@@ -152,6 +152,7 @@ export default function LandingPage() {
             Ready to simplify scheduling? <Link to={ROUTES.REGISTER}>Create your workspace</Link>
             {' '}or <Link to={ROUTES.LOGIN}>log in</Link>.
           </p>
+          <p><Link to={ROUTES.CONTACT}>Contact us</Link></p>
         </footer>
       </div>
     </div>
