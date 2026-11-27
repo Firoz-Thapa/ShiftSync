@@ -5,6 +5,7 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin',
   USER_MANAGEMENT: '/admin/users',
   SCHEDULE: '/schedule',
+  SHIFT_IMPORT: '/schedule/import',
   WORKPLACES: '/workplaces',
   NOTICE_BOARD: '/notice-board/:workplaceId',
   ANALYTICS: '/analytics',
